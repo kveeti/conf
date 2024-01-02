@@ -21,8 +21,21 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 	pattern = '*',
 })
 
-vim.keymap.set("v", "<leader>r", "\"hy:%s/<C-r>h//g<left><left>")
+-- search and replace
+vim.keymap.set("n", "<leader>r", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
+
+-- move line
 vim.keymap.set("v", "K", ":m '>-2<CR>gv=gv")
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
-vim.keymap.set("i", "kj", "<Esc>")
+
 vim.keymap.set("i", "jk", "<Esc>")
+vim.keymap.set("n", "<leader>w", ":w<CR>")
+
+-- center cursor
+vim.keymap.set("n", "<C-d>", "<C-d>zz")
+vim.keymap.set("n", "<C-u>", "<C-u>zz")
+vim.keymap.set("n", "n", "nzzzv")
+vim.keymap.set("n", "N", "Nzzzv")
+
+-- better paste
+vim.keymap.set("x", "<leader>p", [["_dP]])

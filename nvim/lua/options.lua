@@ -40,3 +40,6 @@ vim.o.termguicolors = true
 
 vim.o.shiftwidth = 4
 vim.o.tabstop = 4
+
+-- Scroll off
+vim.o.scrolloff = 8
