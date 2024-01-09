@@ -43,3 +43,6 @@ vim.o.tabstop = 4
 
 -- Scroll off
 vim.o.scrolloff = 8
+
+-- hidden
+vim.o.hidden = true
