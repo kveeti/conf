@@ -65,7 +65,6 @@ return {
 			htmx                  = {},
 			jsonls                = {},
 			tailwindcss           = {},
-			tsserver              = {},
 		}
 
 		-- Setup neovim lua configuration
