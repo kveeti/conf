@@ -1,5 +1,6 @@
 vim.o.mouse = 'a'
 vim.opt.guicursor = ""
+vim.o.hlsearch = false
 
 vim.wo.number = true
 vim.o.relativenumber = true
@@ -7,7 +8,6 @@ vim.wo.signcolumn = 'yes'
 vim.o.wrap = false
 
 vim.o.clipboard = 'unnamedplus'
-
 
 vim.o.updatetime = 50
 vim.o.timeoutlen = 300
