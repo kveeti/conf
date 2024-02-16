@@ -23,6 +23,7 @@
   "nvim-ts-autotag": { "branch": "main", "commit": "8515e48a277a2f4947d91004d9aa92c29fdc5e18" },
   "nvim-web-devicons": { "branch": "master", "commit": "cff25ce621e6d15fae0b0bfe38c00be50ce38468" },
   "plenary.nvim": { "branch": "master", "commit": "55d9fe89e33efd26f532ef20223e5f9430c8b0c0" },
+  "rose-pine": { "branch": "main", "commit": "f977eeba34b030b37f93ece2fbd792477606203b" },
   "telescope-fzf-native.nvim": { "branch": "main", "commit": "6c921ca12321edaa773e324ef64ea301a1d0da62" },
   "telescope.nvim": { "branch": "0.1.x", "commit": "d90956833d7c27e73c621a61f20b29fdb7122709" }
 }
