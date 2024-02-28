@@ -19,19 +19,16 @@
   home = {
     username = "kveeti";
     homeDirectory = "/home/kveeti";
-  };
 
-  programs.home-manager.enable = true;
-  programs.git.enable = true;
+    file."./.config/nvim/" = {
+      source = ./nvim;
+      recursive = true;
+    };
 
-  home.file."./.config/nvim/" = {
-    source = ./nvim;
-    recursive = true;
-  };
-
-  home.file."./.config/tmux/" = {
-    source = ./tmux;
-    recursive = true;
+    file."./.config/tmux/" = {
+      source = ./tmux;
+      recursive = true;
+    };
   };
 
   systemd.user.startServices = "sd-switch";

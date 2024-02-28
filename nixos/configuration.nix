@@ -39,12 +39,9 @@
     auto-optimise-store = true;
   };
 
+  boot.initrd.luks.devices."luks-183c14a9-b3a9-4530-a74e-28f64cbf22c0".device = "/dev/disk/by-uuid/183c14a9-b3a9-4530-a74e-28f64cbf22c0";
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  boot.initrd.luks.devices."luks-183c14a9-b3a9-4530-a74e-28f64cbf22c0".device = "/dev/disk/by-uuid/183c14a9-b3a9-4530-a74e-28f64cbf22c0";
-  networking.hostName = "pc";
-  networking.networkmanager.enable = true;
 
   time.timeZone = "Europe/Helsinki";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -65,9 +62,20 @@
     xkbVariant = "";
   };
 
-  services.xserver.enable = true;
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
+  networking = {
+    networkmanager.enable = true;
+    hostName = "pc";
+  };
+
+  services.xserver = {
+    enable = true;
+    displayManager = {
+      sddm.enable = true;
+    };
+    desktopManager = {
+      plasma5.enable = true;
+    };
+  };
 
   sound.enable = true;
   hardware.pulseaudio.enable = false;
@@ -80,41 +88,54 @@
     pulse.enable = true;
   };
 
+  security.sudo = {
+    enable = true;
+    wheelNeedsPassword = false;
+  };
+
   environment.systemPackages = with pkgs; [
     vim
     wget
-    htop
+    curl
+    xclip
     git
-    inputs.home-manager.packages.${pkgs.system}.default
-    gnupg
-    gcc
-    tmux
   ];
 
   virtualisation.docker.enable = true;
 
-  users.users.kveeti = {
-    isNormalUser = true;
-    extraGroups = [ "networkmanager" "wheel" "docker" ];
-    packages = with pkgs; [
-      firefox
-      kate
-      neovim
-      discord
-      easyeffects
-    ];
+  users = {
+    users."kveeti" = {
+      isNormalUser = true;
+      extraGroups = ["networkmanager" "wheel" "docker"];
+      packages = with pkgs; [
+        htop
+        firefox
+        neovim
+        discord
+        easyeffects
+        ripgrep
+        gnupg
+        gcc
+        pkgs.unstable.go_1_22
+        fnm
+        nodejs_21
+        tmux
+        inputs.home-manager.packages.${pkgs.system}.default
+      ];
+    };
   };
 
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
-  };
-
-  programs._1password.enable = true;
-  programs._1password-gui = {
-    enable = true;
-    polkitPolicyOwners = [ "kveeti" ];
+  programs = {
+    steam = {
+      enable = true;
+      #remotePlay.openFirewall = true;
+      #dedicatedServer.openFirewall = true;
+    };
+    _1password.enable = true;
+    _1password-gui = {
+      enable = true;
+      polkitPolicyOwners = ["kveeti"];
+    };
   };
 
   system.stateVersion = "23.11";
