@@ -115,10 +115,6 @@
         easyeffects
         ripgrep
         gnupg
-        gcc
-        pkgs.unstable.go_1_22
-        fnm
-        nodejs_21
         tmux
         inputs.home-manager.packages.${pkgs.system}.default
       ];
