@@ -120,7 +120,6 @@
       packages = with pkgs; [
         htop
         firefox
-        neovim
         discord
         easyeffects
         ripgrep
