@@ -8,4 +8,4 @@ require 'keymaps'
 require 'lazy-setup'
 require 'lazy-plugins'
 
-vim.cmd.colorscheme "rose-pine"
+vim.cmd.colorscheme "catppuccin-frappe"
