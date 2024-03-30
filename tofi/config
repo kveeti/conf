@@ -1,0 +1,31 @@
+font = "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf"
+hint-font = false
+num-results = 4
+
+width = 550
+height = 225
+horizontal = false
+font-size = 14
+prompt-text = "> "
+outline-width = 0
+corner-radius = 16
+border-width = 2
+border-color = #444
+background-color = #000000
+selection-color = #999
+result-spacing = 16
+
+hide-cursor = false
+text-cursor = false
+history = true
+matching-algorithm = fuzzy
+require-match = true
+auto-accept-single = false
+hide-input = false
+hidden-character = "*"
+physical-keybindings = true
+print-index = false
+drun-launch = false
+late-keyboard-init = false
+multi-instance = false
+ascii-input = false
