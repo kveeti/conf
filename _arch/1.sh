@@ -76,14 +76,6 @@ pacman -Syu \
   sway \
   swayidle \
   swaylock \
-  wezterm \
-  neovim \
-  firefox \
-  keepassxc \
-  discord \
-  steam \
-  grim \
-  slurp \
   bluez \
   bluez-utils \
   pavucontrol \
@@ -105,10 +97,30 @@ pacman -Syu \
   ripgrep \
   go \
   docker \
-  docker-compose
+  docker-compose \
+  grim \
+  slurp \
+  gnome-keyring \
+  polkit \
+  wezterm \
+  neovim \
+  firefox \
+  keepassxc \
+  discord \
+  steam \
+  qemu-full \
+  virt-manager \
+  virt-viewer \
+  dnsmasq \
+  bridge-utils \
+  libguestfs \
+  iptables-nft \
+  vde2 \
+  openbsd-netcat
 
-# enable services
+# services
 systemctl enable bluetooth docker
+systemctl start bluetooth docker
 
 # user
 useradd -m -G wheel,docker -s /bin/bash "$username"
@@ -116,3 +128,7 @@ useradd -m -G wheel,docker -s /bin/bash "$username"
 # passwords
 passwd
 passwd "$username"
+
+# run 2.sh as created user
+script_location="$(dirname "$0")"
+su -m "$username" -s /bin/bash -c "$script_location/2.sh"
