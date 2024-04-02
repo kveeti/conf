@@ -107,16 +107,7 @@ pacman -Syu \
   firefox \
   keepassxc \
   discord \
-  steam \
-  qemu-full \
-  virt-manager \
-  virt-viewer \
-  dnsmasq \
-  bridge-utils \
-  libguestfs \
-  iptables-nft \
-  vde2 \
-  openbsd-netcat
+  steam
 
 # services
 systemctl enable bluetooth docker
