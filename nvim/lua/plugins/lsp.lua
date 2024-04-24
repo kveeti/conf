@@ -46,7 +46,6 @@ return {
             cssls                 = {},
             emmet_language_server = {},
             eslint                = {},
-            tsserver              = {},
             jsonls                = {},
             tailwindcss           = {},
             gopls                 = {},
