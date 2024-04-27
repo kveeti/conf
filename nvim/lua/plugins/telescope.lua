@@ -20,6 +20,9 @@ return {
                         ['<C-d>'] = false,
                     },
                 },
+                path_display = {
+                    "filename_first",
+                }
             },
         }
 
