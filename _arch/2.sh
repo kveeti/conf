@@ -51,7 +51,10 @@ pacman -Syu \
   gnome-keyring \
   polkit \
   grim \
-  slurp
+  slurp \
+  openresolv \
+  wireguard-tools \
+  alacritty
 
 # plasma:
 #  plasma \
