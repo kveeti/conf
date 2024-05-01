@@ -96,11 +96,12 @@ systemctl enable bluetooth docker
 systemctl start bluetooth docker
 
 # user
+username=veeti
 useradd -m -G wheel,docker -s /bin/bash "$username"
 echo "$username ALL=(ALL) ALL" > /etc/sudoers.d/10-"$username"
 echo "$username password"
 passwd "$username"
 
-# run 3.sh as created user
 script_location="$(dirname "$0")"
-su -m "$username" -s /bin/bash -c "$script_location/3.sh"
+
+chown "$username":"$username" -R "$script_location/../"

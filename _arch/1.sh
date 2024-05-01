@@ -57,11 +57,13 @@ EOF
 # hostname
 echo "pc" > /etc/hostname
 
-# enable network manager
 systemctl enable NetworkManager
 
 echo "root password"
 passwd
 
-echo "reboot into arch and run 2.sh as root"
-reboot now
+echo "exit chroot, reboot into arch and run 2.sh as root"
+
+echo "exit"
+echo "umount -R /mnt"
+echo "reboot"
