@@ -47,7 +47,6 @@ return {
             tsserver              = {},
             prismals              = {},
             emmet_language_server = {},
-            tsserver              = {},
             eslint                = {},
             jsonls                = {},
             tailwindcss           = {},
