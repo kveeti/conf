@@ -1,0 +1,161 @@
+{
+  // -- some customization --
+  "workbench.preferredDarkColorTheme": "Monochrome Dark Amplified",
+  "workbench.preferredLightColorTheme": "Monochrome Light",
+  "workbench.colorTheme": "Monochrome Dark",
+  "workbench.iconTheme": null,
+  "editor.fontSize": 16,
+  "editor.fontWeight": "400",
+  "editor.fontFamily": "JetBrains Mono",
+  "editor.fontLigatures": false,
+  "editor.cursorBlinking": "solid",
+
+  "editor.lineNumbers": "relative",
+  "editor.minimap.enabled": false,
+  "editor.stickyScroll.enabled": true,
+  "editor.renderWhitespace": "all",
+  "editor.bracketPairColorization.enabled": false,
+  "explorer.compactFolders": false,
+  "breadcrumbs.enabled": false,
+  "window.commandCenter": false,
+  "editor.suggest.showStatusBar": false,
+  "workbench.sideBar.location": "right",
+  "workbench.activityBar.location": "hidden",
+  "workbench.editor.editorActionsLocation": "hidden",
+  "workbench.panel.defaultLocation": "right",
+  "workbench.layoutControl.enabled": false,
+  "zenMode.showTabs": "none",
+  "zenMode.hideStatusBar": true,
+  "zenMode.hideActivityBar": false,
+  "zenMode.fullScreen": false,
+  "workbench.statusBar.visible": false,
+  "window.menuBarVisibility": "hidden",
+  "window.titleBarStyle": "custom",
+  "window.title": "${dirty}${separator}${rootName}",
+  "window.closeWhenEmpty": false,
+  // -- some customization --
+
+  // -- disable tabs --
+  "explorer.openEditors.visible": 1,
+  "explorer.openEditors.minVisible": 1,
+  "workbench.editor.showTabs": "none",
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.limit.enabled": true,
+  "workbench.editor.limit.value": 1,
+  "workbench.editor.limit.perEditorGroup": true,
+  // -- disable tabs --
+
+  // -- autocompletion --
+  "editor.tabCompletion": "off",
+  "editor.inlineSuggest.enabled": true,
+  "editor.wordBasedSuggestions": "off",
+  "editor.suggestOnTriggerCharacters": false,
+  "editor.quickSuggestions": {
+    "comments": "off",
+    "strings": "on"
+  },
+  "editor.linkedEditing": true,
+  "editor.autoClosingBrackets": "always",
+  // -- autocompletion --
+
+  // -- on save --
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  // -- on save --
+
+  // -- formatting --
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.useEditorConfig": false,
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  // -- formatting --
+
+  // -- languages --
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "typescript.workspaceSymbols.excludeLibrarySymbols": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.workspaceSymbols.scope": "currentProject",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.surveys.enabled": false,
+
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "rust-analyzer.inlayHints.parameterHints.enable": false,
+  "rust-analyzer.inlayHints.typeHints.enable": false,
+  "rust-analyzer.inlayHints.renderColons": false,
+  // -- languages --
+
+  // -- vim
+  "vim.statusBarColorControl": false,
+  "vim.useSystemClipboard": true,
+  "vim.useCtrlKeys": true,
+  "vim.cursorStylePerMode.insert": "block",
+  "vim.highlightedyank.enable": true,
+
+  "vim.leader": "space",
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": ["<leader>", "e"],
+      "commands": ["workbench.view.explorer"]
+    },
+    {
+      "before": ["<leader>", "f"],
+      "commands": ["workbench.action.quickOpen"]
+    },
+    {
+      "before": ["<leader>", "w"],
+      "commands": ["workbench.action.files.save"]
+    },
+    {
+      "before": ["<leader>", "r"],
+      "commands": ["editor.action.rename"]
+    },
+    {
+      "before": ["<leader>", "p"],
+      "commands": ["workbench.action.showCommands"]
+    },
+    {
+      "before": ["<leader>", "t"],
+      "commands": ["terminal.focus"]
+    }
+  ],
+  // -- vim
+
+  // -- misc
+  "git.enabled": false,
+  "telemetry.telemetryLevel": "off",
+  "explorer.confirmDragAndDrop": true,
+  "explorer.confirmDelete": true,
+  "editor.detectIndentation": true,
+  "editor.largeFileOptimizations": true,
+  "editor.accessibilitySupport": "off",
+  "editor.pasteAs.enabled": false,
+  "workbench.enableExperiments": false,
+  "workbench.editor.closeOnFileDelete": true,
+  "security.workspace.trust.untrustedFiles": "open",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "extensions.ignoreRecommendations": true,
+  "files.eol": "\n",
+  "git.openRepositoryInParentFolders": "never",
+  "workbench.startupEditor": "none",
+  "files.exclude": {
+    "/node_modules": true,
+    "/target": true
+  },
+
+  "terminal.integrated.tabs.enabled": false,
+  "terminal.integrated.fontSize": 15,
+  "accessibility.signals.terminalBell": {
+    "sound": "off",
+    "announcement": "off"
+  }
+}
