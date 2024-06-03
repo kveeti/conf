@@ -45,17 +45,16 @@
   },
   // --
 
-  {
-    "command": "editor.action.showHover",
-    "when": "editorTextFocus",
-    "key": "shift+k"
-  },
-
-  // make some vim normal mode bindings to work everywhere
+  // make custom vim normal mode bindings in settings.json to work everywhere
   {
     "key": "space e",
     "command": "workbench.action.toggleSidebarVisibility",
-    "when": "!inputFocus"
+    "when": "!inputFocus && sideBarFocus"
+  },
+  {
+    "key": "space e",
+    "command": "workbench.files.action.focusFilesExplorer",
+    "when": "!inputFocus && !sideBarFocus && activeViewlet == 'workbench.view.explorer'"
   },
   {
     "key": "space f",
@@ -69,7 +68,23 @@
   },
   // --
 
-  // file explorer binds
+  {
+    "command": "editor.action.showHover",
+    "when": "editorTextFocus",
+    "key": "shift+k"
+  },
+
+  // terminal
+  {
+    "key": "ctrl+.",
+    "command": "terminal.focus",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+.",
+    "command": "workbench.action.closePanel",
+    "when": "terminalFocus"
+  },
   {
     "key": "r",
     "command": "renameFile",
@@ -86,8 +101,18 @@
     "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
   },
   {
-    "key": "d",
+    "key": "shift+d",
     "command": "deleteFile",
+    "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+  },
+  {
+    "key": "y",
+    "command": "filesExplorer.copy",
+    "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+  },
+  {
+    "key": "p",
+    "command": "filesExplorer.paste",
     "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
   }
   // --
