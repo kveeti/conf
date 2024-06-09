@@ -7,7 +7,6 @@
 	...
 }: {
 	nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-		"vscode"
 		"discord"
 	];
 
@@ -19,10 +18,10 @@
 			alacritty
 			keepassxc
 			wireguard-tools
-			vscode
 			discord
 			btop
 			gnumake
+			xclip
 		];
 	};
 
@@ -78,6 +77,21 @@
 				setw -g mouse on
 			'';
 		};
+
+		neovim = {
+			enable = true;
+			extraPackages = [
+				pkgs.go
+				pkgs.nodejs_22
+				pkgs.gcc
+				pkgs.vimPlugins.nvim-treesitter.withAllGrammars
+			];
+		};
+	};
+
+	home.file."./.config/nvim" = {
+		source = config.lib.file.mkOutOfStoreSymlink "/home/veeti/code/conf/nvim";
+		recursive = true;
 	};
 
 	systemd.user.startServices = "sd-switch";
