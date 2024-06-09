@@ -4,6 +4,7 @@
 	lib,
 	config,
 	pkgs,
+	username,
 	...
 }: {
 	nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
@@ -11,8 +12,8 @@
 	];
 
 	home = {
-		username = "veeti";
-		homeDirectory = "/home/veeti";
+		username = "${username}";
+		homeDirectory = "/home/${username}";
 
 		packages = with pkgs; [
 			alacritty
@@ -111,7 +112,7 @@
 	};
 
 	home.file."./.config/nvim" = {
-		source = config.lib.file.mkOutOfStoreSymlink "/home/veeti/code/conf/nvim";
+		source = config.lib.file.mkOutOfStoreSymlink "/home/${username}/code/conf/nvim";
 		recursive = true;
 	};
 
