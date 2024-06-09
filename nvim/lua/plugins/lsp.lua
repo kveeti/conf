@@ -51,6 +51,8 @@ return {
             jsonls                = {},
             tailwindcss           = {},
             gopls                 = {},
+            astro                 = {},
+            templ                 = {},
         }
 
         require('neodev').setup()
