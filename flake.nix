@@ -17,13 +17,14 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      username = "veeti";
     in
   {
     formatter = nixpkgs.legacyPackages.${system}.alejandra;
 
     nixosConfigurations = {
       pc = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs username; };
         modules = [ ./configuration.nix ];
       };
     };
@@ -31,7 +32,7 @@
     homeConfigurations = {
       "veeti@pc" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.${system};
-        extraSpecialArgs = { inherit inputs; };
+        extraSpecialArgs = { inherit inputs username; };
         modules = [ ./home.nix ];
       };
     };

@@ -4,6 +4,7 @@
   lib,
   config,
   pkgs,
+  username,
   ...
 }: {
   imports = [ ./hardware-configuration.nix ];
@@ -93,7 +94,7 @@
     "steam-run"
   ];
 
-  users.users."veeti" = {
+  users.users."${username}" = {
     isNormalUser = true;
     extraGroups = ["networkmanager" "wheel" "docker"];
     shell = pkgs.zsh;
