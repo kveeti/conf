@@ -96,12 +96,14 @@
   users.users."veeti" = {
     isNormalUser = true;
     extraGroups = ["networkmanager" "wheel" "docker"];
+    shell = pkgs.zsh;
   };
 
   programs = {
     gnupg.agent.enable = true;
     ssh.startAgent = true;
     steam.enable = true;
+    zsh.enable = true;
   };
 
   system.stateVersion = "24.05";
