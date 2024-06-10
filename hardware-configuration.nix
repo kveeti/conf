@@ -24,11 +24,6 @@
       options = [ "fmask=0022" "dmask=0022" ];
     };
 
-  fileSystems."/mnt/games" =
-    { device = "/dev/disk/by-uuid/0db86e16-430f-4c21-9b8c-70b50dec2c53";
-      fsType = "ext4";
-    };
-
   swapDevices =
     [ { device = "/dev/disk/by-uuid/c1ed644c-f21a-4ec3-bc2b-e30451da89d5"; }
     ];
