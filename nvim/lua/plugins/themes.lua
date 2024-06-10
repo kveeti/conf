@@ -14,13 +14,25 @@ return {
 	-- 	priority = 1000,
 	-- 	name = "rose-pine"
 	-- },
+	-- {
+	-- 	"nyoom-engineering/oxocarbon.nvim",
+	-- 	priority = 1000,
+	-- 	name = "oxocarbon",
+	-- 	config = function()
+	-- 		vim.opt.background = "dark"
+	-- 		vim.cmd("colorscheme oxocarbon")
+	-- 	end
+	-- },
 	{
-		"nyoom-engineering/oxocarbon.nvim",
+
+		"slugbyte/lackluster.nvim",
+		lazy = false,
 		priority = 1000,
-		name = "oxocarbon",
-		config = function()
+		init = function()
 			vim.opt.background = "dark"
-			vim.cmd("colorscheme oxocarbon")
-		end
+			vim.cmd.colorscheme("lackluster")
+			-- vim.cmd.colorscheme("lackluster-hack") -- my favorite
+			-- vim.cmd.colorscheme("lackluster-mint")
+		end,
 	}
 }
