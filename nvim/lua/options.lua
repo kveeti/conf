@@ -36,3 +36,5 @@ vim.filetype.add({
         templ = "templ",
     },
 })
+
+vim.g.omni_sql_no_default_maps = 1
