@@ -34,7 +34,6 @@ return {
         require('mason-lspconfig').setup()
 
         local servers = {
-            rust_analyzer         = {},
             html                  = { filetypes = { 'html', 'twig', 'hbs' } },
             lua_ls                = {
                 Lua = {
@@ -64,6 +63,10 @@ return {
 
         mason_lspconfig.setup {
             ensure_installed = vim.tbl_keys(servers),
+        }
+        require('lspconfig').rust_analyzer.setup {
+            capabilities = capabilities,
+            on_attach = on_attach,
         }
 
         mason_lspconfig.setup_handlers {
