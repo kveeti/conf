@@ -23,6 +23,7 @@
 			btop
 			gnumake
 			xclip
+			chromium
 		];
 	};
 
@@ -86,6 +87,7 @@
 				pkgs.nodejs_22
 				pkgs.gcc
 				pkgs.vimPlugins.nvim-treesitter.withAllGrammars
+				pkgs.ripgrep
 			];
 		};
 
