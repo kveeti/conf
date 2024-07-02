@@ -4,7 +4,7 @@
 cd ~
 git clone https://aur.archlinux.org/yay.git
 cd yay
-makepkg -si
+echo y | makepkg -si
 cd ~
 rm -rf ./yay
 
@@ -22,7 +22,7 @@ cd "${HOME}"
 
 git clone --branch dots_arch --single-branch --bare https://github.com/veeti-k/conf "${DOTS}"
 function dots {
-   /usr/bin/git --git-dir="${DOTS}" --work-tree=$HOME $@
+   /usr/bin/git --git-dir="${DOTS}" --work-tree="${HOME}" $@
 }
 dots checkout
 if [ $? = 0 ]; then
@@ -30,7 +30,7 @@ if [ $? = 0 ]; then
 else
 	echo "backing up pre-existing files";
 	mkdir -p .config-backup
-	dots checkout 2>&1 | egrep "\s+\." | awk {'print $1'} | xargs -I{} mv {} .config-backup/{}
+	dots checkout 2>&1 | grep -E "\s+\." | awk {'print $1'} | xargs -I{} mv {} .config-backup/{}
 fi;
 dots checkout
 dots config status.showUntrackedFiles no
