@@ -1,14 +1,13 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
 
 source /root/scripts/config.conf
 
 sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 locale-gen
-ln -sf /usr/share/zoneinfo/Europe/Helsinki /etc/localtime
+ln -sf /usr/share/zoneinfo/"${TIMEZONE}" /etc/localtime
 hwclock --systohc
-> /etc/locale.conf
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 # systemd-boot
@@ -33,7 +32,7 @@ options root=PARTUUID=$(blkid -s PARTUUID -o value "${ROOT_PARTITION}") rw
 EOF
 
 # hostname
-echo "pc" > /etc/hostname
+echo "${HOSTNAME}" > /etc/hostname
 
 # initramfs
 mkinitcpio -P
@@ -42,12 +41,12 @@ mkinitcpio -P
 > /etc/systemd/network/20-wired.network
 cat << EOF > /etc/systemd/network/20-wired.network
 [Match]
-Name=eno1
+Name=${NET_INTERFACE}
 
 [Network]
 Address=192.168.0.133/24
-Gateway=192.168.0.2
-DNS=192.168.0.3
+Gateway=${NET_GATEWAY}
+DNS=${NET_DNS}
 EOF
 
 systemctl enable systemd-networkd systemd-resolved
@@ -151,14 +150,14 @@ pacman -Syu --noconfirm --needed \
 systemctl enable bluetooth docker
 
 # user
-useradd -m -G wheel,docker -s /bin/bash "$USERNAME"
-echo "$USERNAME ALL=(ALL) ALL" > /etc/sudoers.d/10-"$USERNAME"
-echo "$USERNAME password"
-passwd "$USERNAME"
+useradd -m -G wheel,docker -s /bin/bash "${USERNAME}"
+echo "${USERNAME} ALL=(ALL) ALL" > /etc/sudoers.d/10-"${USERNAME}"
+echo "${USERNAME} password"
+passwd "${USERNAME}"
 
 cp -r /root/scripts "/home/${USERNAME}/scripts"
 
-chown "$USERNAME":"$USERNAME" -R "/home/${USERNAME}/scripts"
+chown "${USERNAME}":"${USERNAME}" -R "/home/${USERNAME}/scripts"
 
 echo "root password"
 passwd

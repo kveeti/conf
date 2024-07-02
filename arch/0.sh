@@ -1,26 +1,28 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
 
+source ./config.conf
 source "./utils.sh"
 
-config_set DISK /dev/nvme1n1
-config_set USERNAME veeti
-
-boot="${DISK}p1"
-swap="${DISK}p2"
-root="${DISK}p3"
-
-config_set ROOT_PARTITION "${root}"
-
-timedatectl set-timezone Europe/Helsinki
+timedatectl set-timezone "${TIMEZONE}"
 timedatectl set-ntp true
 
 sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
-
 pacman -Sy --noconfirm archlinux-keyring
 
-# partitions
+if [[ $DISK == /dev/nvme* ]]; then
+    boot="${DISK}p1"
+    swap="${DISK}p2"
+    root="${DISK}p3"
+else
+    boot="${DISK}1"
+    swap="${DISK}2"
+    root="${DISK}3"
+fi
+
+config_set ROOT_PARTITION "${root}"
+
 sfdisk "${DISK}" <<EOF
 label: gpt
 unit: sectors
