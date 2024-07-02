@@ -27,6 +27,7 @@ input type:pointer {
 }
 
 exec_always sh -c "killall swayidle; swayidle -w"
+exec_always sh -c "killall gammastep; gammastep"
 bindsym $mod+Shift+End exec systemctl suspend
 bindsym $mod+End exec swaylock -f
 
