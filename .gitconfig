@@ -1,0 +1,8 @@
+[user]
+	name = "Veeti K"
+	email = "veeti@veetik.com"
+	signingkey = "111E474490913E21"
+[gpg]
+	program = "/usr/bin/gpg"
+[commit]
+	gpgsign = true
