@@ -151,7 +151,6 @@ systemctl enable bluetooth docker
 
 # user
 useradd -m -G wheel,docker -s /bin/bash "${USERNAME}"
-echo "${USERNAME} ALL=(ALL) ALL" > /etc/sudoers.d/10-"${USERNAME}"
 echo "${USERNAME} password"
 passwd "${USERNAME}"
 
@@ -162,3 +161,6 @@ chown "${USERNAME}":"${USERNAME}" -R "/home/${USERNAME}/scripts"
 echo "root password"
 passwd
 
+# add passwordless sudo access (gets cleaned up in 3.sh)
+sed -i 's/^# %wheel ALL=(ALL) NOPASSWD: ALL/%wheel ALL=(ALL) NOPASSWD: ALL/' /etc/sudoers
+sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
