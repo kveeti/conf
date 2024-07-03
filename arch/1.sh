@@ -9,6 +9,7 @@ locale-gen
 ln -sf /usr/share/zoneinfo/"${TIMEZONE}" /etc/localtime
 hwclock --systohc
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
+echo "KEYMAP=fi" > /etc/vconsole.conf
 
 # systemd-boot
 bootctl --path=/boot install
@@ -28,14 +29,14 @@ cat << EOF > /boot/loader/entries/arch.conf
 title arch
 linux /vmlinuz-linux-lts
 initrd /initramfs-linux-lts.img
-options root=PARTUUID=$(blkid -s PARTUUID -o value "${ROOT_PARTITION}") rw
+options cryptdevice=UUID=$(blkid -s UUID -o value "${REST_PARTITION}"):cryptlvm root=/dev/vg/root quiet rw
 EOF
+
+sed -i 's/filesystems/encrypt lvm2 filesystems/g' /etc/mkinitcpio.conf
+mkinitcpio -P
 
 # hostname
 echo "${HOSTNAME}" > /etc/hostname
-
-# initramfs
-mkinitcpio -P
 
 # network
 > /etc/systemd/network/20-wired.network
