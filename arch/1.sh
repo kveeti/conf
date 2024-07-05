@@ -108,7 +108,10 @@ pacman -Syu --noconfirm --needed \
   thunar-volman \
   openresolv \
   wireguard-tools \
-  alacritty
+  alacritty \
+  lazygit \
+  gammastep \
+  playerctl
 
 # plasma:
 #  plasma \
