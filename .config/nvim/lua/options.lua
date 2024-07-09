@@ -1,3 +1,6 @@
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 vim.o.mouse = 'a'
 vim.opt.guicursor = ""
 vim.o.hlsearch = false

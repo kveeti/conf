@@ -27,11 +27,11 @@ return {
         }
 
         pcall(require('telescope').load_extension, 'fzf')
+        local builtin = require('telescope.builtin')
 
-        vim.keymap.set('n', '<leader>b', require("telescope.builtin").current_buffer_fuzzy_find)
-
-        vim.keymap.set('n', '<leader>f', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
-        vim.keymap.set('n', '<leader>g', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
-        -- vim.keymap.set('n', '<leader>ll', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
+        vim.keymap.set('n', '<leader>b', builtin.current_buffer_fuzzy_find)
+        vim.keymap.set('n', '<leader>f', builtin.find_files)
+        vim.keymap.set('n', '<leader>g', builtin.live_grep)
+        vim.keymap.set('n', '<leader>m', function() builtin.find_files({ cwd = vim.fn.stdpath 'config' }) end)
     end
 }

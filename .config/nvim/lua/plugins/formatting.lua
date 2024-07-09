@@ -3,12 +3,14 @@ return {
 	config = function()
 		local conform = require("conform")
 		conform.setup({
-			lua = { "stylua" },
 			formatters_by_ft = {
+				lua = { "stylua" },
 				typescriptreact = { { "prettier", "prettierd" } },
 				typescript = { { "prettier", "prettierd" } },
 				javascriptreact = { { "prettier", "prettierd" } },
 				javascript = { { "prettier", "prettierd" } },
+				json = { { "prettier", "prettierd" } },
+				jsonc = { { "prettier", "prettierd" } }
 			},
 
 			format_on_save = function(bufnr)
@@ -16,7 +18,7 @@ return {
 				if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
 					return
 				end
-				return { timeout_ms = 500, lsp_format = "fallback" }
+				return { timeout_ms = 1000, lsp_format = "fallback" }
 			end,
 		})
 
