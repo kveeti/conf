@@ -16,14 +16,12 @@ input * {
 	xkb_layout "fi"
 	repeat_rate 40
 	repeat_delay 180
-
-	natural_scroll enabled
 }
 
 input type:pointer {
 	accel_profile "flat"
-	pointer_accel 0.3
 	scroll_factor 2
+	natural_scroll enabled
 }
 
 exec_always sh -c "killall swayidle; swayidle -w"
@@ -108,11 +106,6 @@ bindsym $mod+End exec swaylock -f
     bindsym $mod+space focus mode_toggle
 
     bindsym $mod+a focus parent
-#
-# Scratchpad:
-#
-    bindsym $mod+Shift+minus move scratchpad
-    bindsym $mod+minus scratchpad show
 #
 # Resizing containers:
 #
