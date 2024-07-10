@@ -86,6 +86,7 @@ pacman -Syu --noconfirm --needed \
   keepassxc \
   discord \
   steam \
+  github-cli \
   wayland \
   xorg-xwayland \
   sway \
