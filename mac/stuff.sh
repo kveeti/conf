@@ -1,6 +1,6 @@
 #!/bin/bash
 
-brew install google-chrome firefox orbstack neovim ripgrep tmux alacritty keepassxc linearmouse rectangle font-jetbrains-mono-nerd-font
+brew install google-chrome firefox orbstack neovim ripgrep tmux alacritty gh keepassxc linearmouse rectangle font-jetbrains-mono-nerd-font
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 curl -fsSL https://get.pnpm.io/install.sh | sh -
