@@ -1,0 +1,72 @@
+[
+  {
+    "context": "Editor && vim_mode == normal && !VimWaiting && !VimCount",
+    "bindings": {
+      "0": [
+        "vim::StartOfLine",
+        {
+          "displayLines": true
+        }
+      ],
+      "$": [
+        "vim::EndOfLine",
+        {
+          "displayLines": true
+        }
+      ],
+      "space w": "workspace::Save",
+      "space f": "file_finder::Toggle",
+      "space x": "project_panel::ToggleFocus",
+      "ctrl-w z": "workspace::ToggleZoom",
+      "ctrl-w t": "terminal_panel::ToggleFocus",
+      "space n": "editor::GoToDiagnostic",
+      "space v": "editor::GoToPrevDiagnostic",
+      "g shift-r": "editor::FindAllReferences",
+      "shift-k": "editor::Hover",
+      "space a": "editor::ToggleCodeActions",
+      "space r": "editor::Rename",
+      "j": [
+        "vim::Down",
+        {
+          "displayLines": true
+        }
+      ],
+      "k": [
+        "vim::Up",
+        {
+          "displayLines": true
+        }
+      ],
+      ", g b": "editor::ToggleGitBlame"
+    }
+  },
+  {
+    "context": "Editor && vim_mode == normal",
+    "bindings": {
+      "g c c": "editor::ToggleComments"
+    }
+  },
+  {
+    "context": "Editor && vim_mode == visual",
+    "bindings": {
+      "g c": "editor::ToggleComments"
+    }
+  },
+  {
+    "context": "Terminal",
+    "bindings": {
+      "ctrl-b z": "workspace::ToggleZoom",
+      "ctrl-u": "terminal::Clear",
+      "ctrl-w t": "workspace::ToggleLeftDock"
+    }
+  },
+  {
+    "context": "Dock || Editor && VimControl && !VimWaiting && !menu",
+    "bindings": {
+      "ctrl-h": ["workspace::ActivatePaneInDirection", "Left"],
+      "ctrl-l": ["workspace::ActivatePaneInDirection", "Right"],
+      "ctrl-k": ["workspace::ActivatePaneInDirection", "Up"],
+      "ctrl-j": ["workspace::ActivatePaneInDirection", "Down"]
+    }
+  }
+]
