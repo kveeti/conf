@@ -7,7 +7,6 @@ return {
 	config = function()
 		vim.defer_fn(function()
 			require('nvim-treesitter.configs').setup {
-				-- Add languages to be installed here that you want installed for treesitter
 				ensure_installed = {
 					'c',
 					'cpp',
@@ -22,11 +21,8 @@ return {
 					'vim',
 					'bash',
 					'prisma',
-					'astro',
-					'templ'
 				},
 
-				-- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
 				auto_install = false,
 
 				highlight = { enable = true },
@@ -41,22 +37,9 @@ return {
 					},
 				},
 				textobjects = {
-					select = {
-						enable = true,
-						lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-						keymaps = {
-							-- You can use the capture groups defined in textobjects.scm
-							['aa'] = '@parameter.outer',
-							['ia'] = '@parameter.inner',
-							['af'] = '@function.outer',
-							['if'] = '@function.inner',
-							['ac'] = '@class.outer',
-							['ic'] = '@class.inner',
-						},
-					},
 					move = {
 						enable = true,
-						set_jumps = true, -- whether to set jumps in the jumplist
+						set_jumps = true,
 						goto_next_start = {
 							[']m'] = '@function.outer',
 							[']]'] = '@class.outer',

@@ -3,7 +3,10 @@ return {
     dependencies = {
         'williamboman/mason.nvim',
         'williamboman/mason-lspconfig.nvim',
-        { 'j-hui/fidget.nvim', opts = {} },
+        {
+            'j-hui/fidget.nvim',
+            opts = {}
+        },
         'folke/neodev.nvim',
     },
     config = function()
@@ -34,7 +37,15 @@ return {
         require('mason-lspconfig').setup()
 
         local servers = {
-            html                  = { filetypes = { 'html', 'twig', 'hbs' } },
+            html                  = { filetypes = { 'html' } },
+            emmet_language_server = {},
+            tailwindcss           = {},
+            cssls                 = {},
+            tsserver              = {},
+            prismals              = {},
+            eslint                = {},
+            zls                   = {},
+            rust_analyzer         = {},
             lua_ls                = {
                 Lua = {
                     workspace = { checkThirdParty = false },
@@ -42,15 +53,6 @@ return {
                     diagnostics = { disable = { 'missing-fields' } },
                 },
             },
-            cssls                 = {},
-            tsserver              = {},
-            prismals              = {},
-            emmet_language_server = {},
-            eslint                = {},
-            tailwindcss           = {},
-            gopls                 = {},
-            astro                 = {},
-            templ                 = {},
         }
 
         require('neodev').setup()
@@ -62,10 +64,6 @@ return {
 
         mason_lspconfig.setup {
             ensure_installed = vim.tbl_keys(servers),
-        }
-        require('lspconfig').rust_analyzer.setup {
-            capabilities = capabilities,
-            on_attach = on_attach,
         }
 
         mason_lspconfig.setup_handlers {

@@ -5,12 +5,13 @@ return {
 		conform.setup({
 			formatters_by_ft = {
 				lua = { "stylua" },
-				typescriptreact = { { "prettier", "prettierd" } },
-				typescript = { { "prettier", "prettierd" } },
-				javascriptreact = { { "prettier", "prettierd" } },
-				javascript = { { "prettier", "prettierd" } },
-				json = { { "prettier", "prettierd" } },
-				jsonc = { { "prettier", "prettierd" } }
+				typescriptreact = { "prettier", "prettierd" },
+				typescript = { "prettier", "prettierd" },
+				javascriptreact = { "prettier", "prettierd" },
+				javascript = { "prettier", "prettierd" },
+				json = { "prettier", "prettierd" },
+				jsonc = { "prettier", "prettierd" },
+				css = { "prettier", "prettierd" }
 			},
 
 			format_on_save = function(bufnr)

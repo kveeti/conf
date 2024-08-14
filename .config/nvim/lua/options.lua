@@ -34,10 +34,5 @@ vim.o.swapfile = false
 vim.o.backup = false
 vim.o.undofile = true
 
-vim.filetype.add({
-    extension = {
-        templ = "templ",
-    },
-})
-
 vim.g.omni_sql_no_default_maps = 1
+vim.g.zig_fmt_autosave = 0
