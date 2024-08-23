@@ -14,8 +14,8 @@ output DP-1 resolution 2560x1440@165Hz
 
 input * {
 	xkb_layout "fi"
-	repeat_rate 40
-	repeat_delay 180
+	repeat_rate 75
+	repeat_delay 140
 }
 
 input type:pointer {
