@@ -1,0 +1,44 @@
+[
+	{
+		"context": "Editor && VimControl && !VimWaiting && !menu",
+		"bindings": {
+			"space w": "workspace::Save",
+			"space n": "editor::GoToDiagnostic",
+			"space v": "editor::GoToPrevDiagnostic",
+			"g shift-r": "editor::FindAllReferences",
+			"shift-k": "editor::Hover",
+			"space a": "editor::ToggleCodeActions",
+			"space r": "editor::Rename",
+			"n": "search::SelectNextMatch",
+			"shift-n": "search::SelectPrevMatch",
+			"ctrl-f": "search::FocusSearch",
+			"space f": "file_finder::Toggle",
+			"space x": "project_panel::ToggleFocus"
+		}
+	},
+	{
+		"context": "ProjectPanel && not_editing",
+		"bindings": {
+			"n": "project_panel::NewFile",
+			"d": "project_panel::Delete",
+			"r": "project_panel::Rename",
+			"y": "project_panel::Cut",
+			"p": "project_panel::Paste"
+		}
+	},
+	{
+		"context": "Editor && vim_mode == visual",
+		"bindings": {
+			"g c": "editor::ToggleComments"
+		}
+	},
+	{
+		"context": "Editor || Dock || ProjectPanel",
+		"bindings": {
+			"ctrl-h": ["workspace::ActivatePaneInDirection", "Left"],
+			"ctrl-l": ["workspace::ActivatePaneInDirection", "Right"],
+			"ctrl-k": ["workspace::ActivatePaneInDirection", "Up"],
+			"ctrl-j": ["workspace::ActivatePaneInDirection", "Down"]
+		}
+	}
+]
