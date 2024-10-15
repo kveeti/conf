@@ -50,6 +50,8 @@ Gateway=${NET_GATEWAY}
 DNS=${NET_DNS}
 EOF
 
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+
 systemctl enable systemd-networkd systemd-resolved
 
 sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
