@@ -4,14 +4,7 @@ return {
 		local conform = require("conform")
 		conform.setup({
 			formatters_by_ft = {
-				lua = { "stylua" },
-				typescriptreact = { "prettier", "prettierd" },
-				typescript = { "prettier", "prettierd" },
-				javascriptreact = { "prettier", "prettierd" },
-				javascript = { "prettier", "prettierd" },
-				json = { "prettier", "prettierd" },
-				jsonc = { "prettier", "prettierd" },
-				css = { "prettier", "prettierd" }
+				lua = { "stylua" }
 			},
 
 			format_on_save = function(bufnr)
