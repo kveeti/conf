@@ -69,6 +69,10 @@ pacman -Syu --noconfirm --needed \
   bluez \
   bluez-utils \
   ttf-jetbrains-mono-nerd \
+  noto-fonts \
+  noto-fonts-cjk \
+  noto-fonts-emoji \
+  noto-fonts-extra \
   archlinux-keyring \
   base-devel \
   unzip \
