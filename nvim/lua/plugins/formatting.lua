@@ -8,7 +8,7 @@ return {
 			},
 
 			format_on_save = function(bufnr)
-				-- Disable with a global or buffer-local variable
+				-- check if autoformat is enabled
 				if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
 					return
 				end
@@ -16,9 +16,10 @@ return {
 			end,
 		})
 
+		-- command for disabling autoformat-on-save
 		vim.api.nvim_create_user_command("FormatDisable", function(args)
 			if args.bang then
-				-- FormatDisable! will disable formatting just for this buffer
+				-- :FormatDisable! will disable formatting just for this buffer
 				vim.b.disable_autoformat = true
 			else
 				vim.g.disable_autoformat = true
@@ -27,6 +28,8 @@ return {
 			desc = "Disable autoformat-on-save",
 			bang = true,
 		})
+
+		-- command for enabling autoformat-on-save
 		vim.api.nvim_create_user_command("FormatEnable", function()
 			vim.b.disable_autoformat = false
 			vim.g.disable_autoformat = false

@@ -1,3 +1,6 @@
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
+
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
@@ -9,6 +12,9 @@ vim.wo.number = true
 vim.o.relativenumber = true
 vim.wo.signcolumn = 'yes'
 vim.o.wrap = false
+
+vim.opt.list = true
+vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
 vim.o.clipboard = 'unnamedplus'
 
@@ -35,4 +41,13 @@ vim.o.backup = false
 vim.o.undofile = true
 
 vim.g.omni_sql_no_default_maps = 1
-vim.g.zig_fmt_autosave = 0
+
+-- highlight yanked text
+local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
+vim.api.nvim_create_autocmd('TextYankPost', {
+    callback = function()
+        vim.highlight.on_yank()
+    end,
+    group = highlight_group,
+    pattern = '*',
+})
