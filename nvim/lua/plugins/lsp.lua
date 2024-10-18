@@ -9,30 +9,69 @@ return {
         },
         'folke/neodev.nvim',
     },
+
     config = function()
-        local on_attach = function(_, bufnr)
-            local builtin = require("telescope.builtin")
-            vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = bufnr })
-            vim.keymap.set("n", "gr", builtin.lsp_references, { buffer = bufnr })
-            vim.keymap.set("n", "gi", builtin.lsp_implementations, { buffer = bufnr })
+        vim.api.nvim_create_autocmd('LspAttach', {
+            group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
+            callback = function(event)
+                local bufnr = event.buf
 
-            vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = bufnr })
-            vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { buffer = bufnr })
+                local builtin = require("telescope.builtin")
+                vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = bufnr, desc = "[G]o to [d]efinition" })
+                vim.keymap.set("n", "gr", builtin.lsp_references, { buffer = bufnr, desc = "[G]o to [r]eferences" })
+                vim.keymap.set("n", "gi", builtin.lsp_implementations,
+                    { buffer = bufnr, desc = "[G]o to [i]mplementations" })
 
-            vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, { buffer = bufnr })
-            vim.keymap.set("n", "<leader>c", vim.lsp.buf.code_action, { buffer = bufnr })
-        end
+                vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = bufnr, desc = "Hover" })
+                vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { buffer = bufnr, desc = "Signature Help" })
+
+                vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, { buffer = bufnr, desc = "[R]ename" })
+                vim.keymap.set("n", "<leader>c", vim.lsp.buf.code_action, { buffer = bufnr, desc = "[C]ode action" })
+
+                -- highlight references to symbol under cursor
+                local client = vim.lsp.get_client_by_id(event.data.client_id)
+                if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+                    local highlight_augroup = vim.api.nvim_create_augroup('lsp-highlight-on-rest', { clear = false })
+                    vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+                        buffer = event.buf,
+                        group = highlight_augroup,
+                        callback = vim.lsp.buf.document_highlight,
+                    })
+
+                    vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+                        buffer = event.buf,
+                        group = highlight_augroup,
+                        callback = vim.lsp.buf.clear_references,
+                    })
+
+                    vim.api.nvim_create_autocmd('LspDetach', {
+                        group = vim.api.nvim_create_augroup('lsp-detach', { clear = true }),
+                        callback = function(event2)
+                            vim.lsp.buf.clear_references()
+                            vim.api.nvim_clear_autocmds { group = 'lsp-highlight-on-rest', buffer = event2.buf }
+                        end,
+                    })
+                end
+            end
+        })
+
 
         require('mason').setup()
         require('mason-lspconfig').setup()
 
         local servers = {
-            emmet_language_server = {},
-            tailwindcss           = {},
+            ts_ls                 = {},
             cssls                 = {},
-            gopls                 = {},
-            tsserver              = {},
+            emmet_language_server = {},
+            eslint                = {},
+            biome                 = {},
+            astro                 = {},
+            unocss                = {},
+            tailwindcss           = {},
+
             rust_analyzer         = {},
+            gopls                 = {},
+
             lua_ls                = {
                 Lua = {
                     workspace = { checkThirdParty = false },
@@ -42,26 +81,23 @@ return {
             },
         }
 
-        require('neodev').setup()
-
         local capabilities = vim.lsp.protocol.make_client_capabilities()
-        capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+        capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
-        local mason_lspconfig = require 'mason-lspconfig'
-
-        mason_lspconfig.setup {
+        require('mason-lspconfig').setup({
             ensure_installed = vim.tbl_keys(servers),
-        }
+            handlers = {
+                function(server_name)
+                    local server = servers[server_name] or {}
 
-        mason_lspconfig.setup_handlers {
-            function(server_name)
-                require('lspconfig')[server_name].setup {
-                    capabilities = capabilities,
-                    on_attach = on_attach,
-                    settings = servers[server_name],
-                    filetypes = (servers[server_name] or {}).filetypes,
-                }
-            end,
-        }
+                    require('lspconfig')[server_name].setup {
+                        cmd = server.cmd,
+                        settings = server.settings,
+                        filetypes = server.filetypes,
+                        capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {}),
+                    }
+                end,
+            }
+        })
     end
 }
