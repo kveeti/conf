@@ -25,3 +25,8 @@ case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
+
+function cdf() {
+  local dir
+  dir=$(find . -type d | fzf) && cd "$dir"
+}
