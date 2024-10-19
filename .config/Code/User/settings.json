@@ -1,0 +1,159 @@
+{
+  // -- some customization --
+  "workbench.preferredDarkColorTheme": "Monochrome Dark",
+  "workbench.preferredLightColorTheme": "Monochrome Light",
+  "workbench.colorTheme": "Monochrome Dark",
+  "workbench.iconTheme": null,
+  "editor.fontSize": 15,
+  "editor.fontWeight": "400",
+  "editor.lineHeight": 1.4,
+  "editor.letterSpacing": 0.6,
+  "editor.fontFamily": "JetBrains Mono Nerd Font",
+  "editor.fontLigatures": false,
+  "editor.cursorBlinking": "solid",
+
+  "editor.lineNumbers": "relative",
+  "editor.minimap.enabled": false,
+  "editor.stickyScroll.enabled": true,
+  "editor.renderWhitespace": "all",
+  "editor.bracketPairColorization.enabled": false,
+  "explorer.compactFolders": false,
+  "breadcrumbs.enabled": false,
+  "window.commandCenter": false,
+  "editor.suggest.showStatusBar": false,
+  "workbench.sideBar.location": "right",
+  "workbench.activityBar.location": "hidden",
+  "workbench.editor.editorActionsLocation": "hidden",
+  "workbench.panel.defaultLocation": "right",
+  "workbench.layoutControl.enabled": false,
+  "workbench.statusBar.visible": true,
+  "window.menuBarVisibility": "hidden",
+  "window.titleBarStyle": "native",
+  "window.title": "${dirty}${separator}${rootName}",
+  "window.closeWhenEmpty": false,
+  // -- some customization --
+
+  // -- disable tabs --
+  // "explorer.openEditors.visible": 1,
+  // "explorer.openEditors.minVisible": 1,
+  // "workbench.editor.showTabs": "none",
+  // "workbench.editor.enablePreview": false,
+  // "workbench.editor.limit.enabled": true,
+  // "workbench.editor.limit.value": 1,
+  // "workbench.editor.limit.perEditorGroup": true,
+  // -- disable tabs --
+
+  // -- autocompletion --
+  "editor.tabCompletion": "off",
+  "editor.inlineSuggest.enabled": true,
+  "editor.wordBasedSuggestions": "off",
+  "editor.suggestOnTriggerCharacters": false,
+  "editor.quickSuggestions": {
+    "comments": "off",
+    "strings": "on"
+  },
+  "editor.linkedEditing": true,
+  "editor.autoClosingBrackets": "always",
+  // -- autocompletion --
+
+  // -- on save --
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  // -- on save --
+
+  // -- formatting --
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.useEditorConfig": false,
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // -- formatting --
+
+  // -- languages --
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "typescript.workspaceSymbols.excludeLibrarySymbols": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.workspaceSymbols.scope": "currentProject",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.surveys.enabled": false,
+
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "rust-analyzer.inlayHints.parameterHints.enable": false,
+  "rust-analyzer.inlayHints.typeHints.enable": false,
+  "rust-analyzer.inlayHints.renderColons": false,
+  // -- languages --
+
+  // -- vim
+  "vim.statusBarColorControl": false,
+  "vim.useSystemClipboard": true,
+  "vim.useCtrlKeys": true,
+  "vim.cursorStylePerMode.insert": "block",
+  "vim.highlightedyank.enable": true,
+
+  "vim.leader": "space",
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": ["space", "x"],
+      "commands": ["workbench.view.explorer"]
+    },
+    {
+      "before": ["space", "f"],
+      "commands": ["workbench.action.quickOpen"]
+    },
+    {
+      "before": ["space", "w"],
+      "commands": ["workbench.action.files.save"]
+    },
+    {
+      "before": ["space", "r"],
+      "commands": ["editor.action.rename"]
+    },
+    {
+      "before": ["space", "p"],
+      "commands": ["workbench.action.showCommands"]
+    }
+  ],
+  // -- vim
+
+  // -- misc
+  "git.enabled": false,
+  "telemetry.telemetryLevel": "off",
+  "explorer.confirmDragAndDrop": true,
+  "explorer.confirmDelete": true,
+  "editor.detectIndentation": true,
+  "editor.largeFileOptimizations": true,
+  "editor.accessibilitySupport": "off",
+  "editor.pasteAs.enabled": false,
+  "workbench.enableExperiments": false,
+  "workbench.editor.closeOnFileDelete": true,
+  "security.workspace.trust.untrustedFiles": "open",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "extensions.ignoreRecommendations": true,
+  "files.eol": "\n",
+  "git.openRepositoryInParentFolders": "never",
+  "workbench.startupEditor": "none",
+  "files.exclude": {
+    "/node_modules": true,
+    "/target": true
+  },
+  "terminal.integrated.tabs.enabled": false,
+  "terminal.integrated.fontSize": 15,
+  "accessibility.signals.terminalBell": {
+    "sound": "off",
+    "announcement": "off"
+  },
+  "extensions.autoUpdate": false,
+  "svelte.enable-ts-plugin": true,
+  "[svelte]": {
+    "editor.defaultFormatter": "svelte.svelte-vscode"
+  }
+}
