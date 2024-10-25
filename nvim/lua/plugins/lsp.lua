@@ -74,7 +74,7 @@ return {
             require('mason-lspconfig').setup()
 
             local servers = {
-                tsserver              = {},
+                ts_ls                 = {},
                 cssls                 = {},
                 emmet_language_server = {},
                 eslint                = {},
