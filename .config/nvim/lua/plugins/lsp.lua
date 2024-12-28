@@ -11,40 +11,26 @@ return {
     },
     config = function()
         local on_attach = function(_, bufnr)
-            local nmap = function(keys, func, desc)
-                if desc then
-                    desc = 'LSP: ' .. desc
-                end
+            local builtin = require("telescope.builtin")
+            vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = bufnr })
+            vim.keymap.set("n", "gr", builtin.lsp_references, { buffer = bufnr })
+            vim.keymap.set("n", "gi", builtin.lsp_implementations, { buffer = bufnr })
 
-                vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
-            end
+            vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = bufnr })
+            vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { buffer = bufnr })
 
-            nmap('<leader>r', vim.lsp.buf.rename, '[R]e[n]ame')
-            nmap('<leader>c', vim.lsp.buf.code_action, '[C]ode [A]ction')
-
-            nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-            nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-            nmap('gi', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-            nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-            nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-            nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-
-            nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-            nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+            vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, { buffer = bufnr })
+            vim.keymap.set("n", "<leader>c", vim.lsp.buf.code_action, { buffer = bufnr })
         end
 
         require('mason').setup()
         require('mason-lspconfig').setup()
 
         local servers = {
-            html                  = { filetypes = { 'html' } },
             emmet_language_server = {},
-            tailwindcss           = {},
-            cssls                 = {},
-            tsserver              = {},
-            prismals              = {},
-            eslint                = {},
-            zls                   = {},
+            --            cssls                 = {},
+            gopls                 = {},
+            ts_ls                 = {},
             rust_analyzer         = {},
             lua_ls                = {
                 Lua = {
@@ -76,5 +62,14 @@ return {
                 }
             end,
         }
+        for _, method in ipairs({ 'textDocument/diagnostic', 'workspace/diagnostic' }) do
+            local default_diagnostic_handler = vim.lsp.handlers[method]
+            vim.lsp.handlers[method] = function(err, result, context, config)
+                if err ~= nil and err.code == -32802 then
+                    return
+                end
+                return default_diagnostic_handler(err, result, context, config)
+            end
+        end
     end
 }

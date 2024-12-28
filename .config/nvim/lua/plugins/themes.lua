@@ -1,17 +1,25 @@
 return {
 	-- {
-	-- 	'catppuccin/nvim',
-	-- 	name = "catppuccin",
+	-- 	"datsfilipe/vesper.nvim",
 	-- 	priority = 1000,
 	-- 	config = function()
-	-- 		require('catppuccin').setup({
-	-- 			flavour = 'latte'
-	-- 		})
-	--
-	-- 		vim.o.background = "light"
-	-- 		vim.cmd("colorscheme catppuccin")
-	-- 	end,
-	-- },
+	-- 		vim.o.background = "dark"
+	-- 		vim.cmd("colorscheme vesper")
+	-- 	end
+	-- }
+	{
+		'catppuccin/nvim',
+		name = "catppuccin",
+		priority = 1000,
+		config = function()
+			require('catppuccin').setup({
+				flavour = 'frappe'
+			})
+
+			vim.o.background = "dark"
+			vim.cmd("colorscheme catppuccin")
+		end,
+	},
 	-- {
 	-- 	'Lokaltog/monotone.nvim',
 	-- 	dependencies = {
@@ -28,13 +36,13 @@ return {
 	-- 		vim.cmd('colorscheme monotone')
 	-- 	end,
 	-- },
-	{
-		"savq/melange-nvim",
-		config = function()
-			vim.o.background = "dark"
-			vim.cmd("colorscheme melange")
-		end,
-	},
+	-- {
+	-- 	"savq/melange-nvim",
+	-- 	config = function()
+	-- 		vim.o.background = "dark"
+	-- 		vim.cmd("colorscheme melange")
+	-- 	end,
+	-- },
 	-- {
 	-- 	"rose-pine/neovim",
 	-- 	priority = 1000,
@@ -74,6 +82,24 @@ return {
 	--
 	-- 		vim.o.background = "dark"
 	-- 		vim.cmd("colorscheme gruvbox")
+	-- 	end
+	-- },
+	-- {
+	-- 	"bluz71/vim-moonfly-colors",
+	-- 	name = "moonfly",
+	-- 	lazy = false,
+	-- 	priority = 1000,
+	-- 	config = function()
+	-- 		vim.o.background = "dark"
+	-- 		vim.cmd("colorscheme moonfly")
+	-- 	end
+	-- },
+	-- {
+	-- 	"olimorris/onedarkpro.nvim",
+	-- 	priority = 1000,
+	-- 	config = function()
+	-- 		vim.o.background = "dark"
+	-- 		vim.cmd("colorscheme onedark")
 	-- 	end
 	-- }
 }

@@ -5,16 +5,17 @@ return {
 		conform.setup({
 			formatters_by_ft = {
 				lua = { "stylua" },
-				typescriptreact = { "prettier", "prettierd" },
-				typescript = { "prettier", "prettierd" },
-				javascriptreact = { "prettier", "prettierd" },
-				javascript = { "prettier", "prettierd" },
-				json = { "prettier", "prettierd" },
-				jsonc = { "prettier", "prettierd" },
-				css = { "prettier", "prettierd" }
+				javascript = { "biome", "prettier" },
+				typescript = { "biome", "prettier" },
+				javascriptreact = { "biome", "prettier" },
+				typescriptreact = { "biome", "prettier" },
+				json = { "biome", "prettier" },
+				jsonc = { "biome", "prettier" },
+				html = { "biome", "prettier" },
+				css = { "biome", "prettier" },
 			},
 
-			format_on_save = function(bufnr)
+			format_after_save = function(bufnr)
 				-- Disable with a global or buffer-local variable
 				if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
 					return
