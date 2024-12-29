@@ -27,9 +27,9 @@ return {
         require('mason-lspconfig').setup()
 
         local servers = {
+            -- cssls                 = {},
+            -- gopls                 = {},
             emmet_language_server = {},
-            --            cssls                 = {},
-            gopls                 = {},
             ts_ls                 = {},
             rust_analyzer         = {},
             lua_ls                = {
