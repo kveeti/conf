@@ -13,6 +13,22 @@ clear_dock
 disable_recent_apps_from_dock
 killall Dock
 
-brew install google-chrome firefox brave-browser orbstack neovim ripgrep ghostty gpg gh keepassxc linearmouse rectangle font-jetbrains-mono-nerd-font
+brew install \
+    google-chrome \
+    firefox \
+    discord \
+    1password \
+    orbstack \
+    visual-studio-code \
+    keepassxc \
+    rectangle \
+    lazygit \
+    gpg \
+    mpv \
+    pv \
+    ffmpeg \
+    yt-dlp \
+    ripgrep \
+    font-jetbrains-mono-nerd-font
 curl -fsSL https://get.pnpm.io/install.sh | sh -
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
