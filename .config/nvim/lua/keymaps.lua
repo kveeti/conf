@@ -3,8 +3,8 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
-vim.keymap.set('n', '<leader>p', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
-vim.keymap.set('n', '<leader>n', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
+vim.keymap.set('n', 'M', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
+vim.keymap.set('n', 'm', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 
 vim.keymap.set("n", "<leader>rn", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
@@ -21,8 +21,10 @@ vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
 vim.keymap.set("n", "<C-l>", "<C-w>l")
 
--- start search with the word under the cursor
-vim.keymap.set("n", "<leader>sf", "/<C-r><C-w><CR>", { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>i", ":let @/='\\<'.expand('<cword>').'\\>'<CR>:set hlsearch<CR>",
+    { noremap = true, silent = true })
+vim.keymap.set("n", "xx", ":nohlsearch<CR>", { noremap = true, silent = true })
+
 vim.keymap.set("n", "<leader>d", "/", { noremap = true, silent = true })
 
 vim.keymap.set("i", "<C-c>", "<ESC>")

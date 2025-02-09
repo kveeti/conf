@@ -5,9 +5,9 @@ vim.o.mouse = 'a'
 vim.opt.guicursor = ""
 vim.o.hlsearch = false
 
-vim.wo.number = true
+vim.wo.number = false
 vim.o.relativenumber = true
-vim.wo.signcolumn = 'yes'
+vim.wo.signcolumn = 'no'
 vim.o.wrap = false
 
 vim.o.clipboard = 'unnamedplus'

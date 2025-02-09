@@ -1,25 +1,25 @@
 return {
-	-- {
-	-- 	"datsfilipe/vesper.nvim",
-	-- 	priority = 1000,
-	-- 	config = function()
-	-- 		vim.o.background = "dark"
-	-- 		vim.cmd("colorscheme vesper")
-	-- 	end
-	-- }
 	{
-		'catppuccin/nvim',
-		name = "catppuccin",
+		"datsfilipe/vesper.nvim",
 		priority = 1000,
 		config = function()
-			require('catppuccin').setup({
-				flavour = 'frappe'
-			})
-
 			vim.o.background = "dark"
-			vim.cmd("colorscheme catppuccin")
-		end,
-	},
+			vim.cmd("colorscheme vesper")
+		end
+	}
+	-- {
+	-- 	'catppuccin/nvim',
+	-- 	name = "catppuccin",
+	-- 	priority = 1000,
+	-- 	config = function()
+	-- 		require('catppuccin').setup({
+	-- 			flavour = 'frappe'
+	-- 		})
+	--
+	-- 		vim.o.background = "dark"
+	-- 		vim.cmd("colorscheme catppuccin")
+	-- 	end,
+	-- },
 	-- {
 	-- 	'Lokaltog/monotone.nvim',
 	-- 	dependencies = {

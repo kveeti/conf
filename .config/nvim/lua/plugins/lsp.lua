@@ -13,6 +13,7 @@ return {
         local on_attach = function(_, bufnr)
             local builtin = require("telescope.builtin")
             vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = bufnr })
+            vim.keymap.set("n", "gd", "gdzz")
             vim.keymap.set("n", "gr", builtin.lsp_references, { buffer = bufnr })
             vim.keymap.set("n", "gi", builtin.lsp_implementations, { buffer = bufnr })
 
