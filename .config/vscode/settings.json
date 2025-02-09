@@ -1,10 +1,9 @@
 {
   // -- some customization --
-  "workbench.preferredDarkColorTheme": "Monochrome Dark",
-  "workbench.preferredLightColorTheme": "Monochrome Light",
-  "workbench.colorTheme": "Monochrome Dark",
+  "workbench.colorTheme": "Vesper",
   "workbench.iconTheme": null,
   "editor.fontSize": 15,
+  "editor.lineHeight": 1.6,
   "editor.fontWeight": "400",
   "editor.fontFamily": "JetBrains Mono Nerd Font",
   "editor.fontLigatures": false,
@@ -25,7 +24,6 @@
   "workbench.panel.defaultLocation": "right",
   "workbench.layoutControl.enabled": false,
   "workbench.statusBar.visible": true,
-  "window.menuBarVisibility": "hidden",
   "window.titleBarStyle": "native",
   "window.title": "${dirty}${separator}${rootName}",
   "window.closeWhenEmpty": false,
@@ -38,9 +36,9 @@
   "explorer.openEditors.minVisible": 1,
   "workbench.editor.showTabs": "single",
   "workbench.editor.enablePreview": false,
-  // "workbench.editor.limit.enabled": true,
-  // "workbench.editor.limit.value": 1,
-  // "workbench.editor.limit.perEditorGroup": true,
+  "workbench.editor.limit.enabled": true,
+  "workbench.editor.limit.value": 1,
+  "workbench.editor.limit.perEditorGroup": true,
   // -- disable tabs --
 
   // -- autocompletion --
@@ -66,12 +64,6 @@
   // -- formatting --
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "prettier.useEditorConfig": false,
-  "[rust]": {
-    "editor.defaultFormatter": "rust-lang.rust-analyzer"
-  },
-  "[go]": {
-    "editor.defaultFormatter": "golang.go"
-  },
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -98,38 +90,73 @@
   "vim.useCtrlKeys": true,
   "vim.cursorStylePerMode.insert": "line-thin",
   "vim.highlightedyank.enable": true,
+  "vim.foldfix": true,
+  "vim.hlsearch": true,
+  "vim.incsearch": true,
+  "extensions.experimental.affinity": {
+    "vscodevim.vim": 1
+  },
 
-  "vim.leader": "space",
+  "vim.leader": "<space>",
   "vim.normalModeKeyBindingsNonRecursive": [
     {
-      "before": ["space", "x"],
-      "commands": ["workbench.view.explorer"]
-    },
-    {
-      "before": ["space", "f"],
-      "commands": ["workbench.action.quickOpen"]
-    },
-    {
-      "before": ["space", "w"],
-      "commands": ["workbench.action.files.save"]
-    },
-    {
-      "before": ["space", "r"],
-      "commands": ["editor.action.rename"]
-    },
-    {
-      "before": ["space", "p"],
-      "commands": ["workbench.action.showCommands"]
-    },
-    {
       "before": ["c-d"],
-      "after": ["M", "c-d"]
+      "after": ["c-d", "z", "z"]
     },
     {
       "before": ["c-u"],
       "after": ["c-u", "z", "z"]
+    },
+    {
+      "before": ["u"],
+      "commands": ["undo"]
+    },
+    {
+      "before": ["c-r"],
+      "commands": ["redo"]
+    },
+    {
+      "before": ["g", "i"],
+      "commands": ["editor.action.goToImplementation"]
+    },
+    {
+      "before": ["g", "r"],
+      "commands": ["editor.action.goToReferences"]
+    },
+    {
+      "before": ["<leader>", "w"],
+      "commands": ["workbench.action.files.save"]
+    },
+    {
+      "before": ["<leader>", "d"],
+      "commands": [":/"]
+    },
+    {
+      "before": ["<leader>", "r"],
+      "commands": ["editor.action.rename"]
+    },
+    {
+      "before": ["<leader>", "p"],
+      "commands": ["workbench.action.showCommands"]
+    },
+    {
+      "before": ["<leader>", "g"],
+      "commands": ["workbench.action.quickTextSearch"]
+    },
+    {
+      "before": ["K"],
+      "commands": ["editor.action.showHover"]
+    },
+    {
+      "before": ["<leader>", "f"],
+      "commands": ["workbench.action.quickOpen"]
+    },
+    {
+      "before": ["<leader>", "x"],
+      "commands": ["workbench.explorer.fileView.focus"]
     }
   ],
+
   // -- vim
 
   // -- misc
@@ -153,8 +180,6 @@
     "/node_modules": true,
     "/target": true
   },
-  "terminal.integrated.tabs.enabled": false,
-  "terminal.integrated.fontSize": 15,
   "accessibility.signals.terminalBell": {
     "sound": "off",
     "announcement": "off"

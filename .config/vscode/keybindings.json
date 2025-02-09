@@ -51,17 +51,6 @@
   },
   // --
 
-  // make custom vim normal mode bindings in settings.json to work everywhere
-  {
-    "key": "space x",
-    "command": "workbench.action.toggleSidebarVisibility",
-    "when": "!inputFocus && sideBarFocus"
-  },
-  {
-    "key": "space x",
-    "command": "workbench.files.action.focusFilesExplorer",
-    "when": "!inputFocus&&!sideBarFocus && activeViewlet == 'workbench.view.explorer'"
-  },
   {
     "key": "space f",
     "command": "workbench.action.quickOpen",
@@ -72,13 +61,17 @@
     "command": "workbench.action.showCommands",
     "when": "!inputFocus"
   },
-  // --
-
   {
-    "command": "editor.action.showHover",
-    "when": "editorTextFocus",
-    "key": "shift+k"
+    "key": "space g",
+    "command": "workbench.action.quickTextSearch",
+    "when": "!inputFocus"
   },
+  {
+    "key": "space x",
+    "command": "workbench.explorer.fileView.focus",
+    "when": "!inputFocus"
+  },
+  // --
 
   // file management
   {
@@ -112,24 +105,25 @@
     "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
   },
   // --
-  {
-    "key": "u",
-    "command": "undo",
-    "when": "editorTextFocus && vim.mode != 'Insert'"
-  },
-  {
-    "key": "ctrl+r",
-    "command": "redo",
-    "when": "editorTextFocus && vim.mode != 'Insert'"
-  },
+
   {
     "key": "ctrl+o",
-    "command": "workbench.action.navigateBack",
-    "when": "editorTextFocus && vim.mode != 'Insert'"
+    "command": "workbench.action.navigateBackInEditLocations",
+    "when": "vim.mode != 'Insert'"
   },
   {
     "key": "ctrl+i",
-    "command": "workbench.action.navigateForward",
-    "when": "editorTextFocus && vim.mode != 'Insert'"
+    "command": "workbench.action.navigateForwardInEditLocations",
+    "when": "vim.mode != 'Insert'"
+  },
+  {
+    "key": "m",
+    "command": "editor.action.marker.nextInFiles",
+    "when": "!inputFocus || (editorTextFocus && vim.mode != 'Insert')"
+  },
+  {
+    "key": "shift-m",
+    "command": "editor.action.marker.prevInFiles",
+    "when": "!inputFocus || (editorTextFocus && vim.mode != 'Insert')"
   }
 ]
