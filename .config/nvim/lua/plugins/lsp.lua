@@ -28,8 +28,7 @@ return {
         require('mason-lspconfig').setup()
 
         local servers = {
-            -- cssls                 = {},
-            -- gopls                 = {},
+            cssls                 = {},
             emmet_language_server = {},
             ts_ls                 = {},
             rust_analyzer         = {},
@@ -63,6 +62,8 @@ return {
                 }
             end,
         }
+
+        -- rust_analyzer -- catch harmless error
         for _, method in ipairs({ 'textDocument/diagnostic', 'workspace/diagnostic' }) do
             local default_diagnostic_handler = vim.lsp.handlers[method]
             vim.lsp.handlers[method] = function(err, result, context, config)

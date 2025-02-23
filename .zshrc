@@ -3,7 +3,7 @@ alias lg=lazygit
 alias v=nvim
 alias w='curl -s wttr.in'
 
-export VISUAL=v
+export VISUAL=$(which nvim)
 export EDITOR="$VISUAL"
 
 export PATH="$PATH:$HOME/.bin"
@@ -118,3 +118,10 @@ str() {
     wait
 }
 
+# pnpm
+export PNPM_HOME="/Users/veetik/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

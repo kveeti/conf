@@ -1,38 +1,35 @@
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
-
-vim.o.mouse = 'a'
-vim.opt.guicursor = ""
-vim.o.hlsearch = false
-
-vim.wo.number = false
-vim.o.relativenumber = true
+vim.opt.mouse = 'a'
+vim.opt.guicursor = "n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20"
+vim.opt.hlsearch = false
+vim.opt.termguicolors = true
+vim.wo.number = true
+vim.opt.relativenumber = true
 vim.wo.signcolumn = 'no'
-vim.o.wrap = false
+vim.opt.wrap = true
+vim.opt.laststatus = 0
+vim.opt.cmdheight = 0
+vim.opt.scrolloff = 8
 
-vim.o.clipboard = 'unnamedplus'
+vim.opt.clipboard = 'unnamedplus'
 
-vim.o.updatetime = 50
-vim.o.timeoutlen = 300
+vim.opt.completeopt = 'menuone,noselect'
 
-vim.o.completeopt = 'menuone,noselect'
-
-vim.o.termguicolors = true
-
-vim.o.ignorecase = true
-vim.o.smartcase = true
-vim.o.breakindent = true
-vim.o.smartindent = true
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+vim.opt.breakindent = true
+vim.opt.smartindent = true
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 
-vim.o.scrolloff = 8
+vim.opt.updatetime = 50
+vim.opt.timeoutlen = 300
+vim.opt.swapfile = false
+vim.opt.backup = false
+vim.opt.undofile = true
 
-vim.o.swapfile = false
-vim.o.backup = false
-vim.o.undofile = true
-
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 vim.g.omni_sql_no_default_maps = 1
 vim.g.zig_fmt_autosave = 0

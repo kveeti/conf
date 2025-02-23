@@ -3,11 +3,9 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
-vim.keymap.set('n', 'M', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
-vim.keymap.set('n', 'm', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-
-vim.keymap.set("n", "<leader>rn", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
+vim.keymap.set('n', 'M', vim.diagnostic.goto_prev)
+vim.keymap.set('n', 'm', vim.diagnostic.goto_next)
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float)
 
 vim.keymap.set("n", "<leader>w", [[:w<CR>]], { noremap = true, silent = true })
 
@@ -28,12 +26,6 @@ vim.keymap.set("n", "xx", ":nohlsearch<CR>", { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>d", "/", { noremap = true, silent = true })
 
 vim.keymap.set("i", "<C-c>", "<ESC>")
-
-vim.keymap.set("n", "H", "gT")
-vim.keymap.set("n", "L", "gt")
-vim.keymap.set("t", "H", "<C-\\><C-n>gT")
-vim.keymap.set("t", "L", "<C-\\><C-n>gt")
-vim.keymap.set("n", "<leader>.", "[[:tabnew<CR>:term<CR>]]")
 
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
 vim.api.nvim_create_autocmd('TextYankPost', {
