@@ -6,3 +6,7 @@
 	program = "/opt/homebrew/bin/gpg"
 [commit]
 	gpgsign = true
+[branch]
+	sort = -committerdate
+[push]
+	autoSetupRemote = true
