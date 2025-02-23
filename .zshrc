@@ -6,12 +6,42 @@ alias w='curl -s wttr.in'
 export VISUAL=v
 export EDITOR="$VISUAL"
 
+export PATH="$PATH:$HOME/.bin"
+
 function f() {
-  local selected_dir
-  selected_dir=$(find ~/Developer ~/Documents -mindepth 0 -maxdepth 2 -type d | fzf)
-  if [[ -n "$selected_dir" ]]; then
-    cd "$selected_dir"
-  fi
+    local selected_dir
+    selected_dir=$(find ~/Developer ~/Documents -mindepth 0 -maxdepth 2 -type d | fzf)
+    if [[ -n "$selected_dir" ]]; then
+	cd "$selected_dir"
+    fi
+}
+
+# tmux sessions
+function t() {
+    selected_dir=$(find ~/Developer ~/Documents -mindepth 0 -maxdepth 2 -type d | fzf)
+    if [[ -z "$selected_dir" ]]; then
+        return
+    fi
+
+    local session_name=$(basename "$selected_dir")
+    local is_tmux_running=$(pgrep tmux)
+    local is_in_tmux=$TMUX
+
+    if [[ -z $is_in_tmux ]] && [[ -z $is_tmux_running ]]; then
+	tmux new-session -ds "$session_name" -c "$selected_dir"
+        tmux attach-session -t "$session_name"
+        return
+    fi
+
+    if ! tmux has-session -t "$session_name" 2>/dev/null ; then
+	tmux new-session -ds "$session_name" -c "$selected_dir"
+    fi
+
+    if [[ -z $is_in_tmux ]]; then
+        tmux attach-session -t "$session_name"
+    else
+        tmux switch-client -t "$session_name"
+    fi
 }
 
 function kp() {
