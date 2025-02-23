@@ -1,0 +1,8 @@
+window-decoration = "none"
+window-height = 99999
+window-width = 99999
+window-padding-balance = true
+theme = "catppuccin-mocha"
+font-size = 15
+
+macos-icon = "glass"
