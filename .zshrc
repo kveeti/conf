@@ -8,6 +8,12 @@ export EDITOR="$VISUAL"
 
 export PATH="$PATH:$HOME/.bin"
 
+# somehow needed for these to work in tmux
+bindkey '^R' history-incremental-search-backward
+bindkey '^P' up-line-or-history
+bindkey '^N' down-line-or-history
+bindkey '^O' accept-line
+
 function f() {
     local selected_dir
     selected_dir=$(find ~/Developer ~/Documents -mindepth 0 -maxdepth 2 -type d | fzf)
