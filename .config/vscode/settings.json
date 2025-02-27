@@ -1,6 +1,6 @@
 {
   // -- some customization --
-  "workbench.colorTheme": "Vesper",
+  "workbench.colorTheme": "Catppuccin Mocha",
   "workbench.iconTheme": null,
   "editor.fontSize": 15,
   "editor.lineHeight": 1.6,
@@ -9,8 +9,6 @@
   "editor.fontLigatures": false,
   "editor.cursorBlinking": "solid",
 
-  "editor.lineNumbers": "off",
-  "editor.minimap.enabled": false,
   "editor.stickyScroll.enabled": true,
   "editor.renderWhitespace": "all",
   "editor.bracketPairColorization.enabled": false,
@@ -19,23 +17,29 @@
   "window.commandCenter": false,
   "editor.suggest.showStatusBar": false,
   "workbench.sideBar.location": "right",
-  "workbench.activityBar.location": "hidden",
   "workbench.editor.editorActionsLocation": "hidden",
   "workbench.panel.defaultLocation": "right",
   "workbench.layoutControl.enabled": false,
-  "workbench.statusBar.visible": true,
-  "window.titleBarStyle": "native",
-  "window.title": "${dirty}${separator}${rootName}",
+  "window.titleBarStyle": "custom",
+  "window.title": "${folderPath}",
+  "editor.lineNumbers": "relative",
   "window.closeWhenEmpty": false,
   "editor.glyphMargin": false,
   "editor.showFoldingControls": "never",
+  "editor.minimap.enabled": false,
+  "editor.scrollbar.horizontalScrollbarSize": 0,
+  "editor.scrollbar.verticalScrollbarSize": 0,
+  "zenMode.fullScreen": false,
+  "editor.overviewRulerBorder": false,
+  "workbench.panel.showLabels": false,
+  "terminal.integrated.fontSize": 15,
   // -- some customization --
 
   // -- disable tabs --
   "explorer.openEditors.visible": 1,
   "explorer.openEditors.minVisible": 1,
-  "workbench.editor.showTabs": "single",
-  "workbench.editor.enablePreview": false,
+  "workbench.editor.showTabs": "none",
+  "zenMode.showTabs": "none",
   "workbench.editor.limit.enabled": true,
   "workbench.editor.limit.value": 1,
   "workbench.editor.limit.perEditorGroup": true,
@@ -63,9 +67,13 @@
 
   // -- formatting --
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "prettier.useEditorConfig": false,
+  "prettier.useEditorConfig": true,
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.autoIndent": "advanced",
+    "editor.detectIndentation": true
   },
   // -- formatting --
 
@@ -89,7 +97,6 @@
   "vim.useSystemClipboard": true,
   "vim.useCtrlKeys": true,
   "vim.cursorStylePerMode.insert": "line-thin",
-  "vim.highlightedyank.enable": true,
   "vim.foldfix": true,
   "vim.hlsearch": true,
   "vim.incsearch": true,
@@ -98,6 +105,8 @@
   },
 
   "vim.leader": "<space>",
+  // this ideally won't contain any vscode commands
+  // i want those to be defined in keybinds.json
   "vim.normalModeKeyBindingsNonRecursive": [
     {
       "before": ["c-d"],
@@ -122,45 +131,12 @@
     {
       "before": ["g", "r"],
       "commands": ["editor.action.goToReferences"]
-    },
-    {
-      "before": ["<leader>", "w"],
-      "commands": ["workbench.action.files.save"]
-    },
-    {
-      "before": ["<leader>", "d"],
-      "commands": [":/"]
-    },
-    {
-      "before": ["<leader>", "r"],
-      "commands": ["editor.action.rename"]
-    },
-    {
-      "before": ["<leader>", "p"],
-      "commands": ["workbench.action.showCommands"]
-    },
-    {
-      "before": ["<leader>", "g"],
-      "commands": ["workbench.action.quickTextSearch"]
-    },
-    {
-      "before": ["K"],
-      "commands": ["editor.action.showHover"]
-    },
-    {
-      "before": ["<leader>", "f"],
-      "commands": ["workbench.action.quickOpen"]
-    },
-    {
-      "before": ["<leader>", "x"],
-      "commands": ["workbench.explorer.fileView.focus"]
     }
   ],
 
-  // -- vim
+  // copilot
+  "github.copilot.nextEditSuggestions.enabled": true,
 
-  // -- misc
-  "git.enabled": false,
   "telemetry.telemetryLevel": "off",
   "explorer.confirmDragAndDrop": true,
   "explorer.confirmDelete": true,
@@ -184,5 +160,10 @@
     "sound": "off",
     "announcement": "off"
   },
-  "extensions.autoUpdate": false
+  "extensions.autoUpdate": false,
+  "git.confirmSync": false,
+  "search.smartCase": true,
+  "workbench.activityBar.location": "hidden",
+  "search.searchEditor.defaultNumberOfContextLines": 5,
+  "search.seedWithNearestWord": true
 }
