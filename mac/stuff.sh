@@ -9,19 +9,12 @@ defaults write com.apple.Dock autohide -bool true
 defaults write com.apple.dock tilesize -int 32;
 defaults write com.apple.dock largesize -integer 40
 defaults write com.apple.dock orientation left
+defaults write com.apple.dock magnification -bool true
 clear_dock
 disable_recent_apps_from_dock
 killall Dock
 
 brew install \
-    google-chrome \
-    firefox \
-    discord \
-    1password \
-    orbstack \
-    visual-studio-code \
-    keepassxc \
-    rectangle \
     lazygit \
     gpg \
     mpv \
@@ -29,6 +22,18 @@ brew install \
     ffmpeg \
     yt-dlp \
     ripgrep \
-    font-jetbrains-mono-nerd-font
-curl -fsSL https://get.pnpm.io/install.sh | sh -
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    font-jetbrains-mono-nerd-font \
+    colima \
+    docker \
+    docker-compose \
+    docker-buildx \
+    docker-credential-helper \
+    neovim
+
+brew install --cask \
+    librewolf \
+    keepassxc \
+    rectangle \
+    ghostty \
+    bitwarden
+
