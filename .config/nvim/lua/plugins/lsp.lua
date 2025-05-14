@@ -1,8 +1,8 @@
 return {
     'neovim/nvim-lspconfig',
     dependencies = {
-        'williamboman/mason.nvim',
-        'williamboman/mason-lspconfig.nvim',
+        { "williamboman/mason.nvim", version = "^1.0.0" },
+        { "williamboman/mason-lspconfig.nvim", version = "^1.0.0" },
         {
             'j-hui/fidget.nvim',
             opts = {}

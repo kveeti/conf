@@ -3,8 +3,8 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
-vim.keymap.set('n', 'M', vim.diagnostic.goto_prev)
-vim.keymap.set('n', 'm', vim.diagnostic.goto_next)
+vim.keymap.set('n', 'Å', vim.diagnostic.goto_prev)
+vim.keymap.set('n', 'å', vim.diagnostic.goto_next)
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float)
 
 vim.keymap.set("n", "<leader>w", [[:w<CR>]], { noremap = true, silent = true })

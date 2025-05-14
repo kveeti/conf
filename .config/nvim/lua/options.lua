@@ -3,11 +3,9 @@ vim.opt.guicursor = "n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20"
 vim.opt.hlsearch = false
 vim.opt.termguicolors = true
 vim.wo.number = true
-vim.opt.relativenumber = true
 vim.wo.signcolumn = 'no'
 vim.opt.wrap = true
 vim.opt.laststatus = 0
-vim.opt.cmdheight = 0
 vim.opt.scrolloff = 8
 
 vim.opt.clipboard = 'unnamedplus'
