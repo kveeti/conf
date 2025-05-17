@@ -16,7 +16,7 @@ bindkey '^O' accept-line
 
 function f() {
     local selected_dir
-    selected_dir=$(find ~/Developer ~/Documents -mindepth 0 -maxdepth 2 -type d | fzf)
+    selected_dir=$(find ~/Developer -mindepth 0 -maxdepth 2 -type d | fzf)
     if [[ -n "$selected_dir" ]]; then
 	cd "$selected_dir"
     fi
