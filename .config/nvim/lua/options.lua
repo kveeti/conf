@@ -3,6 +3,7 @@ vim.opt.guicursor = "n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20"
 vim.opt.hlsearch = false
 vim.opt.termguicolors = true
 vim.wo.number = true
+vim.opt.relativenumber = true
 vim.wo.signcolumn = 'no'
 vim.opt.wrap = true
 vim.opt.laststatus = 0
@@ -31,3 +32,10 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.g.omni_sql_no_default_maps = 1
 vim.g.zig_fmt_autosave = 0
+
+vim.opt.list = true
+vim.opt.listchars = {
+	tab = '⇥ ',
+	trail = '·',
+	space = '·',
+}

@@ -27,6 +27,8 @@ vim.keymap.set("n", "<leader>d", "/", { noremap = true, silent = true })
 
 vim.keymap.set("i", "<C-c>", "<ESC>")
 
+vim.keymap.set("n", "<leader><leader>", "<c-^>", { noremap = true, silent = true })
+
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
 vim.api.nvim_create_autocmd('TextYankPost', {
     callback = function()
