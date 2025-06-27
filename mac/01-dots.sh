@@ -5,7 +5,7 @@ rm -rf "${DOTS}"
 
 cd "${HOME}"
 
-git clone --branch dots_mac --single-branch --bare https://github.com/veeti-k/conf "${DOTS}"
+git clone --branch dots_mac --single-branch --bare https://github.com/kveeti/conf "${DOTS}"
 function dots {
    /usr/bin/git --git-dir="${DOTS}" --work-tree="${HOME}" $@
 }
