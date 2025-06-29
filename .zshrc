@@ -1,59 +1,19 @@
-alias dots='/usr/bin/git --git-dir=$HOME/.dots/ --work-tree=$HOME'
-alias lg=lazygit
-alias v=nvim
-alias w='curl -s wttr.in'
+alias dots="/usr/bin/git --git-dir=$HOME/.dots/ --work-tree=$HOME"
 
-export VISUAL=$(which nvim)
-export EDITOR="$VISUAL"
+alias lg="lazygit"
+alias e="${EDITOR}"
+alias E="sudo e"
+alias ls="eza -la"
+alias b="open \"/Applications/Brave Browser.app\" --args --disable-smooth-scrolling"
 
-export PATH="$PATH:$HOME/.bin"
-
-# somehow needed for these to work in tmux
-bindkey '^R' history-incremental-search-backward
-bindkey '^P' up-line-or-history
-bindkey '^N' down-line-or-history
-bindkey '^O' accept-line
+alias gs="git status --short"
 
 function f() {
     local selected_dir
-    selected_dir=$(find ~/Developer -mindepth 0 -maxdepth 2 -type d | fzf)
+    selected_dir=$(find ~/code -mindepth 0 -maxdepth 3 -type d | fzf)
     if [[ -n "$selected_dir" ]]; then
-	cd "$selected_dir"
+        cd "$selected_dir"
     fi
-}
-
-# tmux sessions
-function t() {
-    selected_dir=$(find ~/Developer ~/Documents -mindepth 0 -maxdepth 2 -type d | fzf)
-    if [[ -z "$selected_dir" ]]; then
-        return
-    fi
-
-    local session_name=$(basename "$selected_dir")
-    local is_tmux_running=$(pgrep tmux)
-    local is_in_tmux=$TMUX
-
-    if [[ -z $is_in_tmux ]] && [[ -z $is_tmux_running ]]; then
-	tmux new-session -ds "$session_name" -c "$selected_dir"
-        tmux attach-session -t "$session_name"
-        return
-    fi
-
-    if ! tmux has-session -t "$session_name" 2>/dev/null ; then
-	tmux new-session -ds "$session_name" -c "$selected_dir"
-    fi
-
-    if [[ -z $is_in_tmux ]]; then
-        tmux attach-session -t "$session_name"
-    else
-        tmux switch-client -t "$session_name"
-    fi
-}
-
-function kp() {
-    local port="$1"
-
-    kill -9 $(lsof -ti:$port)
 }
 
 enc() {
@@ -100,34 +60,3 @@ dec() {
     gpg --no-symkey-cache --batch --passphrase "$passphrase" --decrypt "$file" | zstd -d | pv -c | tar -xf -
     echo "done"
 }
-
-str() {
-    url="$1"
-    output="$2"
-    format="bv*[height<=2160]+ba/b[height<=2160]"
-
-    if [[ -z "$url" ]]; then
-        echo "Usage: str <url> [output]"
-        return 1
-    fi
-
-    yt-dlp -f "$format" --quiet --no-warnings --downloader ffmpeg -f "$format" -o - "$url" | mpv --hwdec=auto-safe - &
-    stream_pid=$!
-
-    if [[ -n "$output" ]]; then
-        yt-dlp --quiet --no-warnings --downloader ffmpeg -f "$format" "$url" -o "$output" &
-        download_pid=$!
-    fi
-
-    trap 'kill $stream_pid $download_pid 2>/dev/null; return 0' SIGINT
-
-    wait
-}
-
-# pnpm
-export PNPM_HOME="/Users/veetik/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
