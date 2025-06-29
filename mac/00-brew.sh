@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+set -euo pipefail
+
 function formulae {
 	brew install --formula \
 		zstd \
@@ -10,6 +12,7 @@ function formulae {
 		yt-dlp \
 		ripgrep \
 		fzf \
+		eza \
 		lazygit \
 		neovim \
 		colima \
@@ -22,7 +25,6 @@ function formulae {
 	# might stop working someday, hopefully this helps that day:
 	# Compose is a Docker plugin. For Docker to find the plugin, add "cliPluginsExtraDirs" to ~/.docker/config.json:
 	# "cliPluginsExtraDirs": [ "/opt/homebrew/lib/docker/cli-plugins" ]
-
 	mkdir -p ~/.docker/cli-plugins
 	ln -sfn $(which docker-buildx) ~/.docker/cli-plugins/docker-buildx
 	ln -sfn $(which docker-compose) ~/.docker/cli-plugins/docker-compose

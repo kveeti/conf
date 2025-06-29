@@ -1,6 +1,8 @@
 #!/bin/zsh
 
-HOSTNAME='r'
+set -euo pipefail
+
+HOSTNAME="a"
 
 # Login window settings
 sudo defaults write /Library/Preferences/com.apple.loginwindow DisableConsoleAccess -bool true
