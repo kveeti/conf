@@ -89,14 +89,31 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require('lazy').setup({
+	-- ----- THEME -----
+	-- {
+	-- 	"vague2k/vague.nvim",
+	-- 	config = function()
+	-- 		require("vague").setup({})
+	-- 		vim.cmd("colorscheme vague")
+	-- 		vim.cmd(":hi statusline guibg=NONE")
+	-- 	end
+	-- },
 	{
-		"vague2k/vague.nvim",
+		"catppuccin/nvim",
+		name = "catppuccin",
+		priority = 1000,
 		config = function()
-			require("vague").setup({})
-			vim.cmd("colorscheme vague")
+			require("catppuccin").setup({
+				flavor = "mocha",
+				background = {
+					dark = "mocha"
+				}
+			})
+			vim.cmd("colorscheme catppuccin")
 			vim.cmd(":hi statusline guibg=NONE")
 		end
 	},
+	-- ----- THEME -----
 	{ 'windwp/nvim-autopairs' },
 	{ 'windwp/nvim-ts-autotag' },
 	{ 'tpope/vim-sleuth' },
