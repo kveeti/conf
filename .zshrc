@@ -5,6 +5,7 @@ alias e="${EDITOR}"
 alias E="sudo e"
 alias ls="eza -la"
 alias b="open \"/Applications/Brave Browser.app\" --args --disable-smooth-scrolling"
+bindkey -e
 
 alias gs="git status --short"
 
@@ -60,3 +61,7 @@ dec() {
     gpg --no-symkey-cache --batch --passphrase "$passphrase" --decrypt "$file" | zstd -d | pv -c | tar -xf -
     echo "done"
 }
+
+eval "$(/opt/homebrew/bin/brew shellenv)"
+eval "$(starship init zsh)"
+eval "$(fnm env --use-on-cd --shell zsh)"

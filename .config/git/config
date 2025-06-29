@@ -1,0 +1,35 @@
+[user]
+	name = "Veeti K"
+	email = "veeti@veetik.com"
+	signingkey = "111E474490913E21"
+
+[core]
+	compression = 9
+	whitespace = error
+	preloadindex = true
+
+[url "git@github.com:"]
+	insteadOf = "gh:"
+
+[status]
+	branch = true
+	showStash = true
+	showUntrackedFiles = all
+
+[diff]
+	context = 3
+	renames = copies
+	interHunkContext = 10
+
+[gpg]
+	program = "/opt/homebrew/bin/gpg"
+
+[commit]
+	gpgsign = true
+	verbose = true
+
+[branch]
+	sort = -committerdate
+
+[push]
+	autoSetupRemote = true
