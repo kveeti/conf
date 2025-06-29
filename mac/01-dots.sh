@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/zsh
+
+set -euo pipefail
 
 DOTS="${HOME}/.dots"
 rm -rf "${DOTS}"
