@@ -1,21 +1,19 @@
-alias dots="/usr/bin/git --git-dir=$HOME/.dots/ --work-tree=$HOME"
-
-alias lg="lazygit"
-alias e="${EDITOR}"
-alias E="sudo e"
-alias ls="eza -la"
-alias b="open \"/Applications/Brave Browser.app\" --args --disable-smooth-scrolling"
 bindkey -e
 
-alias gs="git status --short"
+alias dots="/usr/bin/git --git-dir=$HOME/.dots/ --work-tree=$HOME"
 
-function f() {
-    local selected_dir
-    selected_dir=$(find ~/code -mindepth 0 -maxdepth 3 -type d | fzf)
-    if [[ -n "$selected_dir" ]]; then
-        cd "$selected_dir"
-    fi
-}
+EDITOR=nvim
+alias e=$EDITOR
+
+alias ls='eza -la'
+alias f='cd "$(find ~/code ~/things -type d -maxdepth 7 -print0 | fzf --read0)"'
+
+alias k=kubectl
+
+alias gs='git status --short'
+alias gl='git log --oneline --decorate --color'
+
+eval "$(fnm env --use-on-cd --shell zsh)"
 
 enc() {
     local file="$1"
@@ -61,7 +59,4 @@ dec() {
     gpg --no-symkey-cache --batch --passphrase "$passphrase" --decrypt "$file" | zstd -d | pv -c | tar -xf -
     echo "done"
 }
-
-eval "$(/opt/homebrew/bin/brew shellenv)"
-eval "$(starship init zsh)"
-eval "$(fnm env --use-on-cd --shell zsh)"
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"

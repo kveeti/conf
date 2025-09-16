@@ -1,8 +1,10 @@
 window-height = 99999
 window-width = 99999
-theme = "catppuccin-mocha"
-font-size = 16
+theme = dark:catppuccin-mocha,light:catppuccin-latte
+# background-opacity = 0.85
+background-blur = 9
+font-size = 13
 font-family = "JetBrains Mono Nerd Font"
 
 macos-icon = "glass"
-macos-titlebar-style = "tabs"
+keybind = shift+enter=text:\n

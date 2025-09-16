@@ -12,10 +12,20 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float)
 
 vim.keymap.set("n", "<leader>w", [[:w<CR>]], { noremap = true, silent = true })
 
-vim.keymap.set("n", "<C-d>", "<C-d>zz")
 vim.keymap.set("n", "<C-u>", "<C-u>zz")
-vim.keymap.set("n", "n", "nzzzv")
-vim.keymap.set("n", "N", "Nzzzv")
+vim.keymap.set("n", "<C-d>", "<C-d>zz")
+vim.keymap.set("n", "{", "{zz")
+vim.keymap.set("n", "}", "}zz")
+vim.keymap.set("n", "N", "Nzz")
+vim.keymap.set("n", "n", "nzz")
+vim.keymap.set("n", "G", "Gzz")
+vim.keymap.set("n", "gg", "ggzz")
+vim.keymap.set("n", "gd", "gdzz")
+vim.keymap.set("n", "<C-i>", "<C-i>zz")
+vim.keymap.set("n", "<C-o>", "<C-o>zz")
+vim.keymap.set("n", "%", "%zz")
+vim.keymap.set("n", "*", "*zz")
+vim.keymap.set("n", "#", "#zz")
 
 vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
@@ -104,10 +114,12 @@ require('lazy').setup({
 		priority = 1000,
 		config = function()
 			require("catppuccin").setup({
-				flavor = "mocha",
+				flavor = "auto",
 				background = {
-					dark = "mocha"
-				}
+					light = "latte",
+					dark = "mocha",
+				},
+				transparent_background = true
 			})
 			vim.cmd("colorscheme catppuccin")
 			vim.cmd(":hi statusline guibg=NONE")
@@ -117,6 +129,12 @@ require('lazy').setup({
 	{ 'windwp/nvim-autopairs' },
 	{ 'windwp/nvim-ts-autotag' },
 	{ 'tpope/vim-sleuth' },
+	{
+		"supermaven-inc/supermaven-nvim",
+		config = function()
+			require("supermaven-nvim").setup({})
+		end,
+	},
 	{
 		"stevearc/conform.nvim",
 		config = function()
