@@ -450,6 +450,7 @@ in
 
         local-zone = [
           ''"internal.veetik.com." static''
+          ''"veetik.com." typetransparent''
         ];
         local-data = [
           ''"ui.internal.veetik.com. IN A 192.168.5.1"''
@@ -465,6 +466,8 @@ in
           ''"rss.internal.veetik.com. IN A 192.168.40.3"''
           ''"sso.internal.veetik.com. IN A 192.168.40.3"''
           ''"ldap.internal.veetik.com. IN A 192.168.40.3"''
+
+          ''"authadmin.veetik.com. IN A 192.168.40.2"''
         ];
       };
       # blocklists
