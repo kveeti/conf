@@ -1,0 +1,226 @@
+volumes:
+  pg_grafana_data:
+  grafana_data:
+  victoriametrics_data:
+  victorialogs_data:
+
+
+networks:
+  proxy_internal:
+    name: "proxy_internal"
+
+
+services:
+  dockerproxy:
+    # 0.4.1
+    image: "docker.io/tecnativa/docker-socket-proxy@sha256:c659d99f52a9c40aa2e587a8baaae323a37bb0696e52155bf27a6c00b43ff2ce"
+    volumes:
+      - "/run/user/1001/docker.sock:/var/run/docker.sock:ro"
+    restart: "unless-stopped"
+    networks:
+      - "proxy_internal"
+    cap_drop: ["ALL"]
+    environment:
+      CONTAINERS: 1
+      NETWORKS: 1
+      INFO: 1
+      SERVICES: 1
+      TASKS: 1
+      VERSION: 1
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "64M"
+
+
+  traefik:
+    depends_on:
+      - "dockerproxy"
+    # 3.5.3
+    image: "docker.io/traefik@sha256:c8bcb479c8057a29b05b1f3a5dcfb580fa67bc6adc41e48eabb168512c6a8c8b"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./data/traefik/data:/data"
+#      - "/run/user/1001/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - "proxy_internal"
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    env_file: "./.secrets/traefik/envs"
+    command:
+      - "--log.format=json"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+      - "--accesslog.format=json"
+      - "--accesslog.addinternals=false"
+      - "--api.debug=false"
+      - "--api.dashboard=false"
+
+      - "--entrypoints.http.address=:8080"
+      - "--entrypoints.http.http.redirections.entryPoint.to=https"
+      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
+
+      - "--entrypoints.https.address=:8443"
+      - "--entrypoints.https.http.tls.certresolver=cf"
+      - "--entrypoints.https.http.tls.domains[0].sans=*.internal.veetik.com"
+      - "--accesslog.fields.headers.defaultmode=drop"
+      - "--accesslog.fields.headers.names.x-request-id=keep"
+      - "--accesslog.fields.headers.names.origin=keep"
+      - "--accesslog.fields.headers.names.referer=keep"
+      - "--accesslog.fields.headers.names.user-agent=keep"
+
+      - "--serverstransport.insecureSkipVerify=true"
+      - "--providers.docker.endpoint=tcp://dockerproxy:2375"
+#      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.exposedByDefault=false"
+      - "--certificatesresolvers.cf.acme.email=security@veetik.com"
+      - "--certificatesresolvers.cf.acme.storage=/data/cf.json"
+      - "--certificatesresolvers.cf.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+#      - "--certificatesresolvers.cf.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.provider=cloudflare"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.resolvers[0]=1.1.1.1:53"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.resolvers[1]=1.0.0.1:53"
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "128M"
+
+
+  victoriametrics:
+    # 1.132.0
+    image: "docker.io/victoriametrics/victoria-metrics@sha256:4a4c0dc9a854c62dcf353c642b3d767636a5a12aadc195146ff20992817084ff"
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=90d"
+    volumes:
+      - "victoriametrics_data:/storage"
+    networks:
+      - "proxy_internal"
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: "128M"
+    labels:
+      traefik.enable: true
+      traefik.docker.network: "proxy_internal"
+      traefik.http.routers.metrics.rule: "Host(`o11s-metrics.internal.veetik.com`)"
+      traefik.http.middlewares.metrics-auth.basicauth.users: "metrics:$$apr1$$Ud4RmgYr$$H9QckoZnreCyfVLc1g0ZE/"
+      traefik.http.routers.metrics.middlewares: "metrics-auth"
+      traefik.http.services.metrics.loadbalancer.server.port: 8428
+
+
+  victorialogs:
+    # 1.43.0
+    image: "docker.io/victoriametrics/victoria-logs@sha256:7d0cb95f3501d81cb3ed129b9abf5ac416ffb8d6e3917d73e9b3e99a45171462"
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=90d"
+    volumes:
+      - "victorialogs_data:/storage"
+    networks:
+      - "proxy_internal"
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: "128M"
+    labels:
+      traefik.enable: true
+      traefik.docker.network: "proxy_internal"
+      traefik.http.routers.logs.rule: "Host(`o11s-logs.internal.veetik.com`)"
+      traefik.http.middlewares.logs-auth.basicauth.users: "logs:$$apr1$$g66.Kfd5$$bCn8P1W2lsKJfuqcmE4RL1"
+      traefik.http.routers.logs.middlewares: "logs-auth"
+      traefik.http.services.logs.loadbalancer.server.port: 9428
+
+
+  pg_grafana:
+    # 18.1-alpine3.22
+    image: "docker.io/postgres@sha256:97f65d288c6f4575749bc69715c4359657a371f455b0308737fc3a458f7d7a7d"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "db"
+    volumes:
+      - "pg_grafana_data:/var/lib/postgresql"
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "128M"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: "1m"
+      start_interval: "1s"
+      timeout: "5s"
+      retries: 5
+
+
+  grafana:
+    depends_on:
+      pg_grafana:
+        condition: "service_healthy"
+    image: docker.io/grafana/grafana@sha256:c23ae8a46aece259ff50dd45b199b49eff3ffb7eea299ff3d7556f2107ed5375
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_BASIC_ENABLED: false
+      GF_SERVER_ROOT_URL: "https://o11s.internal.veetik.com"
+      GF_PLUGINS_PREINSTALL_SYNC: "victoriametrics-logs-datasource"
+    volumes:
+      - "grafana_data:/var/lib/grafana"
+    configs:
+      - source: "grafana_datasources.yml"
+        target: "/etc/grafana/provisioning/datasources/datasources.yml"
+    networks:
+      - "proxy_internal"
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "512M"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.grafana.rule: "Host(`o11s.internal.veetik.com`)"
+      traefik.http.services.grafana.loadbalancer.server.port: 3000
+
+
+configs:
+  grafana_datasources.yml:
+    content: |
+      apiVersion: 1
+
+      datasources:
+        - name: VictoriaMetrics
+          type: prometheus
+          access: proxy
+          url: http://victoriametrics:8428
+          isDefault: true
+          editable: false
+
+        - name: VictoriaLogs
+          type: victoriametrics-logs-datasource
+          access: proxy
+          url: http://victorialogs:9428
+          httpMethod: POST
+          editable: false
