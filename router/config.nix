@@ -306,6 +306,8 @@ in
         iifname "vlan10" tcp dport 22 accept comment "vlan10 ssh"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } udp dport 67 accept comment "vlan dhcp"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns"
+        iifname { "vlan10", "vlan20" } udp dport 5353 accept comment "avahi mdns"
+        iifname "ve-unifi" meta l4proto { tcp, udp } th dport { 8080, 8443, 10001, 3478 } accept
 
         icmp type echo-request accept
       }
@@ -317,10 +319,12 @@ in
 
         iifname { "wg0", "vlan10" } accept
         iifname "vlan40" oifname "vlan40" accept
+        iifname "vlan40" oifname "vlan20" ip daddr 192.168.20.2 accept comment "home assistant prometheus metrics scrape"
+        iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
 
         iifname != "${IF_WAN}" oifname "${IF_WAN}" accept comment "everyone gets to the WWW"
 
-        iifname "${IF_WAN}" ip daddr 192.168.40.2 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
+        iifname "${IF_WAN}" ip daddr 192.168.40.7 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
 
         # unifi controller
         # https://help.ui.com/hc/en-us/articles/218506997-Required-Ports-Reference
@@ -331,28 +335,29 @@ in
         # tcp      | 8080  | ingress   | Device and application communication
         # tcp      | 8443  | ingress   | Application GUI/API (on UniFi Console)
         #
-        iifname "vlan5" oifname "ve-unifi" udp dport { 3478, 10001 } counter accept
+        iifname "vlan5" oifname "ve-unifi" udp dport { 3478, 10001, 1900 } counter accept
         iifname "vlan5" oifname "ve-unifi" tcp dport { 8080, 8443 } counter accept
-        iifname "ve-unifi" oifname "vlan5" udp dport { 3478, 10001 } counter accept
+        iifname "ve-unifi" oifname "vlan5" udp dport { 3478, 10001, 1900 } counter accept
+        iifname "ve-unifi" oifname "vlan5" tcp dport { 8080, 8443 } counter accept
         iifname { "vlan5", "vlan10" } tcp dport { 8443 } counter accept
       }
     }
 
     table ip nat {
       chain prerouting {
-        type nat hook prerouting priority 0; policy accept;
+        type nat hook prerouting priority dstnat; policy accept;
 
         # unifi controller
-        iifname "vlan5" ip daddr 192.168.5.1 udp dport { 3478, 10001 } counter dnat to 192.168.100.2
-        iifname "vlan5" ip daddr 192.168.5.1 tcp dport 8080 counter dnat to 192.168.100.2
+        iifname "vlan5" ip daddr 192.168.5.1 udp dport { 3478, 10001, 1900 } counter dnat to 192.168.100.2
+        iifname "vlan5" ip daddr 192.168.5.1 tcp dport { 8080, 8443 } counter dnat to 192.168.100.2
         iifname { "vlan5", "vlan10" } ip daddr 192.168.5.1 tcp dport 443 counter dnat to 192.168.100.2:8443
 
-        # dnat public 80, 443 to 192.168.40.2
-        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.2
-        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.40.2
+        # dnat public 80, 443 to 192.168.40.7
+        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.7
+        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.40.7
 
         # dns through router, except vlan40
-        iifname { "vlan5", "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
+        iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
       }
 
       chain postrouting {
@@ -459,15 +464,18 @@ in
 
           ''"ha.internal.veetik.com. IN A 192.168.20.2"''
 
-          ''"dav.internal.veetik.com. IN A 192.168.40.3"''
-          ''"git.internal.veetik.com. IN A 192.168.40.3"''
-          ''"pass.internal.veetik.com. IN A 192.168.40.3"''
-          ''"o11s.internal.veetik.com. IN A 192.168.40.3"''
-          ''"rss.internal.veetik.com. IN A 192.168.40.3"''
-          ''"sso.internal.veetik.com. IN A 192.168.40.3"''
-          ''"ldap.internal.veetik.com. IN A 192.168.40.3"''
+          ''"dav.internal.veetik.com. IN A 192.168.40.6"''
+          ''"git.internal.veetik.com. IN A 192.168.40.6"''
+          ''"pass.internal.veetik.com. IN A 192.168.40.6"''
+          ''"rss.internal.veetik.com. IN A 192.168.40.6"''
+          ''"sso.internal.veetik.com. IN A 192.168.40.6"''
+          ''"ldap.internal.veetik.com. IN A 192.168.40.6"''
 
-          ''"authadmin.veetik.com. IN A 192.168.40.2"''
+          ''"authadmin.veetik.com. IN A 192.168.40.7"''
+
+          ''"o11s.internal.veetik.com. IN A 192.168.40.5"''
+          ''"o11s-logs.internal.veetik.com. IN A 192.168.40.5"''
+          ''"o11s-metrics.internal.veetik.com. IN A 192.168.40.5"''
         ];
       };
       # blocklists
@@ -518,7 +526,10 @@ in
       dhcp-host = [
         "BC:24:11:62:37:5C, ha,          192.168.20.2"
         "68:25:DD:49:0D:13, slzb,        192.168.20.3"
-        "98:b7:85:22:eb:a5, docker-host, 192.168.40.4"
+        "bc:24:11:c5:e2:f5, backup,      192.168.40.5"
+        "98:b7:85:22:e9:eb, docker,      192.168.40.6"
+        # docker (98:b7:85:22:e9:eb) static at:
+        # 192.168.40.6 (internal) and 192.168.40.7 (public)
       ];
     };
   };
@@ -531,6 +542,26 @@ in
   };
   config.systemd.services.cloudflare-ddns.after = [ "unbound.service" ];
   config.systemd.services.cloudflare-ddns.wants = [ "unbound.service" ];
+
+  config.services.avahi = {
+    enable = true;
+    reflector = true;
+    interfaces = [
+      "vlan10"
+      "vlan20"
+    ];
+    allowInterfaces = [
+      "vlan10"
+      "vlan20"
+    ];
+    ipv4 = true;
+    ipv6 = false;
+    publish = {
+      enable = false;
+      addresses = false;
+      workstation = false;
+    };
+  };
 
   # unifi controller
   config.systemd.tmpfiles.rules = [

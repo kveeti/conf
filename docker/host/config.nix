@@ -1,5 +1,8 @@
 { config, pkgs, lib, keys, ... }:
 
+let
+  IF_LAN = "enp1s0f1";
+in
 {
   config.boot.loader.systemd-boot.enable = true;
   config.boot.loader.efi.canTouchEfiVariables = true;
@@ -19,7 +22,7 @@
     };
   };
 
-  config.networking.hostName = "backup";
+  config.networking.hostName = "docker";
   config.time.timeZone = "UTC";
   config.i18n.defaultLocale = "en_US.UTF-8";
   config.i18n.extraLocaleSettings = {
@@ -55,13 +58,6 @@
       hashedPasswordFile = config.age.secrets.password.path;
     };
 
-    backup = {
-      useDefaultShell = true;
-      isNormalUser = true;
-      openssh.authorizedKeys.keys = keys.all;
-      hashedPasswordFile = config.age.secrets.password.path;
-    };
-
     runner = {
       useDefaultShell = true;
       isNormalUser = true;
@@ -71,12 +67,11 @@
     };
   };
 
+  config.security.sudo.wheelNeedsPassword = false;
+
   config.systemd.tmpfiles.rules = [
     "d /srv/docker 0755 runner users -"
-    "d /srv/backups 0755 backup users -"
   ];
-
-  config.security.sudo.wheelNeedsPassword = false;
 
   config.services.openssh = {
     enable = true;
@@ -95,27 +90,53 @@
   };
 
   config.networking.useNetworkd = true;
-  config.networking.firewall.enable = true;
-  config.networking.firewall.allowedTCPPorts = [
-    # ssh
-    22
+  config.networking.nameservers = [ "192.168.40.1" ];
+  config.systemd.network = {
+    enable = true;
+    networks = {
+      "10-lan" = {
+        matchConfig.Name = IF_LAN;
+        linkConfig.RequiredForOnline = "routable";
+        address = [ "192.168.40.6/24" "192.168.40.7/24" ];
+        routes = [{ Gateway = "192.168.40.1"; }];
+      };
+    };
+  };
 
-    # port redirect
-    80 443 8080 8443
-  ];
 
-  # redirect 80 -> 8080 and 443 -> 8443
+  # redirect 192.168.40.6 80 -> 8080 and 443 -> 8443
+  # redirect 192.168.40.7 80 -> 7080 and 443 -> 7443
   # docker is rootless, it can only listen on ports >1024
   config.boot.kernel.sysctl = {
     "net.ipv4.conf.all.forwarding" = 1;
   };
-  config.networking = {
-    firewall.extraCommands = ''
-      iptables -A PREROUTING -t nat -p TCP --dport 80 -j REDIRECT --to-port 8080
-      iptables -A PREROUTING -t nat -p TCP --dport 443 -j REDIRECT --to-port 8443
+  config.networking.firewall.enable = true;
+  config.networking.nftables.enable = true;
+  config.networking.firewall.allowedTCPPorts = [22 80 443 8080 8443 7080 7443];
+  config.networking.nftables.flushRuleset = true;
+  config.networking.nftables.tables.nat = {
+    enable = true;
+    family = "ip";
+    content = ''
+      chain prerouting {
+        type nat hook prerouting priority dstnat; policy accept;
+
+        ip daddr 192.168.40.6 meta l4proto { tcp, udp } th dport 80 counter dnat to 192.168.40.6:8080
+        ip daddr 192.168.40.6 meta l4proto { tcp, udp } th dport 443 counter dnat to 192.168.40.6:8443
+
+        ip daddr 192.168.40.7 meta l4proto { tcp, udp } th dport 80 counter dnat to 192.168.40.7:7080
+        ip daddr 192.168.40.7 meta l4proto { tcp, udp } th dport 443 counter dnat to 192.168.40.7:7443
+      }
+
+      chain output {
+        type nat hook output priority -100; policy accept;
+        ip daddr 192.168.40.6 tcp dport 80 dnat to 192.168.40.6:8080
+        ip daddr 192.168.40.6 tcp dport 443 dnat to 192.168.40.6:8443
+        ip daddr 192.168.40.7 tcp dport 80 dnat to 192.168.40.7:7080
+        ip daddr 192.168.40.7 tcp dport 443 dnat to 192.168.40.7:7443
+      }
     '';
   };
-
   config.environment.systemPackages = with pkgs; [
     vim
     git
@@ -127,11 +148,11 @@
   config.services.prometheus.exporters.node = {
     enable = true;
     port = 9100;
-    openFirewall = false;
     enabledCollectors = [
       "logind"
       "systemd"
     ];
+    openFirewall = true;
   };
 
   config.age.secrets.alloy-env.file = ./secrets/alloy-env.age;
@@ -203,7 +224,7 @@
 
     loki.write "victorialogs" {
       endpoint {
-        url = "https://o11s-logs.internal.veetik.com:8443/insert/loki/api/v1/push"
+        url = "https://o11s-logs.internal.veetik.com/insert/loki/api/v1/push"
 
         basic_auth {
           username = env("LOGS_USER")
@@ -238,22 +259,9 @@
       scrape_timeout  = "10s"
     }
 
-    prometheus.scrape "ha" {
-      targets = [{
-        __address__ = "192.168.20.2:8123",
-      }]
-      metrics_path = "/api/prometheus"
-      bearer_token = env("HA_TOKEN")
-
-      scrape_interval = "15s"
-      scrape_timeout  = "10s"
-
-      forward_to = [prometheus.remote_write.victoriametrics.receiver]
-    }
-
     prometheus.remote_write "victoriametrics" {
       endpoint {
-        url = "https://o11s-metrics.internal.veetik.com:8443/api/v1/write"
+        url = "https://o11s-metrics.internal.veetik.com/api/v1/write"
 
         basic_auth {
           username = env("METRICS_USER")
@@ -272,7 +280,7 @@
       enable = true;
       setSocketVariable = true;
       daemon.settings = {
-        dns = [ "1.1.1.1" "8.8.8.8" ];
+        dns = [ "192.168.40.1" "1.1.1.1" "8.8.8.8" ];
         data-root = "/srv/docker";
         log-driver = "journald";
         log-opts = {
@@ -282,5 +290,5 @@
     };
   };
 
-  config.system.stateVersion = "25.05";
+  config.system.stateVersion = "25.11";
 }

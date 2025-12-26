@@ -42,44 +42,33 @@ in
       type = "lvm_vg";
       lvs = {
         root = {
-          size = "10G";
-          content = {
-            type = "filesystem";
-            format = "ext4";
-            mountpoint = "/";
-            mountOptions = ["defaults"];
-          };
-        };
-        home = {
-          size = "1G";
-          content = {
-            type = "filesystem";
-            format = "ext4";
-            mountpoint = "/home";
-            mountOptions = ["defaults"];
-          };
-        };
-        docker = {
           size = "20G";
           content = {
             type = "filesystem";
             format = "ext4";
-            mountpoint = "/var/lib/docker";
-            mountOptions = ["defaults"];
+            mountpoint = "/";
+            mountOptions = ["defaults" "noatime"];
           };
         };
-        homelab = {
+
+        swap = {
+          size = "8G";
+          content = {
+            type = "swap";
+          };
+        };
+
+        srv_docker = {
           size = "100%FREE";
           content = {
             type = "filesystem";
             format = "ext4";
-            mountpoint = "/var/homelab";
-            mountOptions = ["defaults"];
+            mountpoint = "/srv/docker";
+            mountOptions = ["defaults" "noatime"];
           };
         };
       };
     };
   };
 }
-
 

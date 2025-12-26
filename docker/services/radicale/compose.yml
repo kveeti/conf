@@ -1,0 +1,58 @@
+volumes:
+  radicale_data:
+
+
+networks:
+  proxy_internal:
+    external: true
+
+
+services:
+  radicale:
+    build:
+      context: .
+      dockerfile: "Containerfile"
+    volumes:
+      - type: "volume"
+        source: "radicale_data"
+        target: "/data"
+        read_only: false
+    configs:
+      - source: "radicale_config"
+        target: "/config/config"
+      - source: "radicale_users"
+        target: "/config/users"
+    networks:
+      - "proxy_internal"
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.8"
+          memory: "128M"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.radicale.rule: "Host(`dav.internal.veetik.com`)"
+      traefik.http.services.radicale.loadbalancer.server.port: 5232
+
+
+configs:
+  radicale_config:
+    content: |
+      [server]
+      hosts = 0.0.0.0:5232
+
+      [auth]
+      type = htpasswd
+      htpasswd_filename = /config/users
+      htpasswd_encryption = bcrypt
+
+      [storage]
+      filesystem_folder = /data/collections
+      hook = (git -c safe.directory=/data/collections status --porcelain | awk '{print $2}' | python3 /usr/local/bin/create_birthday_calendar.py || true) && git -c safe.directory=/data/collections add -A && (git -c safe.directory=/data/collections diff --cached --quiet || git -c safe.directory=/data/collections -c user.name=radicale -c user.email=radicale@radicale commit -m "Changes by \"%(user)s\"")
+  radicale_users:
+    content: |
+      veeti:$$2y$$12$$GkQEpme3sIY44ECK1bFQlO.YD2q4BllO9zBp86Ck0XqwUmr33gX8G
+

@@ -1,0 +1,70 @@
+volumes:
+  pg_bm_data:
+
+
+networks:
+  proxy_public:
+    external: true
+
+
+services:
+  pg_bm:
+    # postgres:18.1-alpine3.23
+    image: "postgres@sha256:7c79e2ccf92fe341e26d9df68c3cc8e8d1999728f1d0290fc9cc58158d327acd"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "db"
+    volumes:
+      - type: "volume"
+        source: "pg_bm_data"
+        target: "/var/lib/postgresql"
+        read_only: false
+    restart: "unless-stopped"
+    security_opt:
+      - no-new-privileges=true
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "128M"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: "1m"
+      start_interval: "1s"
+      timeout: "5s"
+      retries: 5
+
+
+  bm_backend:
+    depends_on:
+      pg_bm:
+        condition: "service_healthy"
+    # 86d92c79f435f214144b9b060c3a5165b66b2e9e
+    image: veetik/bm_backend@sha256:769200adbb782292f44f9490040a59688bb2e28e06cd739871dd7c1d5565d42a
+    networks:
+      - "proxy_public"
+      - "default"
+    secrets:
+      - source: envs
+        target: /.env
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@pg_bm:5432/db
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "32M"
+    security_opt:
+      - "no-new-privileges=true"
+    labels:
+      traefik.enable: true
+      traefik.docker.network: "proxy_public"
+      traefik.http.routers.bm_backend.rule: "Host(`bm_back.veetik.com`)"
+      traefik.http.services.bm_backend.loadbalancer.server.port: 8000
+
+
+secrets:
+  envs:
+    file: ./.secrets/bm_backend/envs
