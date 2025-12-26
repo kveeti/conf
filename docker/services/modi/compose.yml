@@ -1,0 +1,43 @@
+volumes:
+  mongo_data:
+
+
+services:
+  mongo_modi:
+    # 6.0.24-jammy
+    image: mongo@sha256:a2e96682a6d92742341db59a1956569bfd2b30704acef5da034cc17e18bb7ed4
+    volumes:
+      - type: "volume"
+        source: "mongo_data"
+        target: "/data/db"
+        read_only: false
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+    security_opt:
+      - no-new-privileges=true
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "64M"
+
+
+  modi:
+    depends_on:
+      - "mongo_modi"
+    # 2024-12-21
+    image: veetik/modi@sha256:acf05d673e92101c2df2fcf549e03eb6f9a39fb204e8620a72a00d8ea0ddd633
+    env_file: ./.secrets/modi/envs
+    environment:
+      MONGO_URI: "mongodb://mongo:mongo@mongo_modi:27017/modi?authSource=admin"
+    security_opt:
+      - no-new-privileges=true
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "64M"
+

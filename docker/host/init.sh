@@ -28,6 +28,6 @@ nix --extra-experimental-features "nix-command flakes" run \
 	github:nix-community/nixos-anywhere -- \
 	--extra-files "$temp" \
 	--generate-hardware-config nixos-generate-config ./hardware-config.nix \
-	--flake .#servu \
+	--flake .#docker \
 	--build-on remote \
 	--target-host nixos@$TARGET_HOST

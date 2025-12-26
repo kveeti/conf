@@ -1,0 +1,203 @@
+volumes:
+  traefik_public_data:
+  traefik_internal_data:
+
+
+networks:
+  proxy_internal:
+    name: proxy_internal
+  proxy_public:
+    name: proxy_public
+  init_internal:
+  init_public:
+
+
+services:
+  dockerproxy_public:
+    # 0.4.2
+    image: "tecnativa/docker-socket-proxy@sha256:bd2241b3bec83abcff25927a0a7ae518e0c5bef624b3cc247dcb31e68b53f417"
+    volumes:
+      - type: "bind"
+        source: "/run/user/1000/docker.sock"
+        target: "/var/run/docker.sock"
+        read_only: true
+    networks:
+      - "init_public"
+    cap_drop: ["ALL"]
+    environment:
+      CONTAINERS: 1
+      NETWORKS: 1
+      INFO: 1
+      SERVICES: 1
+      TASKS: 1
+      VERSION: 1
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "64M"
+
+
+  traefik_public:
+    depends_on:
+      - "dockerproxy_public"
+    # 3.6.5
+    image: "docker.io/traefik@sha256:d944e3693bbf5a361ddd2e411bb713049cfb4f5ff3da200b30ee7a347dbd6abd"
+    volumes:
+      - type: "bind"
+        source: "/etc/timezone"
+        target: "/etc/timezone"
+        read_only: true
+      - type: "bind"
+        source: "/etc/localtime"
+        target: "/etc/localtime"
+        read_only: true
+      - type: "volume"
+        source: "traefik_public_data"
+        target: "/data"
+        read_only: false
+    ports:
+      - "7080:8080/tcp"
+      - "7080:8080/udp"
+      - "7443:8443/tcp"
+      - "7443:8443/udp"
+    networks:
+      - "proxy_public"
+      - "init_public"
+    env_file: "./.secrets/traefik/envs"
+    command:
+      - "--log.format=json"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+      - "--accesslog.format=json"
+      - "--accesslog.addinternals=false"
+      - "--api.debug=false"
+      - "--api.dashboard=false"
+
+      - "--entrypoints.http.address=:8080"
+      - "--entrypoints.http.http.redirections.entryPoint.to=:443"
+      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
+
+      - "--entrypoints.https.address=:8443"
+      - "--entrypoints.https.http.tls.certresolver=cf"
+      - "--entrypoints.https.http.tls.domains[0].main=veetik.com"
+      - "--entrypoints.https.http.tls.domains[0].sans=*.veetik.com"
+      - "--experimental.plugins.x-request-id.modulename=github.com/mdklapwijk/traefik-plugin-request-id"
+      - "--experimental.plugins.x-request-id.version=v0.1.1"
+      - "--accesslog.fields.headers.defaultmode=drop"
+      - "--accesslog.fields.headers.names.x-request-id=keep"
+      - "--accesslog.fields.headers.names.origin=keep"
+      - "--accesslog.fields.headers.names.referer=keep"
+      - "--accesslog.fields.headers.names.user-agent=keep"
+
+      - "--serverstransport.insecureSkipVerify=true"
+      - "--providers.docker.endpoint=tcp://dockerproxy_public:2375"
+      - "--providers.docker.exposedByDefault=false"
+      - "--certificatesresolvers.cf.acme.email=security@veetik.com"
+      - "--certificatesresolvers.cf.acme.storage=/data/cf.json"
+      - "--certificatesresolvers.cf.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      #- "--certificatesresolvers.cf.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.provider=cloudflare"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.resolvers[0]=1.1.1.1:53"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.resolvers[1]=1.0.0.1:53"
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "256M"
+
+
+  dockerproxy_internal:
+    # 0.4.2
+    image: "tecnativa/docker-socket-proxy@sha256:bd2241b3bec83abcff25927a0a7ae518e0c5bef624b3cc247dcb31e68b53f417"
+    volumes:
+      - type: "bind"
+        source: "/run/user/1000/docker.sock"
+        target: "/var/run/docker.sock"
+        read_only: true
+    networks:
+      - "init_internal"
+    cap_drop: ["ALL"]
+    environment:
+      CONTAINERS: 1
+      NETWORKS: 1
+      INFO: 1
+      SERVICES: 1
+      TASKS: 1
+      VERSION: 1
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "64M"
+
+
+  traefik_internal:
+    depends_on: ["dockerproxy_internal"]
+    # 3.6.5
+    image: "docker.io/traefik@sha256:d944e3693bbf5a361ddd2e411bb713049cfb4f5ff3da200b30ee7a347dbd6abd"
+    volumes:
+      - type: "bind"
+        source: "/etc/timezone"
+        target: "/etc/timezone"
+        read_only: true
+      - type: "bind"
+        source: "/etc/localtime"
+        target: "/etc/localtime"
+        read_only: true
+      - type: "volume"
+        source: "traefik_internal_data"
+        target: "/data"
+        read_only: false
+    ports:
+      - "8080:8080/tcp"
+      - "8080:8080/udp"
+      - "8443:8443/tcp"
+      - "8443:8443/udp"
+    networks:
+      - "proxy_internal"
+      - "init_internal"
+    env_file: "./.secrets/traefik/envs"
+    command:
+      - "--log.format=json"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+      - "--accesslog.format=json"
+      - "--accesslog.addinternals=false"
+      - "--api.debug=false"
+      - "--api.dashboard=false"
+
+      - "--entrypoints.http.address=:8080"
+      - "--entrypoints.http.http.redirections.entryPoint.to=:443"
+      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
+
+      - "--entrypoints.https.address=:8443"
+      - "--entrypoints.https.http.tls.certresolver=cf"
+      - "--entrypoints.https.http.tls.domains[0].sans=*.internal.veetik.com"
+      - "--experimental.plugins.x-request-id.modulename=github.com/mdklapwijk/traefik-plugin-request-id"
+      - "--experimental.plugins.x-request-id.version=v0.1.1"
+      - "--accesslog.fields.headers.defaultmode=drop"
+      - "--accesslog.fields.headers.names.x-request-id=keep"
+      - "--accesslog.fields.headers.names.origin=keep"
+      - "--accesslog.fields.headers.names.referer=keep"
+      - "--accesslog.fields.headers.names.user-agent=keep"
+
+      - "--serverstransport.insecureSkipVerify=true"
+      - "--providers.docker.endpoint=tcp://dockerproxy_internal:2375"
+      - "--providers.docker.exposedByDefault=false"
+      - "--certificatesresolvers.cf.acme.email=security@veetik.com"
+      - "--certificatesresolvers.cf.acme.storage=/data/cf.json"
+      - "--certificatesresolvers.cf.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      #- "--certificatesresolvers.cf.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.provider=cloudflare"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.resolvers[0]=1.1.1.1:53"
+      - "--certificatesresolvers.cf.acme.dnsChallenge.resolvers[1]=1.0.0.1:53"
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "128M"
