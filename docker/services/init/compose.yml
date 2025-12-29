@@ -64,6 +64,9 @@ services:
     env_file: "./.secrets/traefik/envs"
     environment:
       TZ: "Europe/Helsinki"
+    configs:
+      - source: traefik_satisfactory
+        target: /data/dynamic/satisfactory.yml
     command:
       - "--log.format=json"
       - "--log.level=INFO"
@@ -74,8 +77,8 @@ services:
       - "--api.dashboard=false"
 
       - "--entrypoints.http.address=:8080"
-      - "--entrypoints.http.http.redirections.entryPoint.to=:443"
-      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
+      # - "--entrypoints.http.http.redirections.entryPoint.to=:443"
+      # - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
 
       - "--entrypoints.https.address=:8443"
       - "--entrypoints.https.http.tls.certresolver=cf"
@@ -99,6 +102,9 @@ services:
       - "--certificatesresolvers.cf.acme.dnsChallenge.provider=cloudflare"
       - "--certificatesresolvers.cf.acme.dnsChallenge.resolvers[0]=1.1.1.1:53"
       - "--certificatesresolvers.cf.acme.dnsChallenge.resolvers[1]=1.0.0.1:53"
+
+      - "--providers.file.directory=/data/dynamic"
+      - "--providers.file.watch=true"
     restart: "unless-stopped"
     deploy:
       resources:
@@ -197,3 +203,21 @@ services:
         limits:
           cpus: "1"
           memory: "128M"
+
+
+configs:
+  traefik_satisfactory:
+    content: |
+      http:
+        routers:
+          satisfactory-acme:
+            rule: "Host(`factory1.veetik.com`) && PathPrefix(`/.well-known/acme-challenge/`)"
+            entryPoints:
+              - http
+            service: satisfactory-acme
+            priority: 1000
+        services:
+          satisfactory-acme:
+            loadBalancer:
+              servers:
+                - url: "http://192.168.40.8:80"

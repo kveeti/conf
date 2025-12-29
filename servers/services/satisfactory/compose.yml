@@ -1,0 +1,63 @@
+services:
+  satisfactory-server:
+    # v1.9.10
+    image: "docker.io/wolveix/satisfactory-server@sha256:e103700ae6ae4c50f19dac80eadb2a805c5b885e179ae2a40850e967bf189efd"
+    container_name: "satisfactory-server"
+    hostname: "satisfactory-server"
+    ports:
+      - "7777:7777/tcp"
+      - "7777:7777/udp"
+      - "8888:8888/tcp"
+    volumes:
+      - "./data:/config"
+      - "./certs/live/factory1.veetik.com/fullchain.pem:/config/gamefiles/FactoryGame/Certificates/cert_chain.pem"
+      - "./certs/live/factory1.veetik.com/privkey.pem:/config/gamefiles/FactoryGame/Certificates/private_key.pem"
+    environment:
+      - MAXPLAYERS=4
+      - PGID=1000
+      - PUID=1000
+      - STEAMBETA=false
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+  certbot:
+    # 5.2.2
+    image: "docker.io/certbot/certbot@sha256:270759ea302b5f4b9d05a54e9decf3ea2cb5496687b17dce328d2c297d7538aa"
+    command:
+      - "certonly"
+      - "--standalone"
+#      - "--staging"
+      - "-d"
+      - "factory1.veetik.com"
+      - "--agree-tos"
+      - "--email"
+      - "security@veetik.com"
+      - "--non-interactive"
+      - "-v"
+    ports:
+      - "8080:80"
+    volumes:
+      - "./certs:/etc/letsencrypt"
+    security_opt:
+      - no-new-privileges=true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "128M"
+
+
+  # caddy:
+  #   image: "caddy:alpine"
+  #   command: ["caddy", "respond", "--listen", ":80", "hello from caddy"]
+  #   ports:
+  #     - "8080:80"
+  #     - "8443:80"
+
