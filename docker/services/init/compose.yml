@@ -23,6 +23,8 @@ services:
         read_only: true
     networks:
       - "init_public"
+    security_opt:
+      - no-new-privileges=true
     cap_drop: ["ALL"]
     environment:
       CONTAINERS: 1
@@ -45,14 +47,6 @@ services:
     # 3.6.5
     image: "docker.io/traefik@sha256:d944e3693bbf5a361ddd2e411bb713049cfb4f5ff3da200b30ee7a347dbd6abd"
     volumes:
-      - type: "bind"
-        source: "/etc/timezone"
-        target: "/etc/timezone"
-        read_only: true
-      - type: "bind"
-        source: "/etc/localtime"
-        target: "/etc/localtime"
-        read_only: true
       - type: "volume"
         source: "traefik_public_data"
         target: "/data"
@@ -65,7 +59,11 @@ services:
     networks:
       - "proxy_public"
       - "init_public"
+    security_opt:
+      - no-new-privileges=true
     env_file: "./.secrets/traefik/envs"
+    environment:
+      TZ: "Europe/Helsinki"
     command:
       - "--log.format=json"
       - "--log.level=INFO"
@@ -119,6 +117,8 @@ services:
         read_only: true
     networks:
       - "init_internal"
+    security_opt:
+      - no-new-privileges=true
     cap_drop: ["ALL"]
     environment:
       CONTAINERS: 1
@@ -140,14 +140,6 @@ services:
     # 3.6.5
     image: "docker.io/traefik@sha256:d944e3693bbf5a361ddd2e411bb713049cfb4f5ff3da200b30ee7a347dbd6abd"
     volumes:
-      - type: "bind"
-        source: "/etc/timezone"
-        target: "/etc/timezone"
-        read_only: true
-      - type: "bind"
-        source: "/etc/localtime"
-        target: "/etc/localtime"
-        read_only: true
       - type: "volume"
         source: "traefik_internal_data"
         target: "/data"
@@ -160,7 +152,11 @@ services:
     networks:
       - "proxy_internal"
       - "init_internal"
+    security_opt:
+      - no-new-privileges=true
     env_file: "./.secrets/traefik/envs"
+    environment:
+      TZ: "Europe/Helsinki"
     command:
       - "--log.format=json"
       - "--log.level=INFO"
