@@ -52,7 +52,6 @@ services:
       DATABASE_URL: "postgres://postgres:postgres@pg_money:5432/db"
     labels:
       traefik.enable: true
-      traefik.docker.network: proxy_public
       traefik.http.services.money_backend.loadbalancer.server.port: 8000
       traefik.http.routers.money_backend.rule: "Host(`money_api.veetik.com`)"
       traefik.http.routers.money_backend.middlewares: "reqid"

@@ -60,7 +60,6 @@ services:
       - "no-new-privileges=true"
     labels:
       traefik.enable: true
-      traefik.docker.network: "proxy_public"
       traefik.http.routers.bm_backend.rule: "Host(`bm_back.veetik.com`)"
       traefik.http.services.bm_backend.loadbalancer.server.port: 8000
 

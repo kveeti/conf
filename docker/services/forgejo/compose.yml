@@ -100,7 +100,6 @@ services:
         read_only: true
     labels:
       traefik.enable: true
-      traefik.docker.network: "proxy_internal"
       traefik.http.routers.forgejo.rule: "Host(`git.internal.veetik.com`)"
       traefik.http.services.forgejo.loadbalancer.server.port: 8000
 
