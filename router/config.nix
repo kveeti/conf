@@ -324,8 +324,8 @@ in
 
         iifname != "${IF_WAN}" oifname "${IF_WAN}" accept comment "everyone gets to the WWW"
 
-        iifname "${IF_WAN}" ip daddr 192.168.40.7 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
-        iifname "${IF_WAN}" ip daddr 192.168.40.8 ct status dnat meta l4proto { tcp, udp } th dport { 7777, 8888 } counter accept comment "port forwards"
+        ip daddr 192.168.40.7 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
+        ip daddr 192.168.40.8 ct status dnat meta l4proto { tcp, udp } th dport { 7777, 8888 } counter accept comment "port forwards"
 
         # unifi controller
         # https://help.ui.com/hc/en-us/articles/218506997-Required-Ports-Reference
