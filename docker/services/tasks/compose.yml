@@ -52,7 +52,6 @@ services:
       DATABASE_URL: "postgres://postgres:postgres@pg_tasks:5432/db"
     labels:
       traefik.enable: true
-      traefik.docker.network: proxy_public
       traefik.http.routers.tasks_backend.rule: Host(`tasks-api.veetik.com`)
       traefik.http.services.tasks_backend.loadbalancer.server.port: 8000
       traefik.http.routers.tasks_backend.middlewares: reqid

@@ -72,7 +72,6 @@ services:
       traefik.enable: true
 
       traefik.http.routers.keycloak_public.rule: "Host(`auth.veetik.com`)"
-      traefik.http.routers.keycloak_public.service: "keycloak_public"
       traefik.http.services.keycloak_public.loadbalancer.server.port: 8080
 
       traefik.http.middlewares.ipwl.ipwhitelist.sourcerange: "192.168.10.0/24"

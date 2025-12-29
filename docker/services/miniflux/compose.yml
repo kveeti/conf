@@ -66,7 +66,6 @@ services:
           memory: "256M"
     labels:
       traefik.enable: true
-      traefik.docker.network: "proxy_internal"
       traefik.http.routers.miniflux.rule: Host(`rss.internal.veetik.com`)
       traefik.http.services.miniflux.loadbalancer.server.port: 8000
 
