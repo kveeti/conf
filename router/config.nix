@@ -325,6 +325,7 @@ in
         iifname != "${IF_WAN}" oifname "${IF_WAN}" accept comment "everyone gets to the WWW"
 
         iifname "${IF_WAN}" ip daddr 192.168.40.7 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
+        iifname "${IF_WAN}" ip daddr 192.168.40.8 ct status dnat meta l4proto { tcp, udp } th dport { 7777, 8888 } counter accept comment "port forwards"
 
         # unifi controller
         # https://help.ui.com/hc/en-us/articles/218506997-Required-Ports-Reference
@@ -355,6 +356,9 @@ in
         # dnat public 80, 443 to 192.168.40.7
         fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.7
         iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.40.7
+
+        fib daddr type local meta l4proto { tcp, udp } th dport { 7777, 8888 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.8
+        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 7777, 8888 } counter dnat to 192.168.40.8
 
         # dns through router, except vlan40
         iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
@@ -530,6 +534,7 @@ in
         "98:b7:85:22:e9:eb, docker,      192.168.40.6"
         # docker (98:b7:85:22:e9:eb) static at:
         # 192.168.40.6 (internal) and 192.168.40.7 (public)
+        "BC:24:11:18:26:91, servers,     192.168.40.8"
       ];
     };
   };
