@@ -1,11 +1,11 @@
 final: prev: {
   unifi-bleeding-edge = prev.stdenvNoCC.mkDerivation rec {
     pname = "unifi-controller-bleeding-edge";
-    version = "9.5.21";
+    version = "10.0.162";
 
     src = prev.fetchurl {
       url = "https://dl.ui.com/unifi/${version}/unifi_sysvinit_all.deb";
-      hash = "sha256-faHMmrGuDI8wLCQtYi7lL4Z0V6aRFrKqTBOBLnVphq8=";
+      hash = "sha256-1wuI6Dg/cKBEhtcoLipXa1q4UiKtqOpRAc8FF0dY5T4=";
     };
 
     nativeBuildInputs = with prev; [
@@ -19,8 +19,10 @@ final: prev: {
 
     installPhase = ''
       runHook preInstall
+
       mkdir -p $out
       cp -ar usr/lib/unifi/{dl,lib,webapps} $out
+
       runHook postInstall
     '';
 
