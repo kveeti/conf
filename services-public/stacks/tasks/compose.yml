@@ -1,0 +1,70 @@
+volumes:
+  pg_tasks_data:
+
+
+networks:
+  proxy:
+    external: true
+
+
+services:
+  pg_tasks:
+    # postgres:18.1-alpine3.23
+    image: "postgres@sha256:7c79e2ccf92fe341e26d9df68c3cc8e8d1999728f1d0290fc9cc58158d327acd"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "db"
+    volumes:
+      - type: "volume"
+        source: "pg_tasks_data"
+        target: "/var/lib/postgresql"
+        read_only: false
+    restart: "unless-stopped"
+    security_opt:
+      - no-new-privileges=true
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "128M"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: "1m"
+      start_interval: "1s"
+      timeout: "5s"
+      retries: 5
+
+
+  backend:
+    depends_on:
+      pg_tasks:
+        condition: "service_healthy"
+    # sha-92586db
+    image: "veetik/tasks-backend@sha256:902c63258c27a60bd911ab4d6360bba7f96714e4076a7800bd9d92b7fbeb3d4c"
+    networks:
+      - "default"
+      - "proxy"
+    secrets:
+      - source: "envs"
+        target: "/.env"
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@pg_tasks:5432/db"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.tasks_backend.rule: Host(`tasks-api.veetik.com`)
+      traefik.http.services.tasks_backend.loadbalancer.server.port: 8000
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "64M"
+
+
+secrets:
+  envs:
+    file: "../../service-secrets/tasks/backend/envs"
+

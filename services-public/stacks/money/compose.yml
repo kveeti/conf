@@ -1,0 +1,63 @@
+volumes:
+  pg_money_data:
+
+
+networks:
+  proxy:
+    external: true
+
+
+services:
+  pg_money:
+    # 18.0-alpine3.22
+    image: "docker.io/postgres@sha256:26206203985f801ecd986a12fca444e9a4157e0e0d8a2eb4a4b82cd69309abaf"
+    networks:
+      - "default"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "db"
+    volumes:
+      - type: "volume"
+        source: "pg_money_data"
+        target: "/var/lib/postgresql"
+        read_only: false
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "128M"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: "1m"
+      start_interval: "1s"
+      timeout: "5s"
+      retries: 5
+
+
+  backend:
+    depends_on:
+      pg_money:
+        condition: "service_healthy"
+    # sha-b180790
+    image: "veetik/money_backend@sha256:47a0b20aad097d3ea535834ae9af74e02d9143cc30d41b27744548bb3aac0e92"
+    networks:
+      - "default"
+      - "proxy"
+    env_file: "../../service-secrets/money/backend/envs"
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@pg_money:5432/db"
+    labels:
+      traefik.enable: true
+      traefik.http.services.money_backend.loadbalancer.server.port: 8000
+      traefik.http.routers.money_backend.rule: "Host(`money_api.veetik.com`)"
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "64M"
+
