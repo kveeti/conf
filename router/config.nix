@@ -1,4 +1,4 @@
-{ config, pkgs, lib, keys, ... }:
+{ config, pkgs, lib, secrets, ... }:
 let
   IF_WAN = "enp1s0f0";
   IF_LAN = "enp1s0f1";
@@ -55,15 +55,14 @@ in
     }];
   };
 
-  config.age.secrets.password.file = ./secrets/password.age;
   config.users.users = {
     root = {
-      openssh.authorizedKeys.keys = keys.admins;
+      openssh.authorizedKeys.keys = secrets.keys.admins;
       hashedPasswordFile = config.age.secrets.password.path;
     };
 
     veeti = {
-      openssh.authorizedKeys.keys = keys.admins;
+      openssh.authorizedKeys.keys = secrets.keys.admins;
       extraGroups = [ "wheel" ];
       createHome = true;
       useDefaultShell = true;
@@ -117,31 +116,26 @@ in
 
   config.networking.useNetworkd = true;
   config.age.secrets.wg_privkey = {
-    file = ./secrets/wg_privkey.age;
     mode = "640";
     owner = "systemd-network";
     group = "systemd-network";
   };
   config.age.secrets.wg_mac_pubkey = {
-    file = ./secrets/wg_mac_pubkey.age;
     mode = "640";
     owner = "systemd-network";
     group = "systemd-network";
   };
   config.age.secrets.wg_mac_presharedkey = {
-    file = ./secrets/wg_mac_presharedkey.age;
     mode = "640";
     owner = "systemd-network";
     group = "systemd-network";
   };
   config.age.secrets.wg_ip_pubkey = {
-    file = ./secrets/wg_ip_pubkey.age;
     mode = "640";
     owner = "systemd-network";
     group = "systemd-network";
   };
   config.age.secrets.wg_ip_presharedkey = {
-    file = ./secrets/wg_ip_presharedkey.age;
     mode = "640";
     owner = "systemd-network";
     group = "systemd-network";
@@ -160,6 +154,7 @@ in
           "vlan20"
           "vlan30"
           "vlan40"
+          "vlan111"
         ];
       };
 
@@ -192,6 +187,11 @@ in
       "40-vlan40" = {
         matchConfig.Name = "vlan40";
         address = ["192.168.40.1/24"];
+        networkConfig.IPv4Forwarding = true;
+      };
+      "40-vlan111" = {
+        matchConfig.Name = "vlan111";
+        address = ["192.168.111.1/24"];
         networkConfig.IPv4Forwarding = true;
       };
       "50-container-interfaces" = {
@@ -262,6 +262,13 @@ in
         };
         vlanConfig.Id = 40;
       };
+      "40-vlan111" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan111";
+        };
+        vlanConfig.Id = 111;
+      };
     };
   };
 
@@ -295,7 +302,7 @@ in
         ct state vmap { invalid : drop, established : accept, related : accept }
         iifname "lo" accept
 
-        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 10.255.255.1 } counter drop
+        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.111.1, 10.255.255.1 } counter drop
         ip6 saddr { ::1, fe80::/10 } counter drop
 
         iifname "wg0" accept comment "connected wireguard clients"
@@ -304,8 +311,8 @@ in
         iifname "${IF_WAN}" counter drop
 
         iifname "vlan10" tcp dport 22 accept comment "vlan10 ssh"
-        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } udp dport 67 accept comment "vlan dhcp"
-        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns"
+        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan111" } udp dport 67 accept comment "vlan dhcp"
+        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns except vlan111"
         iifname { "vlan10", "vlan20" } udp dport 5353 accept comment "avahi mdns"
         iifname "ve-unifi" meta l4proto { tcp, udp } th dport { 8080, 8443, 10001, 3478 } accept
 
@@ -322,10 +329,15 @@ in
         iifname "vlan40" oifname "vlan20" ip daddr 192.168.20.2 accept comment "home assistant prometheus metrics scrape"
         iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
 
-        iifname != "${IF_WAN}" oifname "${IF_WAN}" accept comment "everyone gets to the WWW"
+        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
 
-        ip daddr 192.168.40.7 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
-        ip daddr 192.168.40.8 ct status dnat meta l4proto { tcp, udp } th dport { 7777, 8888 } counter accept comment "port forwards"
+        iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr "${secrets.vlan111OutboundAllowedIP}" udp dport 49800 counter accept
+        iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr 192.168.40.221 meta l4proto { tcp, udp } th dport 5000 counter accept
+
+        ip daddr 192.168.40.20 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
+        ip daddr 192.168.40.20 ct status dnat meta l4proto { tcp, udp } th dport 7777 counter accept comment "port forwards"
+        ip daddr 192.168.40.20 ct status dnat tcp dport 8888 counter accept comment "port forwards"
+        ip daddr 192.168.40.20 ct status dnat udp dport 9987 counter accept comment "port forwards"
 
         # unifi controller
         # https://help.ui.com/hc/en-us/articles/218506997-Required-Ports-Reference
@@ -353,14 +365,21 @@ in
         iifname "vlan5" ip daddr 192.168.5.1 tcp dport { 8080, 8443 } counter dnat to 192.168.100.2
         iifname { "vlan5", "vlan10" } ip daddr 192.168.5.1 tcp dport 443 counter dnat to 192.168.100.2:8443
 
-        # dnat public 80, 443 to 192.168.40.7
-        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.7
-        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.40.7
+        # public http traffic to 192.168.40.20
+        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.20
+        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.40.20
 
-        fib daddr type local meta l4proto { tcp, udp } th dport { 7777, 8888 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.8
-        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 7777, 8888 } counter dnat to 192.168.40.8
+        # satisfactory server to 192.168.40.20
+        fib daddr type local meta l4proto { tcp, udp } th dport 7777 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.20
+        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport 7777 counter dnat to 192.168.40.20
+        fib daddr type local meta l4proto tcp th dport 8888 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.20
+        iifname "${IF_WAN}" meta l4proto tcp th dport 8888 counter dnat to 192.168.40.20
 
-        # dns through router, except vlan40
+        # teamspeak server to 192.168.40.20
+        fib daddr type local udp dport 9987 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.20
+        iifname "${IF_WAN}" udp dport 9987 counter dnat to 192.168.40.20
+
+        # dns through router, except vlan40, vlan111
         iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
       }
 
@@ -459,27 +478,37 @@ in
 
         local-zone = [
           ''"internal.veetik.com." static''
+          ''"home.lan." static''
           ''"veetik.com." typetransparent''
         ];
         local-data = [
           ''"ui.internal.veetik.com. IN A 192.168.5.1"''
-
-          ''"px2.internal.veetik.com. IN A 192.168.40.102"''
-
           ''"ha.internal.veetik.com. IN A 192.168.20.2"''
 
-          ''"dav.internal.veetik.com. IN A 192.168.40.6"''
-          ''"git.internal.veetik.com. IN A 192.168.40.6"''
-          ''"pass.internal.veetik.com. IN A 192.168.40.6"''
-          ''"rss.internal.veetik.com. IN A 192.168.40.6"''
-          ''"sso.internal.veetik.com. IN A 192.168.40.6"''
-          ''"ldap.internal.veetik.com. IN A 192.168.40.6"''
+          ''"px1.internal.veetik.com. IN A 192.168.40.101"''
+          ''"px2.internal.veetik.com. IN A 192.168.40.102"''
 
-          ''"authadmin.veetik.com. IN A 192.168.40.7"''
+          ''"dav.internal.veetik.com. IN A 192.168.40.10"''
+          ''"git.internal.veetik.com. IN A 192.168.40.10"''
+          ''"pass.internal.veetik.com. IN A 192.168.40.10"''
+          ''"rss.internal.veetik.com. IN A 192.168.40.10"''
+          ''"sso.internal.veetik.com. IN A 192.168.40.10"''
+          ''"ldap.internal.veetik.com. IN A 192.168.40.10"''
 
           ''"o11s.internal.veetik.com. IN A 192.168.40.5"''
-          ''"o11s-logs.internal.veetik.com. IN A 192.168.40.5"''
           ''"o11s-metrics.internal.veetik.com. IN A 192.168.40.5"''
+
+          ''"111.home.lan IN A 192.168.111.8"''
+          ''"112.home.lan IN A 192.168.111.8"''
+          ''"113.home.lan IN A 192.168.111.8"''
+          ''"114.home.lan IN A 192.168.111.8"''
+          ''"115.home.lan IN A 192.168.111.8"''
+          ''"116.home.lan IN A 192.168.111.8"''
+          ''"117.home.lan IN A 192.168.111.8"''
+          ''"118.home.lan IN A 192.168.111.8"''
+          ''"119.home.lan IN A 192.168.111.8"''
+
+          ''"authadmin.veetik.com. IN A 192.168.40.7"''
         ];
       };
       # blocklists
@@ -503,43 +532,44 @@ in
       # no dns, only dhcp
       port = 0;
 
-      interface = [ "vlan5" "vlan10" "vlan20" "vlan30" "vlan40" ];
+      interface = [ "vlan5" "vlan10" "vlan20" "vlan30" "vlan40" "vlan111" ];
       dhcp-range = [
-        "set:vlan5,  192.168.5.2,    192.168.5.254,  24h"
-        "set:vlan10, 192.168.10.200, 192.168.10.254, 24h"
-        "set:vlan20, 192.168.20.2,   192.168.20.254, 24h"
-        "set:vlan30, 192.168.30.2,   192.168.30.254, 24h"
-        "set:vlan40, 192.168.40.200, 192.168.40.254, 24h"
+        "set:vlan5,   192.168.5.2,    192.168.5.254,  24h"
+        "set:vlan10,  192.168.10.200, 192.168.10.254, 24h"
+        "set:vlan20,  192.168.20.10,  192.168.20.254, 24h"
+        "set:vlan30,  192.168.30.2,   192.168.30.254, 24h"
+        "set:vlan40,  192.168.40.200, 192.168.40.254, 24h"
+        "set:vlan111, 192.168.111.8,  192.168.111.8,  24h"
       ];
       dhcp-option = [
-        "tag:vlan5,  option:router,     192.168.5.1"
-        "tag:vlan5,  option:dns-server, 192.168.5.1"
+        "tag:vlan5,   option:router,     192.168.5.1"
+        "tag:vlan5,   option:dns-server, 192.168.5.1"
 
-        "tag:vlan10, option:router,     192.168.10.1"
-        "tag:vlan10, option:dns-server, 192.168.10.1"
+        "tag:vlan10,  option:router,     192.168.10.1"
+        "tag:vlan10,  option:dns-server, 192.168.10.1"
 
-        "tag:vlan20, option:router,     192.168.20.1"
-        "tag:vlan20, option:dns-server, 192.168.20.1"
+        "tag:vlan20,  option:router,     192.168.20.1"
+        "tag:vlan20,  option:dns-server, 192.168.20.1"
 
-        "tag:vlan30, option:router,     192.168.30.1"
-        "tag:vlan30, option:dns-server, 192.168.30.1"
+        "tag:vlan30,  option:router,     192.168.30.1"
+        "tag:vlan30,  option:dns-server, 192.168.30.1"
 
-        "tag:vlan40, option:router,     192.168.40.1"
-        "tag:vlan40, option:dns-server, 192.168.40.1"
+        "tag:vlan40,  option:router,     192.168.40.1"
+        "tag:vlan40,  option:dns-server, 192.168.40.1"
+
+        "tag:vlan111, option:router,     192.168.111.1"
+        "tag:vlan111, option:dns-server, 1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112"
       ];
       dhcp-host = [
-        "BC:24:11:62:37:5C, ha,          192.168.20.2"
-        "68:25:DD:49:0D:13, slzb,        192.168.20.3"
-        "bc:24:11:c5:e2:f5, backup,      192.168.40.5"
-        "98:b7:85:22:e9:eb, docker,      192.168.40.6"
-        # docker (98:b7:85:22:e9:eb) static at:
-        # 192.168.40.6 (internal) and 192.168.40.7 (public)
-        "BC:24:11:18:26:91, servers,     192.168.40.8"
+        "BC:24:11:62:37:5C, ha,                192.168.20.2"
+        "68:25:DD:49:0D:13, slzb,              192.168.20.3"
+        "BC:24:11:C5:E2:F5, backup,            192.168.40.5"
+        "BC:24:11:BD:EC:96, services-internal, 192.168.40.10"
+        "BC:24:11:28:D5:91, services-public,   192.168.40.20"
       ];
     };
   };
 
-  config.age.secrets.cloudflare_ddns_env.file = ./secrets/cloudflare_ddns_env.age;
   config.services.cloudflare-ddns = {
     enable = true;
     environmentFile = config.age.secrets.cloudflare_ddns_env.path;
@@ -600,6 +630,11 @@ in
         initialJavaHeapSize = 512;  # = -Xms512m
         maximumJavaHeapSize = 1024; # = -Xmx1024m
       };
+
+      nixpkgs.config.permittedInsecurePackages = [
+        # Acknowledge MongoDB CVE-2025-11979 (https://nvd.nist.gov/vuln/detail/CVE-2025-11979)
+        "mongodb-7.0.25"
+      ];
 
       services.resolved.enable = true;
       networking = {

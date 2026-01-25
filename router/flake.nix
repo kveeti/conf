@@ -5,13 +5,10 @@
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
-    agenix = {
-        url = "github:ryantm/agenix";
-        inputs.nixpkgs.follows = "nixpkgs";
-    };
+    secrets.url = "git+file:///Users/veeti/code/personal/secrets";
   };
 
-  outputs = { self, nixpkgs, disko, agenix }: {
+  outputs = { self, nixpkgs, disko, secrets }: {
     nixosConfigurations.router = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
@@ -19,9 +16,11 @@
         ./config.nix
         ./disk.nix
         ./hardware-config.nix
-        agenix.nixosModules.age
+        secrets.nixosModules.router
       ];
-      specialArgs = { keys = import ./keys.nix; };
+      specialArgs = {
+        secrets = import secrets;
+      };
     };
   };
 }
