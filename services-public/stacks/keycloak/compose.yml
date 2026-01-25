@@ -1,0 +1,85 @@
+volumes:
+  pg_keycloak_data:
+
+
+networks:
+  proxy:
+    external: true
+
+
+services:
+  pg_keycloak:
+    # postgres:18.1-alpine3.23
+    image: "postgres@sha256:7c79e2ccf92fe341e26d9df68c3cc8e8d1999728f1d0290fc9cc58158d327acd"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "db"
+    volumes:
+      - type: "volume"
+        source: "pg_keycloak_data"
+        target: "/var/lib/postgresql"
+        read_only: false
+    restart: "unless-stopped"
+    security_opt:
+      - no-new-privileges=true
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "128M"
+    networks:
+      - "default"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: "1m"
+      start_interval: "1s"
+      timeout: "5s"
+      retries: 5
+
+
+  keycloak:
+    build:
+      context: .
+      dockerfile: "Containerfile"
+    depends_on:
+      pg_keycloak:
+        condition: "service_healthy"
+    environment:
+      KC_DB: "postgres"
+      KC_DB_URL_HOST: "pg_keycloak"
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: "postgres"
+      KC_DB_USERNAME: "postgres"
+      KC_DB_PASSWORD: "postgres"
+      KC_HOSTNAME_ADMIN: "https://authadmin.veetik.com"
+      KC_HOSTNAME: "https://auth.veetik.com"
+      KC_HOSTNAME_STRICT: "true"
+      KC_PROXY_HEADERS: "forwarded"
+      KC_HTTP_ENABLED: true
+#      KC_BOOTSTRAP_ADMIN_USERNAME: temp_admin
+#      KC_BOOTSTRAP_ADMIN_PASSWORD: temp_admin
+    security_opt:
+      - "no-new-privileges=true"
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.75"
+          memory: "1G"
+    networks:
+      - "proxy"
+      - "default"
+    labels:
+      traefik.enable: true
+
+      traefik.http.services.keycloak_public.loadbalancer.server.port: 8080
+      traefik.http.routers.keycloak_public.rule: "Host(`auth.veetik.com`)"
+      traefik.http.routers.keycloak_public.service: "keycloak_public"
+
+      traefik.http.middlewares.ipwl.ipwhitelist.sourcerange: "192.168.10.0/24"
+      traefik.http.routers.keycloak_admin.rule: "Host(`authadmin.veetik.com`)"
+      traefik.http.routers.keycloak_admin.service: "keycloak_admin"
+      traefik.http.routers.keycloak_admin.middlewares: "ipwl"
+      traefik.http.services.keycloak_admin.loadbalancer.server.port: 8080
+
