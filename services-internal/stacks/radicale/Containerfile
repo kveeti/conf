@@ -1,0 +1,16 @@
+# 3.5.7.0
+FROM tomsquest/docker-radicale@sha256:14acc215bbe95e668a043e74c97faafa1c771dccb9c96508442f8efca9b9ec83
+
+ENV BUILD_UID=2999
+ENV BUILD_GID=2999
+
+RUN apk add --no-cache \
+        py3-dateutil \
+        py3-vobject \
+        py3-pip \
+    && rm -fr /root/.cache
+
+RUN curl -o /usr/local/bin/create_birthday_calendar.py \
+        https://raw.githubusercontent.com/iBigQ/radicale-birthday-calendar/535ae54ef6464b1aba825af794ecc4c4dbf3d3c3/create_birthday_calendar.py \
+    && chmod +x /usr/local/bin/create_birthday_calendar.py
+

@@ -1,0 +1,71 @@
+volumes:
+  pg_miniflux_data:
+
+
+networks:
+  proxy:
+    external: true
+
+
+services:
+  pg_miniflux:
+    # postgres:18.1-alpine3.23
+    image: "postgres@sha256:7c79e2ccf92fe341e26d9df68c3cc8e8d1999728f1d0290fc9cc58158d327acd"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "db"
+    volumes:
+      - type: "volume"
+        source: "pg_miniflux_data"
+        target: "/var/lib/postgresql"
+        read_only: false
+    restart: "unless-stopped"
+    security_opt:
+      - no-new-privileges=true
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "128M"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: "1m"
+      start_interval: "1s"
+      timeout: "5s"
+      retries: 5
+
+
+  miniflux:
+    depends_on:
+      pg_miniflux:
+        condition: "service_healthy"
+    # 2.2.14
+    image: "docker.io/miniflux/miniflux@sha256:512bf9afa764a289462d3d76dc1aef99a3ccbe0bcfb190660e5399eca1a0dc13"
+    networks:
+      - "proxy"
+      - "default"
+    env_file: "./.secrets/miniflux/envs"
+    environment:
+      CLEANUP_FREQUENCY: 1
+      LISTEN_ADDR: "0.0.0.0:8000"
+      HTTPS: 1
+      CREATE_ADMIN: 0
+      DATABASE_URL: "postgresql://postgres:postgres@pg_miniflux:5432/db?sslmode=disable"
+      RUN_MIGRATIONS: 1
+      CLEANUP_ARCHIVE_READ_DAYS: -1
+      CLEANUP_ARCHIVE_UNREAD_DAYS: -1
+      FORCE_REFRESH_INTERVAL: 1
+    restart: "unless-stopped"
+    security_opt:
+      - "no-new-privileges=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "256M"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.miniflux.rule: Host(`rss.internal.veetik.com`)
+      traefik.http.services.miniflux.loadbalancer.server.port: 8000
+
