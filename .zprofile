@@ -1,3 +1,5 @@
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
 export EDITOR="nvim"
 export TERMINAL="ghostty"
 export PAGER="less"
