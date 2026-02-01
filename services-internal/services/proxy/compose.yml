@@ -54,7 +54,7 @@ services:
       - "traefik"
     security_opt:
       - no-new-privileges=true
-    env_file: "./.secrets/traefik/envs"
+    env_file: "../../secrets/proxy/traefik/envs"
     environment:
       TZ: "UTC"
     command:
