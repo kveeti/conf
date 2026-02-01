@@ -39,7 +39,6 @@
     variant = "";
   };
 
-  config.age.secrets.password.file = ./secrets/password.age;
   config.users.users = {
     root = {
       openssh.authorizedKeys.keys = keys.admins;
@@ -58,7 +57,7 @@
     backup = {
       useDefaultShell = true;
       isNormalUser = true;
-      openssh.authorizedKeys.keys = keys.all;
+      openssh.authorizedKeys.keys = keys.admins;
       hashedPasswordFile = config.age.secrets.password.path;
     };
 
@@ -94,7 +93,6 @@
     }];
   };
 
-  config.networking.useNetworkd = true;
   config.networking.firewall.enable = true;
   config.networking.firewall.allowedTCPPorts = [
     # ssh
@@ -134,7 +132,6 @@
     ];
   };
 
-  config.age.secrets.alloy-env.file = ./secrets/alloy-env.age;
   config.services.alloy = {
     enable = true;
     environmentFile = config.age.secrets.alloy-env.path;
@@ -143,78 +140,6 @@
     logging {
       level = "info"
     }
-
-    //
-    // LOGS
-    //
-    loki.source.journal "docker_logs" {
-      max_age       = "24h"
-      matches       = "_SYSTEMD_USER_UNIT=docker.service"
-      forward_to    = [loki.write.victorialogs.receiver]
-      relabel_rules = loki.relabel.docker_logs.rules
-    }
-
-    loki.relabel "docker_logs" {
-      // compose directory name
-      // eg: o11s
-      rule {
-        source_labels = ["__journal_com_docker_compose_project"]
-        target_label  = "compose_project"
-      }
-
-      // compose service name
-      // eg: traefik
-      rule {
-        source_labels = ["__journal_com_docker_compose_service"]
-        target_label  = "compose_service"
-      }
-
-      // container short unique id
-      // eg: 1991eab3968b
-      rule {
-        source_labels = ["__journal_container_id"]
-        target_label  = "container_id"
-      }
-
-      // container name
-      // with compose will be eg: o11s-traefik-1
-      //   where "o11s" is the compose project, "traefik" is the service name
-      //   and 1 is the instance count of that compose service
-      rule {
-        source_labels = ["__journal_container_name"]
-        target_label  = "container_name"
-      }
-
-      // image name with tag
-      // eg: docker.io/traefik@sha256:c8bcb479c8057a29b05b1f3a5dcfb580fa67bc6adc41e48eabb168512c6a8c8b
-      rule {
-        source_labels = ["__journal_image_name"]
-        target_label  = "image"
-      }
-
-      // journald default _hostname field
-      rule {
-        source_labels = ["__journal__hostname"]
-        target_label  = "host"
-      }
-
-      forward_to = []
-    }
-
-    loki.write "victorialogs" {
-      endpoint {
-        url = "https://o11s-logs.internal.veetik.com:8443/insert/loki/api/v1/push"
-
-        basic_auth {
-          username = env("LOGS_USER")
-          password = env("LOGS_PASS")
-        }
-      }
-    }
-    //
-    // LOGS
-    //
-
 
     //
     // METRICS
@@ -272,11 +197,12 @@
       enable = true;
       setSocketVariable = true;
       daemon.settings = {
-        dns = [ "1.1.1.1" "8.8.8.8" ];
         data-root = "/srv/docker";
-        log-driver = "journald";
+        log-driver = "local";
         log-opts = {
-          labels = "com.docker.compose.service,com.docker.compose.project";
+          max-size = "10m";
+          max-file = "5";
+          compress = "true";
         };
       };
     };
