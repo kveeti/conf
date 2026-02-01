@@ -16,8 +16,8 @@ trap cleanup EXIT
 install -d -m755 "$temp/etc/ssh"
 install -d -m755 "$temp/etc/secrets/initrd"
 
-cat ./secrets/ssh_host_ed25519_key > "$temp/etc/ssh/ssh_host_ed25519_key"
-cat ./secrets/unlocking_ssh_host_ed25519_key > "$temp/etc/secrets/initrd/ssh_host_ed25519_key"
+cat ../keys/ssh_host_ed25519_key > "$temp/etc/ssh/ssh_host_ed25519_key"
+cat ../keys/unlocking_ssh_host_ed25519_key > "$temp/etc/secrets/initrd/ssh_host_ed25519_key"
 
 echo "$temp/etc/secrets/initrd/ssh_host_ed25519_key"
 
