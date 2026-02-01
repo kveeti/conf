@@ -507,6 +507,7 @@ in
           ''"117.home.lan IN A 192.168.111.8"''
           ''"118.home.lan IN A 192.168.111.8"''
           ''"119.home.lan IN A 192.168.111.8"''
+          ''"120.home.lan IN A 192.168.111.8"''
 
           ''"authadmin.veetik.com. IN A 192.168.40.7"''
         ];
