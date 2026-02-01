@@ -74,7 +74,7 @@ services:
       SENDS_ALLOWED: false
       ORG_CREATION_USERS: "none"
       PASSWORD_ITERATIONS: "350000"
-    env_file: "./.secrets/vaultwarden/envs"
+    env_file: "../../secrets/vaultwarden/vaultwarden/envs"
     volumes:
       - type: "volume"
         source: "vaultwarden_data"

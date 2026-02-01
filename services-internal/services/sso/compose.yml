@@ -59,7 +59,7 @@ services:
       LLDAP_HTTP_PORT: 8001
       LLDAP_HTTP_HOST: "0.0.0.0"
       LLDAP_HTTP_URL: "https://ldap.internal.veetik.com"
-    env_file: "./.secrets/lldap/envs"
+    env_file: "../../secrets/sso/lldap/envs"
     restart: "unless-stopped"
     cap_drop: ["ALL"]
     security_opt:
@@ -119,14 +119,14 @@ services:
       AUTHELIA_STORAGE_POSTGRES_USERNAME: "postgres"
       AUTHELIA_STORAGE_POSTGRES_PASSWORD: "postgres"
       AUTHELIA_STORAGE_POSTGRES_SCHEMA: "public"
-    env_file: "./.secrets/authelia/envs"
+    env_file: "../../secrets/sso/authelia/envs"
     volumes:
       - type: "bind"
         source: "./notifs.txt"
         target: "/notifs.txt"
         read_only: false
       - type: "bind"
-        source: "./.secrets/authelia/issuer_privkey"
+        source: "../../secrets/sso/authelia/issuer_privkey"
         target: "/config/secrets/oidc/jwks/privkey"
         read_only: true
     configs:

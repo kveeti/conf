@@ -45,7 +45,7 @@ services:
     networks:
       - "proxy"
       - "default"
-    env_file: "./.secrets/miniflux/envs"
+    env_file: "../../secrets/miniflux/miniflux/envs"
     environment:
       CLEANUP_FREQUENCY: 1
       LISTEN_ADDR: "0.0.0.0:8000"
