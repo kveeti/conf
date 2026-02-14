@@ -28,7 +28,6 @@
 
 			networking.hostName = hostname;
 
-
 			environment.systemPackages = with pkgs; [
 				agenix.packages.${system}.agenix
 				vim
@@ -57,6 +56,7 @@
 				gc = "git commit -S";
 				gca = "git commit -S --amend";
 				k = "kubectl";
+				e = "vim";
 			};
 			system.primaryUser = username;
 			users.users."${username}" = {
@@ -98,11 +98,13 @@
 
 			homebrew.enable = true;
 			homebrew.casks = [ "keepassxc" "firefox" "ghostty" "helium-browser" "cursor" ];
+			homebrew.brews = [ "lazygit" ];
+			environment.systemPath = [ "/opt/homebrew/bin" ];
 
 			programs.zsh.enable = true;
 			programs.zsh.interactiveShellInit = ''
                           enc() {
-                            local file="$${1}"
+                            local file="$1"
                             if [[ -z "$${file}" ]]; then
                                 echo "usage: enc <file or dir>"
                                 return 1
@@ -115,12 +117,12 @@
                             echo -n "confirm passphrase: "
                             read -s passphrase2
                             echo
-                            if [[ "$${passphrase1}" != "$${passphrase2}" ]]; then
+                            if [[ "$passphrase1" != "$passphrase2" ]]; then
                                 echo "passphrases do not match. aborting."
                                 return 1
                             fi
                         
-                            tar -cf - "$${file}" | zstd -T0 | pv -c | gpg --no-symkey-cache --batch --yes --passphrase "$${passphrase1}" --symmetric --cipher-algo AES256 --compress-level 0 -o "$${file}.tar.zst.gpg"
+                            tar -cf - "$file" | zstd -T0 | pv -c | gpg --no-symkey-cache --batch --yes --passphrase "$passphrase1" --symmetric --cipher-algo AES256 --compress-level 0 -o "$file.tar.zst.gpg"
                             echo "done"
                         }
                         
