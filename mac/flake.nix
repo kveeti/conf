@@ -97,7 +97,7 @@
 			
 
 			homebrew.enable = true;
-			homebrew.casks = [ "keepassxc" "firefox" "ghostty" "helium-browser" "cursor" ];
+			homebrew.casks = [ "keepassxc" "firefox" "ghostty" "helium-browser" "cursor" "syncthing" ];
 			homebrew.brews = [ "lazygit" ];
 			environment.systemPath = [ "/opt/homebrew/bin" ];
 
