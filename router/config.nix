@@ -155,6 +155,7 @@ in
           "vlan20"
           "vlan30"
           "vlan40"
+          "vlan66"
           "vlan111"
         ];
       };
@@ -188,6 +189,11 @@ in
       "40-vlan40" = {
         matchConfig.Name = "vlan40";
         address = ["192.168.40.1/24"];
+        networkConfig.IPv4Forwarding = true;
+      };
+      "40-vlan66" = {
+        matchConfig.Name = "vlan66";
+        address = ["192.168.66.1/24"];
         networkConfig.IPv4Forwarding = true;
       };
       "40-vlan111" = {
@@ -263,6 +269,13 @@ in
         };
         vlanConfig.Id = 40;
       };
+      "40-vlan66-servers" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan66";
+        };
+        vlanConfig.Id = 66;
+      };
       "40-vlan111" = {
         netdevConfig = {
           Kind = "vlan";
@@ -303,7 +316,7 @@ in
         ct state vmap { invalid : drop, established : accept, related : accept }
         iifname "lo" accept
 
-        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.111.1, 10.255.255.1 } counter drop
+        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.66.1, 192.168.111.1, 10.255.255.1 } counter drop
         ip6 saddr { ::1, fe80::/10 } counter drop
 
         iifname "wg0" accept comment "connected wireguard clients"
@@ -312,8 +325,9 @@ in
         iifname "${IF_WAN}" counter drop
 
         iifname "vlan10" tcp dport 22 accept comment "vlan10 ssh"
-        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan111" } udp dport 67 accept comment "vlan dhcp"
+        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66", "vlan111" } udp dport 67 accept comment "vlan dhcp"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns except vlan111"
+
         iifname { "vlan10", "vlan20" } udp dport 5353 accept comment "avahi mdns"
         meta l4proto igmp accept comment "allow igmp for multicast routing"
         iifname { "vlan10", "vlan20" } udp dport { 319, 320 } accept comment "AirPlay PTP sync"
@@ -329,11 +343,11 @@ in
         ct state vmap { invalid : drop, established : accept, related : accept }
 
         iifname { "wg0", "vlan10" } accept
+        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
+
         iifname "vlan40" oifname "vlan40" accept
         iifname "vlan40" oifname "vlan20" ip daddr 192.168.20.2 accept comment "home assistant prometheus metrics scrape"
-        iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
 
-        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
         iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
         ip daddr 224.0.1.129 udp dport { 319, 320 } accept comment "AirPlay PTP multicast routing"
         iifname "vlan20" oifname "vlan10" udp dport { 319, 320 } accept comment "AirPlay PTP return"
@@ -341,10 +355,10 @@ in
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr "${secrets.vlan111OutboundAllowedIP}" udp dport 49800 counter accept
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr 192.168.40.221 meta l4proto { tcp, udp } th dport 5000 counter accept
 
-        ip daddr 192.168.40.20 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
-        ip daddr 192.168.40.20 ct status dnat meta l4proto { tcp, udp } th dport 7777 counter accept comment "port forwards"
-        ip daddr 192.168.40.20 ct status dnat tcp dport 8888 counter accept comment "port forwards"
-        ip daddr 192.168.40.20 ct status dnat udp dport 9987 counter accept comment "port forwards"
+        ip daddr 192.168.66.2 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
+        ip daddr 192.168.66.2 ct status dnat meta l4proto { tcp, udp } th dport 7777 counter accept comment "port forwards"
+        ip daddr 192.168.66.2 ct status dnat tcp dport 8888 counter accept comment "port forwards"
+        ip daddr 192.168.66.2 ct status dnat udp dport 9987 counter accept comment "port forwards"
 
         # unifi controller
         # https://help.ui.com/hc/en-us/articles/218506997-Required-Ports-Reference
@@ -372,19 +386,19 @@ in
         iifname "vlan5" ip daddr 192.168.5.1 tcp dport { 8080, 8443 } counter dnat to 192.168.100.2
         iifname { "vlan5", "vlan10" } ip daddr 192.168.5.1 tcp dport 443 counter dnat to 192.168.100.2:8443
 
-        # public http traffic to 192.168.40.20
-        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.20
-        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.40.20
+        # public http traffic to 192.168.66.2
+        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
+        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.66.2
 
-        # satisfactory server to 192.168.40.20
-        fib daddr type local meta l4proto { tcp, udp } th dport 7777 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.20
-        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport 7777 counter dnat to 192.168.40.20
-        fib daddr type local meta l4proto tcp th dport 8888 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.20
-        iifname "${IF_WAN}" meta l4proto tcp th dport 8888 counter dnat to 192.168.40.20
+        # satisfactory server to 192.168.66.2
+        fib daddr type local meta l4proto { tcp, udp } th dport 7777 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
+        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport 7777 counter dnat to 192.168.66.2
+        fib daddr type local meta l4proto tcp th dport 8888 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
+        iifname "${IF_WAN}" meta l4proto tcp th dport 8888 counter dnat to 192.168.66.2
 
-        # teamspeak server to 192.168.40.20
-        fib daddr type local udp dport 9987 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.40.20
-        iifname "${IF_WAN}" udp dport 9987 counter dnat to 192.168.40.20
+        # teamspeak server to 192.168.66.2
+        fib daddr type local udp dport 9987 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
+        iifname "${IF_WAN}" udp dport 9987 counter dnat to 192.168.66.2
 
         # dns through router, except vlan40, vlan111
         iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
@@ -569,13 +583,14 @@ in
       # no dns, only dhcp
       port = 0;
 
-      interface = [ "vlan5" "vlan10" "vlan20" "vlan30" "vlan40" "vlan111" ];
+      interface = [ "vlan5" "vlan10" "vlan20" "vlan30" "vlan40" "vlan66" "vlan111" ];
       dhcp-range = [
         "set:vlan5,   192.168.5.2,    192.168.5.254,  24h"
         "set:vlan10,  192.168.10.200, 192.168.10.254, 24h"
         "set:vlan20,  192.168.20.10,  192.168.20.254, 24h"
         "set:vlan30,  192.168.30.2,   192.168.30.254, 24h"
         "set:vlan40,  192.168.40.200, 192.168.40.254, 24h"
+        "set:vlan66,  192.168.66.3,   192.168.66.254, 24h"
         "set:vlan111, 192.168.111.8,  192.168.111.8,  24h"
       ];
       dhcp-option = [
@@ -594,6 +609,9 @@ in
         "tag:vlan40,  option:router,     192.168.40.1"
         "tag:vlan40,  option:dns-server, 192.168.40.1"
 
+        "tag:vlan66,  option:router,     192.168.66.1"
+        "tag:vlan66,  option:dns-server, 192.168.66.1"
+
         "tag:vlan111, option:router,     192.168.111.1"
         "tag:vlan111, option:dns-server, 1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112"
       ];
@@ -602,7 +620,7 @@ in
         "68:25:DD:49:0D:13, slzb,              192.168.20.3"
         "BC:24:11:C5:E2:F5, backup,            192.168.40.5"
         "BC:24:11:BD:EC:96, services-internal, 192.168.40.10"
-        "BC:24:11:28:D5:91, services-public,   192.168.40.20"
+        "BC:24:11:0E:A2:A3, services-public,   192.168.66.2"
       ];
     };
   };
