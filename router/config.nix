@@ -538,12 +538,12 @@ in
           ''"px1.internal.veetik.com. IN A 192.168.40.101"''
           ''"px2.internal.veetik.com. IN A 192.168.40.102"''
 
-          ''"dav.internal.veetik.com. IN A 192.168.40.10"''
-          ''"git.internal.veetik.com. IN A 192.168.40.10"''
-          ''"pass.internal.veetik.com. IN A 192.168.40.10"''
-          ''"rss.internal.veetik.com. IN A 192.168.40.10"''
-          ''"sso.internal.veetik.com. IN A 192.168.40.10"''
-          ''"ldap.internal.veetik.com. IN A 192.168.40.10"''
+          ''"dav.internal.veetik.com. IN A 192.168.40.206"''
+          ''"rss.internal.veetik.com. IN A 192.168.40.206"''
+          ''"sso.internal.veetik.com. IN A 192.168.40.206"''
+          ''"ldap.internal.veetik.com. IN A 192.168.40.206"''
+          ''"money.internal.veetik.com. IN A 192.168.40.206"''
+          ''"weather.internal.veetik.com. IN A 192.168.40.206"''
 
           ''"o11s.internal.veetik.com. IN A 192.168.40.5"''
           ''"o11s-metrics.internal.veetik.com. IN A 192.168.40.5"''
