@@ -81,6 +81,7 @@ in
     speedtest-cli
     btop
     vim
+    igmpproxy
   ];
 
   config.boot.kernel.sysctl = {
@@ -314,6 +315,9 @@ in
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan111" } udp dport 67 accept comment "vlan dhcp"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns except vlan111"
         iifname { "vlan10", "vlan20" } udp dport 5353 accept comment "avahi mdns"
+        meta l4proto igmp accept comment "allow igmp for multicast routing"
+        iifname { "vlan10", "vlan20" } udp dport { 319, 320 } accept comment "AirPlay PTP sync"
+
         iifname "ve-unifi" meta l4proto { tcp, udp } th dport { 8080, 8443, 10001, 3478 } accept
 
         icmp type echo-request accept
@@ -330,6 +334,9 @@ in
         iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
 
         iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
+        iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
+        ip daddr 224.0.1.129 udp dport { 319, 320 } accept comment "AirPlay PTP multicast routing"
+        iifname "vlan20" oifname "vlan10" udp dport { 319, 320 } accept comment "AirPlay PTP return"
 
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr "${secrets.vlan111OutboundAllowedIP}" udp dport 49800 counter accept
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr 192.168.40.221 meta l4proto { tcp, udp } th dport 5000 counter accept
@@ -389,6 +396,35 @@ in
       }
     }
   '';
+
+  config.environment.etc."igmpproxy.conf".text = ''
+    quickleave
+
+    phyint vlan10 downstream ratelimit 0 threshold 1
+            altnet 192.168.10.0/24
+
+    phyint vlan20 upstream ratelimit 0 threshold 1
+            altnet 192.168.20.0/24
+
+    phyint wg0 disabled
+    phyint vlan5 disabled
+    phyint vlan30 disabled
+    phyint vlan40 disabled
+    phyint vlan66 disabled
+    phyint vlan111 disabled
+    phyint ve-unifi disabled
+    phyint lo disabled
+  '';
+  
+  config.systemd.services.igmpproxy = {
+    description = "IGMP Proxy for AirPlay PTP";
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.igmpproxy}/bin/igmpproxy -n /etc/igmpproxy.conf";
+      Restart = "always";
+    };
+  };
 
   # dns
   config.services.resolved.enable = false;
