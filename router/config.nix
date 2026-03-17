@@ -400,7 +400,7 @@ in
         fib daddr type local udp dport 9987 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
         iifname "${IF_WAN}" udp dport 9987 counter dnat to 192.168.66.2
 
-        # dns through router, except vlan40, vlan111
+        # dns through router, except vlan40, vlan66, vlan111
         iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
       }
 
@@ -610,7 +610,7 @@ in
         "tag:vlan40,  option:dns-server, 192.168.40.1"
 
         "tag:vlan66,  option:router,     192.168.66.1"
-        "tag:vlan66,  option:dns-server, 192.168.66.1"
+        "tag:vlan66,  option:dns-server, 1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112"
 
         "tag:vlan111, option:router,     192.168.111.1"
         "tag:vlan111, option:dns-server, 1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112"
