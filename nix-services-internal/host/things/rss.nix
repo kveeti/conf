@@ -13,33 +13,38 @@ in {
     };
   }];
 
-  config.users.users.rss = {
-    isSystemUser = true;
-    group = "rss";
-  };
-  config.users.groups.rss = {};
-  config.systemd.services."podman-rss" = {
+  config.systemd.services.rss = {
     after    = [ "postgresql.service" ];
     requires = [ "postgresql.service" ];
   };
-  config.virtualisation.oci-containers.containers.rss = {
-    image = "veetik/rss:sha-c124396";
-    login = {
-      registry = "docker.io";
-      username = "veetik";
-      passwordFile = config.age.secrets.dockerhub-token.path;
-    };
-    volumes = [
-      "/run/postgresql:/run/postgresql"
-    ];
-    user = "rss";
-    extraOptions = [ "--hostuser=rss" ];
-    ports = [
-      "127.0.0.1:20000:8000"
-    ];
+  # config.virtualisation.oci-containers.containers.rss = {
+  #   image = "veetik/rss:sha-c124396";
+  #   login = {
+  #     registry = "docker.io";
+  #     username = "veetik";
+  #     passwordFile = config.age.secrets.dockerhub-token.path;
+  #   };
+  #   volumes = [
+  #     "/run/postgresql:/run/postgresql"
+  #   ];
+  #   user = "rss";
+  #   extraOptions = [ "--hostuser=rss" ];
+  #   ports = [
+  #     "127.0.0.1:20000:8000"
+  #   ];
+  #   environment = {
+  #     DATABASE_URL = "postgresql://rss@127.0.0.1/rss?host=/run/postgresql";
+  #     HOST = "0.0.0.0:8000";
+  #   };
+  # };
+
+  config.services.rss = {
+    enable = true;
+
     environment = {
+      RUST_LOG = "info";
       DATABASE_URL = "postgresql://rss@127.0.0.1/rss?host=/run/postgresql";
-      HOST = "0.0.0.0:8000";
+      HOST = "0.0.0.0:20000";
     };
   };
 
