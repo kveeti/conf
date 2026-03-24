@@ -41,6 +41,8 @@
 				ripgrep
 				mpv
 				opencode
+				pnpm
+				nodejs_24
 			];
 			environment.variables = {
 				EDITOR = "nvim";
@@ -98,7 +100,7 @@
 
 			homebrew.enable = true;
 			homebrew.casks = [ "keepassxc" "firefox" "ghostty" "helium-browser" "cursor" "syncthing" ];
-			homebrew.brews = [ "lazygit" ];
+			homebrew.brews = [ "lazygit" "colima" ];
 			environment.systemPath = [ "/opt/homebrew/bin" ];
 
 			programs.zsh.enable = true;
@@ -147,8 +149,37 @@
                             gpg --no-symkey-cache --batch --passphrase "$passphrase" --decrypt "$file" | zstd -d | pv -c | tar -xf -
                             echo "done"
                         }
-                        '';
 
+                        function t() {
+                            if [[ $# -eq 1 ]]; then
+                                selected="$1"
+                            else
+                                selected=$(find ~/code -maxdepth 7 \( -name "node_modules" -o -name ".git" -o -name "dist" -o -name "build" -o -name "target" \) -prune -o -type d -print0 | fzf --read0)
+                            fi
+                            
+                            if [[ -z $selected ]]; then
+                                exit 0
+                            fi
+                            
+                            selected_name=$(basename "$selected" | tr . _)
+                            tmux_running=$(pgrep tmux)
+                            
+                            if [[ -z $TMUX ]] && [[ -z "$tmux_running" ]]; then
+                                tmux new-session -s "$selected_name" -c "$selected"
+                                exit 0
+                            fi
+                            
+                            if ! tmux has-session -t="$selected_name" 2> /dev/null; then
+                                tmux new-session -ds "$selected_name" -c "$selected"
+                            fi
+                            
+                            if [[ -z $TMUX ]]; then
+                                tmux attach -t "$selected_name"
+                            else
+                                tmux switch-client -t "$selected_name"
+                            fi
+                            }
+                        '';
 
 			security.pam.services.sudo_local = {
 				enable = true;
