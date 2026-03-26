@@ -123,55 +123,55 @@
     docker-compose
   ];
 
-  config.services.prometheus.exporters.node = {
-    enable = true;
-    port = 9100;
-    enabledCollectors = [
-      "logind"
-      "systemd"
-    ];
-    openFirewall = true;
-  };
-
-  config.services.alloy = {
-    enable = true;
-    environmentFile = config.age.secrets.alloy-env.path;
-  };
-  config.environment.etc."alloy/config.alloy".text = ''
-    logging {
-      level = "info"
-    }
-
-    discovery.relabel "node_exporter" {
-      targets = [{
-        __address__ = "127.0.0.1:9100",
-      }]
-
-      rule {
-        replacement  = constants.hostname
-        target_label = "instance"
-      }
-    }
-
-    prometheus.scrape "node_exporter" {
-      targets    = discovery.relabel.node_exporter.output
-      forward_to = [prometheus.remote_write.victoriametrics.receiver]
-      
-      scrape_interval = "15s"
-      scrape_timeout  = "10s"
-    }
-
-    prometheus.remote_write "victoriametrics" {
-      endpoint {
-        url = "https://o11s-metrics.internal.veetik.com/api/v1/write"
-
-        basic_auth {
-          username = env("METRICS_USER")
-          password = env("METRICS_PASS")
-        }
-      }
-    }
-  '';
+#  config.services.prometheus.exporters.node = {
+#    enable = true;
+#    port = 9100;
+#    enabledCollectors = [
+#      "logind"
+#      "systemd"
+#    ];
+#    openFirewall = true;
+#  };
+#
+#  config.services.alloy = {
+#    enable = true;
+#    environmentFile = config.age.secrets.alloy-env.path;
+#  };
+#  config.environment.etc."alloy/config.alloy".text = ''
+#    logging {
+#      level = "info"
+#    }
+#
+#    discovery.relabel "node_exporter" {
+#      targets = [{
+#        __address__ = "127.0.0.1:9100",
+#      }]
+#
+#      rule {
+#        replacement  = constants.hostname
+#        target_label = "instance"
+#      }
+#    }
+#
+#    prometheus.scrape "node_exporter" {
+#      targets    = discovery.relabel.node_exporter.output
+#      forward_to = [prometheus.remote_write.victoriametrics.receiver]
+#      
+#      scrape_interval = "15s"
+#      scrape_timeout  = "10s"
+#    }
+#
+#    prometheus.remote_write "victoriametrics" {
+#      endpoint {
+#        url = "https://o11s-metrics.internal.veetik.com/api/v1/write"
+#
+#        basic_auth {
+#          username = env("METRICS_USER")
+#          password = env("METRICS_PASS")
+#        }
+#      }
+#    }
+#  '';
 
   config.virtualisation.docker = {
     enable = false;
