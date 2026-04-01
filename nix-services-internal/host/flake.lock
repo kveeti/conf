@@ -167,11 +167,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1773590026,
-        "narHash": "sha256-XnscNXWxlDC76GHFehMiXxYiVYJSWaV2dx96earWeI0=",
+        "lastModified": 1774569841,
+        "narHash": "sha256-4liT1zSkIDRX5eRRpQ+8rWnDlTv5DgtOXlyrhDVJbwg=",
         "owner": "kveeti",
         "repo": "rss",
-        "rev": "5da3071caa25dc9e006ba52cba7f2a1239f4381a",
+        "rev": "375850566401198f7736ef0a4a75998c731cd784",
         "type": "github"
       },
       "original": {
