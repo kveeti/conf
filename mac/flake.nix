@@ -41,8 +41,6 @@
 				ripgrep
 				mpv
 				opencode
-				pnpm
-				nodejs_24
 			];
 			environment.variables = {
 				EDITOR = "nvim";
@@ -99,8 +97,8 @@
 			
 
 			homebrew.enable = true;
-			homebrew.casks = [ "keepassxc" "firefox" "ghostty" "helium-browser" "cursor" "syncthing" ];
-			homebrew.brews = [ "lazygit" "colima" ];
+			homebrew.casks = [ "keepassxc" "ghostty" "brave-browser" "syncthing-app" ];
+			homebrew.brews = [ "lazygit" "colima" "tmux" ];
 			environment.systemPath = [ "/opt/homebrew/bin" ];
 
 			programs.zsh.enable = true;
