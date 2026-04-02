@@ -9,6 +9,7 @@
     ./things/money.nix
     ./things/shared-folder.nix
     ./things/weather.nix
+    ./things/paperless.nix
   ];
 
   config.boot.loader.systemd-boot.enable = true;
