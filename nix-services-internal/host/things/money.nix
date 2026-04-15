@@ -23,7 +23,7 @@ in {
     requires = [ "postgresql.service" ];
   };
   config.virtualisation.oci-containers.containers.money = {
-    image = "veetik/money:sha-31599ca";
+    image = "veetik/money:sha-a78b31e";
     login = {
       registry = "docker.io";
       username = "veetik";
