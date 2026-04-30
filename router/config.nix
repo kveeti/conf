@@ -2,6 +2,9 @@
 let
   IF_WAN = "enp1s0f0";
   IF_LAN = "enp1s0f1";
+  SIX_RD = "6rd-*";
+
+  ROUTER_IPV6_LL = "fe80::9ab7:85ff:fe22:eb15";
 in
 {
   imports = [ ./ddns.nix ];
@@ -86,7 +89,7 @@ in
 
   config.boot.kernel.sysctl = {
     "net.ipv4.conf.all.forwarding" = 1;
-    "net.ipv6.conf.all.forwarding" = 0;
+    "net.ipv6.conf.all.forwarding" = 1;
     "net.ipv4.conf.all.rp_filter" = 1;
 
     "net.ipv4.tcp_syncookies" = 1;
@@ -145,6 +148,13 @@ in
   config.systemd.network = {
     enable = true;
     networks = {
+      "10-wan" = {
+        matchConfig.Name = IF_WAN;
+        networkConfig.DHCP = "ipv4";
+        linkConfig.RequiredForOnline = "routable";
+        dhcpV4Config.Use6RD = true;
+      };
+
       "10-lan" = {
         matchConfig.Name = IF_LAN;
         linkConfig.RequiredForOnline = "routable";
@@ -173,8 +183,15 @@ in
       };
       "40-vlan10" = {
         matchConfig.Name = "vlan10";
-        address = ["192.168.10.1/24"];
-        networkConfig.IPv4Forwarding = true;
+        address = ["192.168.10.1/24" "fd00:10::1/64"];
+        networkConfig = {
+          IPv4Forwarding = true;
+          DHCPPrefixDelegation = true;
+          IPv6SendRA = true;
+          DNS = [ "fd00:10::1" ];
+        };
+        ipv6SendRAConfig.EmitDNS = true;
+        dhcpV6Config.UseDNS = false;
       };
       "40-vlan20" = {
         matchConfig.Name = "vlan20";
@@ -315,14 +332,16 @@ in
 
         ct state vmap { invalid : drop, established : accept, related : accept }
         iifname "lo" accept
+        meta l4proto ipv6-icmp accept
 
         ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.66.1, 192.168.111.1, 10.255.255.1 } counter drop
-        ip6 saddr { ::1, fe80::/10 } counter drop
+        ip6 saddr { ::1 } counter drop
 
         iifname "wg0" accept comment "connected wireguard clients"
         iifname "${IF_WAN}" udp dport 49002 accept comment "wireguard handshaking"
 
         iifname "${IF_WAN}" counter drop
+        iifname "${SIX_RD}" counter drop
 
         iifname "vlan10" tcp dport 22 accept comment "vlan10 ssh"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66", "vlan111" } udp dport 67 accept comment "vlan dhcp"
@@ -344,6 +363,11 @@ in
 
         iifname { "wg0", "vlan10" } accept
         iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
+
+        tcp flags syn tcp option maxseg size set rt mtu
+        iifname { "vlan10" } oifname "${SIX_RD}" accept
+        meta l4proto ipv6-icmp accept
+        iifname "${SIX_RD}" ct state { new, untracked } counter drop
 
         iifname "vlan40" oifname "vlan40" accept
         iifname "vlan40" oifname "vlan20" ip daddr 192.168.20.2 accept comment "home assistant prometheus metrics scrape"
@@ -377,7 +401,7 @@ in
       }
     }
 
-    table ip nat {
+    table inet nat {
       chain prerouting {
         type nat hook prerouting priority dstnat; policy accept;
 
@@ -388,17 +412,17 @@ in
 
         # public http traffic to 192.168.66.2
         fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
-        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.66.2
+        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.66.2
 
         # satisfactory server to 192.168.66.2
         fib daddr type local meta l4proto { tcp, udp } th dport 7777 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
-        iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport 7777 counter dnat to 192.168.66.2
+        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport 7777 counter dnat to 192.168.66.2
         fib daddr type local meta l4proto tcp th dport 8888 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
-        iifname "${IF_WAN}" meta l4proto tcp th dport 8888 counter dnat to 192.168.66.2
+        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto tcp th dport 8888 counter dnat to 192.168.66.2
 
         # teamspeak server to 192.168.66.2
         fib daddr type local udp dport 9987 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
-        iifname "${IF_WAN}" udp dport 9987 counter dnat to 192.168.66.2
+        meta nfproto ipv4 iifname "${IF_WAN}" udp dport 9987 counter dnat to 192.168.66.2
 
         # dns through router, except vlan40, vlan66, vlan111
         iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
@@ -479,6 +503,7 @@ in
           "192.168.20.1"
           "192.168.30.1"
           "192.168.40.1"
+          "::0"
         ];
         access-control = [
           "127.0.0.1 allow"
@@ -488,12 +513,17 @@ in
           "192.168.20.0/24 allow"
           "192.168.30.0/24 allow"
           "192.168.40.0/24 allow"
+          "::1 allow"
+          "fe80::/10 allow"
+          "fd00::/8 allow"
         ];
         port = "53";
         do-ip4 = "yes";
-        do-ip6 = "no";
+        do-ip6 = "yes";
         do-udp = "yes";
         do-tcp = "yes";
+
+        interface-automatic = "yes";
 
         hide-identity = "yes";
         hide-version = "yes";
