@@ -41,6 +41,7 @@
           ripgrep
           mpv
           opencode
+          mosh
         ];
 
         environment.variables = {
@@ -51,7 +52,6 @@
         environment.shellAliases = {
           nixswitch = "sudo darwin-rebuild switch --flake .#${hostname}";
           ls = "eza -la";
-          cd = "z";
           f = "cd \"$(find ~/code ~/things -type d -maxdepth 7 -print0 | fzf --read0)\"";
           gs = "git status --short";
           gl = "git log --pretty=format:\"%C(yellow)%h%C(reset) %C(dim)%ad%C(reset) %C(green)%an%C(reset) %s\" --date=human";
@@ -93,89 +93,6 @@
               vimAlias = true;
             };
 
-            programs.zsh.enable = true;
-            programs.zsh.initContent = ''
-              enc() {
-                local file="$1"
-                if [[ -z "$file" ]]; then
-                  echo "usage: enc <file or dir>"
-                  return 1
-                fi
-
-                local passphrase1 passphrase2
-                echo -n "enter passphrase: "
-                read -s passphrase1
-                echo
-                echo -n "confirm passphrase: "
-                read -s passphrase2
-                echo
-                if [[ "$passphrase1" != "$passphrase2" ]]; then
-                  echo "passphrases do not match. aborting."
-                  return 1
-                fi
-
-                tar -cf - "$file" | zstd -T0 | pv -c | gpg --no-symkey-cache --batch --yes --passphrase "$passphrase1" --symmetric --cipher-algo AES256 --compress-level 0 -o "$file.tar.zst.gpg"
-                echo "done"
-              }
-
-              dec() {
-                local file="$1"
-                if [[ -z "$file" ]]; then
-                  echo "usage: dec <file.tar.zst.gpg>"
-                  return 1
-                fi
-
-                local tar_name=$(basename "$file" .tar.zst.gpg)
-                if [[ -e "$tar_name" ]]; then
-                  echo "error: '$tar_name' already exists. aborting."
-                  return 1
-                fi
-
-                local passphrase
-                echo -n "enter passphrase: "
-                read -s passphrase
-                echo
-
-                gpg --no-symkey-cache --batch --passphrase "$passphrase" --decrypt "$file" | zstd -d | pv -c | tar -xf -
-                echo "done"
-              }
-
-              function t() {
-                if [[ $# -eq 1 ]]; then
-                  selected="$1"
-                else
-                  selected=$(find ~/code -maxdepth 7 \( -name "node_modules" -o -name ".git" -o -name "dist" -o -name "build" -o -name "target" \) -prune -o -type d -print0 | fzf --read0)
-                fi
-
-                if [[ -z $selected ]]; then
-                  exit 0
-                fi
-
-                selected_name=$(basename "$selected" | tr . _)
-                tmux_running=$(pgrep tmux)
-
-                if [[ -z $TMUX ]] && [[ -z "$tmux_running" ]]; then
-                  tmux new-session -s "$selected_name" -c "$selected"
-                  exit 0
-                fi
-
-                if ! tmux has-session -t="$selected_name" 2> /dev/null; then
-                  tmux new-session -ds "$selected_name" -c "$selected"
-                fi
-
-                if [[ -z $TMUX ]]; then
-                  tmux attach -t "$selected_name"
-                else
-                  tmux switch-client -t "$selected_name"
-                fi
-              }
-            '';
-
-            programs.zoxide = {
-              enable = true;
-              enableZshIntegration = true;
-            };
-
             xdg.configFile."nvim/init.lua".source = config.lib.file.mkOutOfStoreSymlink ./nvim.conf;
             xdg.configFile."ghostty/config".source = config.lib.file.mkOutOfStoreSymlink ./ghostty.conf;
             xdg.configFile."ghostty/themes/vague".source = config.lib.file.mkOutOfStoreSymlink ./ghostty-vague.conf;
@@ -183,8 +100,86 @@
           })
         ];
 
+        programs.zsh.enable = true;
+        programs.zsh.interactiveShellInit = ''
+          enc() {
+            local file="$1"
+            if [[ -z "$file" ]]; then
+              echo "usage: enc <file or dir>"
+              return 1
+            fi
+
+            local passphrase1 passphrase2
+            echo -n "enter passphrase: "
+            read -s passphrase1
+            echo
+            echo -n "confirm passphrase: "
+            read -s passphrase2
+            echo
+            if [[ "$passphrase1" != "$passphrase2" ]]; then
+              echo "passphrases do not match. aborting."
+              return 1
+            fi
+
+            tar -cf - "$file" | zstd -T0 | pv -c | gpg --no-symkey-cache --batch --yes --passphrase "$passphrase1" --symmetric --cipher-algo AES256 --compress-level 0 -o "$file.tar.zst.gpg"
+            echo "done"
+          }
+
+          dec() {
+            local file="$1"
+            if [[ -z "$file" ]]; then
+              echo "usage: dec <file.tar.zst.gpg>"
+              return 1
+            fi
+
+            local tar_name=$(basename "$file" .tar.zst.gpg)
+            if [[ -e "$tar_name" ]]; then
+              echo "error: '$tar_name' already exists. aborting."
+              return 1
+            fi
+
+            local passphrase
+            echo -n "enter passphrase: "
+            read -s passphrase
+            echo
+
+            gpg --no-symkey-cache --batch --passphrase "$passphrase" --decrypt "$file" | zstd -d | pv -c | tar -xf -
+            echo "done"
+          }
+
+          function t() {
+            if [[ $# -eq 1 ]]; then
+              selected="$1"
+            else
+              selected=$(find ~/code -maxdepth 7 \( -name "node_modules" -o -name ".git" -o -name "dist" -o -name "build" -o -name "target" \) -prune -o -type d -print0 | fzf --read0)
+            fi
+
+            if [[ -z $selected ]]; then
+              exit 0
+            fi
+
+            selected_name=$(basename "$selected" | tr . _)
+            tmux_running=$(pgrep tmux)
+
+            if [[ -z $TMUX ]] && [[ -z "$tmux_running" ]]; then
+              tmux new-session -s "$selected_name" -c "$selected"
+              exit 0
+            fi
+
+            if ! tmux has-session -t="$selected_name" 2> /dev/null; then
+              tmux new-session -ds "$selected_name" -c "$selected"
+            fi
+
+            if [[ -z $TMUX ]]; then
+              tmux attach -t "$selected_name"
+            else
+              tmux switch-client -t "$selected_name"
+            fi
+          }
+        '';
+
         homebrew.enable = true;
-        homebrew.casks = [ "keepassxc" "ghostty" "brave-browser" "syncthing-app" ];
+        homebrew.casks = [ "keepassxc" "alacritty" "firefox" "syncthing-app" ];
         homebrew.brews = [ "lazygit" "colima" "tmux" ];
         environment.systemPath = [ "/opt/homebrew/bin" ];
 
@@ -204,6 +199,7 @@
 
           controlcenter.BatteryShowPercentage = false;
           controlcenter.Bluetooth = true;
+          controlcenter.Sound = true;
           dock = {
             orientation = "right";
             autohide = true;
@@ -235,17 +231,49 @@
             forceLimitAdTracking = true;
             personalizedAdsMigrated = false;
           };
+
+          finder.AppleShowAllFiles = true;
+          finder.NewWindowTarget = "Home";
+          finder.ShowPathbar = true;
+          finder.ShowStatusBar = true;
+
+          screencapture.target = "clipboard";
+
+          screensaver.askForPasswordDelay = 0;
+          screensaver.askForPassword = true;
         };
 
         system.startup.chime = false;
         system.defaults.trackpad = {
-          Clicking = false;
+          Clicking = true;
           Dragging = false;
+          ActuationStrength = 0;
+          FirstClickThreshold = 0;
+          ForceSuppressed = true;
+          TrackpadRightClick = true;
+          TrackpadThreeFingerDrag = true;
+          TrackpadThreeFingerTapGesture = 0;
         };
+        system.defaults.NSGlobalDomain.NSScrollAnimationEnabled = true;
+        system.defaults.NSGlobalDomain."com.apple.mouse.tapBehavior" = 1;
+        system.defaults.NSGlobalDomain."com.apple.trackpad.scaling" = 3.0;
+        system.defaults.".GlobalPreferences"."com.apple.mouse.scaling" = -1.0;
+        system.defaults.NSGlobalDomain.NSWindowShouldDragOnGesture = true;
         system.defaults.NSGlobalDomain.InitialKeyRepeat = 15;
         system.defaults.NSGlobalDomain.KeyRepeat = 1;
-        system.keyboard.enableKeyMapping = true;
-        system.keyboard.remapCapsLockToControl = true;
+        system.defaults.NSGlobalDomain.NSAutomaticQuoteSubstitutionEnabled = false;
+        system.defaults.NSGlobalDomain.NSAutomaticPeriodSubstitutionEnabled = false;
+        system.defaults.NSGlobalDomain.NSAutomaticDashSubstitutionEnabled = false;
+        system.defaults.NSGlobalDomain.NSAutomaticCapitalizationEnabled = false;
+        system.defaults.NSGlobalDomain.NSAutomaticSpellingCorrectionEnabled = false;
+        system.keyboard = {
+          enableKeyMapping = true;
+          remapCapsLockToControl = true;
+          nonUS.remapTilde = true;
+          swapLeftCtrlAndFn = true;
+        };
+
+        system.defaults.NSGlobalDomain."com.apple.sound.beep.feedback" = 1;
 
         system.configurationRevision = self.rev or self.dirtyRev or null;
         system.stateVersion = 6;
