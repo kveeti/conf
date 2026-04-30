@@ -190,5 +190,12 @@
     };
   };
 
+  config.systemd.user.services.docker = {
+    environment = {
+      DOCKERD_ROOTLESS_ROOTLESSKIT_NET = "slirp4netns";
+      DOCKERD_ROOTLESS_ROOTLESSKIT_PORT_DRIVER = "slirp4netns";
+    };
+  };
+
   config.system.stateVersion = "25.11";
 }
