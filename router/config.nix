@@ -566,7 +566,6 @@ in
           ''"ha.internal.veetik.com. IN A 192.168.20.2"''
 
           ''"px1.internal.veetik.com. IN A 192.168.40.101"''
-          ''"px2.internal.veetik.com. IN A 192.168.40.102"''
 
           ''"dav.internal.veetik.com. IN A 192.168.40.206"''
           ''"rss.internal.veetik.com. IN A 192.168.40.206"''
@@ -574,9 +573,9 @@ in
           ''"ldap.internal.veetik.com. IN A 192.168.40.206"''
           ''"money.internal.veetik.com. IN A 192.168.40.206"''
           ''"weather.internal.veetik.com. IN A 192.168.40.206"''
+          ''"p.internal.veetik.com. IN A 192.168.40.206"''
 
-          ''"o11s.internal.veetik.com. IN A 192.168.40.5"''
-          ''"o11s-metrics.internal.veetik.com. IN A 192.168.40.5"''
+          ''"dev.internal.veetik.com. IN A 192.168.66.3"''
 
           ''"111.home.lan IN A 192.168.111.8"''
           ''"112.home.lan IN A 192.168.111.8"''
@@ -589,7 +588,7 @@ in
           ''"119.home.lan IN A 192.168.111.8"''
           ''"120.home.lan IN A 192.168.111.8"''
 
-          ''"authadmin.veetik.com. IN A 192.168.40.7"''
+          ''"authadmin.veetik.com. IN A 192.168.66.2"''
         ];
       };
       # blocklists
@@ -620,7 +619,7 @@ in
         "set:vlan20,  192.168.20.10,  192.168.20.254, 24h"
         "set:vlan30,  192.168.30.2,   192.168.30.254, 24h"
         "set:vlan40,  192.168.40.200, 192.168.40.254, 24h"
-        "set:vlan66,  192.168.66.3,   192.168.66.254, 24h"
+        "set:vlan66,  192.168.66.20,   192.168.66.254, 24h"
         "set:vlan111, 192.168.111.8,  192.168.111.8,  24h"
       ];
       dhcp-option = [
@@ -649,6 +648,7 @@ in
         "BC:24:11:62:37:5C, ha,                192.168.20.2"
         "68:25:DD:49:0D:13, slzb,              192.168.20.3"
         "bc:24:11:89:dd:7e, public,            192.168.66.2"
+        "bc:24:11:55:42:a1, dev,               192.168.66.3"
       ];
     };
   };
