@@ -435,6 +435,102 @@ in
     }
   '';
 
+#  config.services.suricata = {
+#    enable = true;
+#    # By default, NixOS runs suricata-update to fetch the Emerging Threats (ET) Open ruleset
+#
+#    settings = {
+#      app-layer.protocols = {
+#        modbus = {
+#          enabled = "yes";
+#          "detection-enabled" = "yes";
+#        };
+#        dnp3 = {
+#          enabled = "yes";
+#          detection-enabled = "yes";
+#        };
+#        enip = {
+#          enabled = "yes";
+#          detection-enabled = "yes";
+#        };
+#      };
+#
+#      vars = {
+#        address-groups = {
+#          # Encompasses your VLANs (192.168.0.0/16) and WireGuard (10.255.255.0/24)
+#          HOME_NET = "[192.168.0.0/16, 10.255.255.0/24, fd00::/8, fe80::/10]";
+#          EXTERNAL_NET = "!$HOME_NET";
+#        };
+#      };
+#
+#      af-packet = [
+#        {
+#          interface = IF_WAN;
+#          cluster-id = 99;
+#          cluster-type = "cluster_flow";
+#          defrag = "yes";
+#        }
+#        {
+#          interface = IF_LAN;
+#          cluster-id = 98;
+#          cluster-type = "cluster_flow";
+#          defrag = "yes";
+#        }
+#        {
+#          interface = "wg0";
+#          cluster-id = 97;
+#          cluster-type = "cluster_flow";
+#          defrag = "yes";
+#        }
+#      ];
+#
+#      outputs = [
+#        {
+#          fast = {
+#            enabled = true;
+#            filename = "fast.log";
+#            append = "yes";
+#          };
+#        }
+#        {
+#          eve-log = {
+#            enabled = true;
+#            filetype = "regular";
+#            filename = "eve.json";
+#            types = [
+#              { alert = { payload = "yes"; payload-buffer-size = 4096; payload-printable = "yes"; packet = "yes"; }; }
+#              "dns"
+#              "tls"
+#              "flow"
+#            ];
+#          };
+#        }
+#      ];
+#    };
+#  };
+
+#  config.services.logrotate = {
+#    enable = true;
+#    settings = {
+#      "suricata" = {
+#        files = [ 
+#          "/var/log/suricata/*.log" 
+#          "/var/log/suricata/*.json" 
+#        ];
+#        frequency = "daily";
+#        rotate = 7;
+#        compress = true;
+#        delaycompress = true;
+#        missingok = true;
+#        notifempty = true;
+#        postrotate = ''
+#          # Send SIGHUP to Suricata to close and reopen log files
+#          ${pkgs.systemd}/bin/systemctl kill -s HUP suricata.service >/dev/null 2>&1 || true
+#        '';
+#      };
+#    };
+#  };
+
   config.environment.etc."igmpproxy.conf".text = ''
     quickleave
 
