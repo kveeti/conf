@@ -9,9 +9,10 @@
 
     weather.url = "github:kveeti/weather";
     rss.url = "github:kveeti/rss";
+    food.url = "github:kveeti/food";
   };
 
-  outputs = { self, nixpkgs, disko, secrets, weather, rss }: {
+  outputs = { self, nixpkgs, disko, secrets, weather, rss, food }: {
     nixosConfigurations.nix-services-internal = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
@@ -22,6 +23,7 @@
         secrets.nixosModules.nix-services-internal
         weather.nixosModules.default
         rss.nixosModules.default
+        food.nixosModules.default
       ];
       specialArgs = { keys = (import secrets).keys; };
     };

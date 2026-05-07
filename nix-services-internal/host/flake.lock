@@ -67,6 +67,24 @@
         "type": "github"
       }
     },
+    "food": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1778189271,
+        "narHash": "sha256-cF93OyAYKtXPS1rI2A6XImWDl52kq/VYmSDB3mdI7pA=",
+        "owner": "kveeti",
+        "repo": "food",
+        "rev": "cc61e77586c3f016ea61515ce6133f4d17f99b92",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kveeti",
+        "repo": "food",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -91,6 +109,22 @@
     },
     "nixpkgs": {
       "locked": {
+        "lastModified": 1773389992,
+        "narHash": "sha256-wvfdLLWJ2I9oEpDd9PfMA8osfIZicoQ5MT1jIwNs9Tk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c06b4ae3d6599a672a6210b7021d699c351eebda",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
         "lastModified": 1772047000,
         "narHash": "sha256-7DaQVv4R97cii/Qdfy4tmDZMB2xxtyIvNGSwXBBhSmo=",
         "owner": "NixOS",
@@ -105,7 +139,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1773389992,
         "narHash": "sha256-wvfdLLWJ2I9oEpDd9PfMA8osfIZicoQ5MT1jIwNs9Tk=",
@@ -121,7 +155,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_3": {
+    "nixpkgs_4": {
       "locked": {
         "lastModified": 1772047000,
         "narHash": "sha256-7DaQVv4R97cii/Qdfy4tmDZMB2xxtyIvNGSwXBBhSmo=",
@@ -137,7 +171,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
+    "nixpkgs_5": {
       "locked": {
         "lastModified": 1771848320,
         "narHash": "sha256-0MAd+0mun3K/Ns8JATeHT1sX28faLII5hVLq0L3BdZU=",
@@ -156,7 +190,8 @@
     "root": {
       "inputs": {
         "disko": "disko",
-        "nixpkgs": "nixpkgs",
+        "food": "food",
+        "nixpkgs": "nixpkgs_2",
         "rss": "rss",
         "secrets": "secrets",
         "weather": "weather"
@@ -164,7 +199,7 @@
     },
     "rss": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1774569841,
@@ -183,14 +218,14 @@
     "secrets": {
       "inputs": {
         "agenix": "agenix",
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1775142099,
-        "narHash": "sha256-sQ/PBecjOtVIe3iBYZAJx5UAJviiBQjsO5hYYn0sg6A=",
+        "lastModified": 1778189731,
+        "narHash": "sha256-5d4qqEAT6tG1rz57dpx6MaYIvaTar1ZRKnk9UJpuZfw=",
         "ref": "refs/heads/master",
-        "rev": "264f1b431d3e7260a54919d5d228e4b128bbaa0b",
-        "revCount": 15,
+        "rev": "ac39e17787303b12a1534f26bf6b0e119ef3eeb8",
+        "revCount": 18,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
@@ -216,7 +251,7 @@
     },
     "weather": {
       "inputs": {
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_5"
       },
       "locked": {
         "lastModified": 1773432846,
