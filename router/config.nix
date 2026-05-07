@@ -573,6 +573,7 @@ in
           ''"ldap.internal.veetik.com. IN A 192.168.40.206"''
           ''"money.internal.veetik.com. IN A 192.168.40.206"''
           ''"weather.internal.veetik.com. IN A 192.168.40.206"''
+          ''"food.internal.veetik.com. IN A 192.168.40.206"''
           ''"p.internal.veetik.com. IN A 192.168.40.206"''
 
           ''"dev.internal.veetik.com. IN A 192.168.66.3"''
