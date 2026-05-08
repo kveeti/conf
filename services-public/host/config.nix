@@ -5,6 +5,15 @@
   config.boot.loader.efi.canTouchEfiVariables = true;
 
   config.boot.kernelParams = [ "ip=dhcp" ];
+  config.boot.blacklistedKernelModules = [ "esp4" "esp6" "rxrpc" ];
+  config.boot.extraModprobeConfig = ''
+    install esp4 /bin/false
+    install esp6 /bin/false
+    install rxrpc /bin/false
+  '';
+  config.system.activationScripts.unloadDirtyfragModules.text = ''
+    ${pkgs.kmod}/bin/rmmod esp4 esp6 rxrpc 2>/dev/null || true
+  '';
   config.boot.initrd = {
     availableKernelModules = [ "e1000e" "igb" ];
     network = {
