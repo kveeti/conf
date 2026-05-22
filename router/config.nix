@@ -534,10 +534,10 @@ in
   config.environment.etc."igmpproxy.conf".text = ''
     quickleave
 
-    phyint vlan10 downstream ratelimit 0 threshold 1
+    phyint vlan10 upstream ratelimit 0 threshold 1
             altnet 192.168.10.0/24
 
-    phyint vlan20 upstream ratelimit 0 threshold 1
+    phyint vlan20 downstream ratelimit 0 threshold 1
             altnet 192.168.20.0/24
 
     phyint wg0 disabled
