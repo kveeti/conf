@@ -1,8 +1,10 @@
 { config, ... }:
 
 let
-
+  domain = "weather.internal.veetik.com";
 in {
+  config.homelab.dns.records = [ domain ];
+
   config.services.weather = {
     enable = true;
     
@@ -16,7 +18,7 @@ in {
     environmentFile = config.age.secrets.weather-secrets.path;
   };
 
-  config.services.nginx.virtualHosts."weather.internal.veetik.com" = {
+  config.services.nginx.virtualHosts.${domain} = {
     useACMEHost = "internal.veetik.com";
     forceSSL = true;
     quic = true;

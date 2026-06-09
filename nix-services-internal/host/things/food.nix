@@ -1,8 +1,11 @@
 { config, ... }:
 
 let
+  domain = "food.internal.veetik.com";
   PORT = "20008";
 in {
+  config.homelab.dns.records = [ domain ];
+
   config.services.food = {
     enable = true;
 
@@ -15,7 +18,7 @@ in {
     environmentFile = config.age.secrets.food-secrets.path;
   };
 
-  config.services.nginx.virtualHosts."food.internal.veetik.com" = {
+  config.services.nginx.virtualHosts.${domain} = {
     useACMEHost = "internal.veetik.com";
     forceSSL = true;
     quic = true;

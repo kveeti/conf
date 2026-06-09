@@ -1,8 +1,10 @@
 { config, ... }:
 
 let
-
+  domain = "rss.internal.veetik.com";
 in {
+  config.homelab.dns.records = [ domain ];
+
   config.services.postgresql.ensureDatabases = [ "rss" ];
   config.services.postgresql.ensureUsers = [{
     name = "rss";
@@ -48,7 +50,7 @@ in {
     };
   };
 
-  config.services.nginx.virtualHosts."rss.internal.veetik.com" = {
+  config.services.nginx.virtualHosts.${domain} = {
     useACMEHost = "internal.veetik.com";
     forceSSL = true;
     quic = true;

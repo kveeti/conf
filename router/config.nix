@@ -1,10 +1,15 @@
-{ config, pkgs, lib, secrets, ... }:
+{ config, pkgs, lib, secrets, serviceDnsRecords ? [], ... }:
 let
   IF_WAN = "enp1s0f0";
   IF_LAN = "enp1s0f1";
   SIX_RD = "6rd-*";
 
-  ROUTER_IPV6_LL = "fe80::9ab7:85ff:fe22:eb15";
+  inventory = import ./inventory.nix;
+  hosts = inventory.hosts;
+
+  serviceLocalData = map (record:
+    ''"${record.name}. IN A ${record.address}"''
+  ) serviceDnsRecords;
 in
 {
   imports = [ ./ddns.nix ];
@@ -370,19 +375,19 @@ in
         iifname "${SIX_RD}" ct state { new, untracked } counter drop
 
         iifname "vlan40" oifname "vlan40" accept
-        iifname "vlan40" oifname "vlan20" ip daddr 192.168.20.2 accept comment "home assistant prometheus metrics scrape"
+        iifname "vlan40" oifname "vlan20" ip daddr ${hosts.homeAssistant.ipv4} accept comment "home assistant prometheus metrics scrape"
 
         iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
         ip daddr 224.0.1.129 udp dport { 319, 320 } accept comment "AirPlay PTP multicast routing"
         iifname "vlan20" oifname "vlan10" udp dport { 319, 320 } accept comment "AirPlay PTP return"
 
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr "${secrets.vlan111OutboundAllowedIP}" udp dport 49800 counter accept
-        iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr 192.168.40.221 meta l4proto { tcp, udp } th dport 5000 counter accept
+        iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr ${hosts.vlan111Service.ipv4} meta l4proto { tcp, udp } th dport 5000 counter accept
 
-        ip daddr 192.168.66.2 ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
-        ip daddr 192.168.66.2 ct status dnat meta l4proto { tcp, udp } th dport 7777 counter accept comment "port forwards"
-        ip daddr 192.168.66.2 ct status dnat tcp dport 8888 counter accept comment "port forwards"
-        ip daddr 192.168.66.2 ct status dnat udp dport 9987 counter accept comment "port forwards"
+        ip daddr ${hosts.servicesPublic.ipv4} ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
+        ip daddr ${hosts.servicesPublic.ipv4} ct status dnat meta l4proto { tcp, udp } th dport 7777 counter accept comment "port forwards"
+        ip daddr ${hosts.servicesPublic.ipv4} ct status dnat tcp dport 8888 counter accept comment "port forwards"
+        ip daddr ${hosts.servicesPublic.ipv4} ct status dnat udp dport 9987 counter accept comment "port forwards"
 
         # unifi controller
         # https://help.ui.com/hc/en-us/articles/218506997-Required-Ports-Reference
@@ -406,23 +411,23 @@ in
         type nat hook prerouting priority dstnat; policy accept;
 
         # unifi controller
-        iifname "vlan5" ip daddr 192.168.5.1 udp dport { 3478, 10001, 1900 } counter dnat to 192.168.100.2
-        iifname "vlan5" ip daddr 192.168.5.1 tcp dport { 8080, 8443 } counter dnat to 192.168.100.2
-        iifname { "vlan5", "vlan10" } ip daddr 192.168.5.1 tcp dport 443 counter dnat to 192.168.100.2:8443
+        iifname "vlan5" ip daddr 192.168.5.1 udp dport { 3478, 10001, 1900 } counter dnat to ${hosts.unifiController.ipv4}
+        iifname "vlan5" ip daddr 192.168.5.1 tcp dport { 8080, 8443 } counter dnat to ${hosts.unifiController.ipv4}
+        iifname { "vlan5", "vlan10" } ip daddr 192.168.5.1 tcp dport 443 counter dnat to ${hosts.unifiController.ipv4}:8443
 
-        # public http traffic to 192.168.66.2
-        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
-        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to 192.168.66.2
+        # public http traffic to services-public
+        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.servicesPublic.ipv4}
+        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to ${hosts.servicesPublic.ipv4}
 
-        # satisfactory server to 192.168.66.2
-        fib daddr type local meta l4proto { tcp, udp } th dport 7777 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
-        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport 7777 counter dnat to 192.168.66.2
-        fib daddr type local meta l4proto tcp th dport 8888 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
-        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto tcp th dport 8888 counter dnat to 192.168.66.2
+        # satisfactory server to services-public
+        fib daddr type local meta l4proto { tcp, udp } th dport 7777 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.servicesPublic.ipv4}
+        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport 7777 counter dnat to ${hosts.servicesPublic.ipv4}
+        fib daddr type local meta l4proto tcp th dport 8888 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.servicesPublic.ipv4}
+        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto tcp th dport 8888 counter dnat to ${hosts.servicesPublic.ipv4}
 
-        # teamspeak server to 192.168.66.2
-        fib daddr type local udp dport 9987 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to 192.168.66.2
-        meta nfproto ipv4 iifname "${IF_WAN}" udp dport 9987 counter dnat to 192.168.66.2
+        # teamspeak server to services-public
+        fib daddr type local udp dport 9987 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.servicesPublic.ipv4}
+        meta nfproto ipv4 iifname "${IF_WAN}" udp dport 9987 counter dnat to ${hosts.servicesPublic.ipv4}
 
         # dns through router, except vlan40, vlan66, vlan111
         iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
@@ -658,35 +663,24 @@ in
           ''"veetik.com." typetransparent''
         ];
         local-data = [
-          ''"ui.internal.veetik.com. IN A 192.168.5.1"''
-          ''"ha.internal.veetik.com. IN A 192.168.20.2"''
+          ''"ui.internal.veetik.com. IN A ${hosts.router.ipv4}"''
+          ''"ha.internal.veetik.com. IN A ${hosts.homeAssistant.ipv4}"''
 
-          ''"px1.internal.veetik.com. IN A 192.168.40.101"''
+          ''"dev.internal.veetik.com. IN A ${hosts.dev.ipv4}"''
 
-          ''"dav.internal.veetik.com. IN A 192.168.40.206"''
-          ''"rss.internal.veetik.com. IN A 192.168.40.206"''
-          ''"sso.internal.veetik.com. IN A 192.168.40.206"''
-          ''"ldap.internal.veetik.com. IN A 192.168.40.206"''
-          ''"money.internal.veetik.com. IN A 192.168.40.206"''
-          ''"weather.internal.veetik.com. IN A 192.168.40.206"''
-          ''"food.internal.veetik.com. IN A 192.168.40.206"''
-          ''"p.internal.veetik.com. IN A 192.168.40.206"''
+          ''"111.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"112.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"113.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"114.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"115.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"116.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"117.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"118.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"119.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"120.home.lan IN A ${hosts.vlan111Device.ipv4}"''
 
-          ''"dev.internal.veetik.com. IN A 192.168.66.3"''
-
-          ''"111.home.lan IN A 192.168.111.8"''
-          ''"112.home.lan IN A 192.168.111.8"''
-          ''"113.home.lan IN A 192.168.111.8"''
-          ''"114.home.lan IN A 192.168.111.8"''
-          ''"115.home.lan IN A 192.168.111.8"''
-          ''"116.home.lan IN A 192.168.111.8"''
-          ''"117.home.lan IN A 192.168.111.8"''
-          ''"118.home.lan IN A 192.168.111.8"''
-          ''"119.home.lan IN A 192.168.111.8"''
-          ''"120.home.lan IN A 192.168.111.8"''
-
-          ''"authadmin.veetik.com. IN A 192.168.66.2"''
-        ];
+          ''"authadmin.veetik.com. IN A ${hosts.servicesPublic.ipv4}"''
+        ] ++ serviceLocalData;
       };
       # blocklists
       rpz = [
@@ -742,10 +736,10 @@ in
         "tag:vlan111, option:dns-server, 1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112"
       ];
       dhcp-host = [
-        "BC:24:11:62:37:5C, ha,                192.168.20.2"
-        "68:25:DD:49:0D:13, slzb,              192.168.20.3"
-        "bc:24:11:89:dd:7e, public,            192.168.66.2"
-        "bc:24:11:55:42:a1, dev,               192.168.66.3"
+        "${hosts.homeAssistant.mac}, ${hosts.homeAssistant.hostname}, ${hosts.homeAssistant.ipv4}"
+        "${hosts.slzb.mac}, ${hosts.slzb.hostname}, ${hosts.slzb.ipv4}"
+        "${hosts.servicesPublic.mac}, ${hosts.servicesPublic.hostname}, ${hosts.servicesPublic.ipv4}"
+        "${hosts.dev.mac}, ${hosts.dev.hostname}, ${hosts.dev.ipv4}"
       ];
     };
   };
@@ -761,10 +755,6 @@ in
   config.services.avahi = {
     enable = true;
     reflector = true;
-    interfaces = [
-      "vlan10"
-      "vlan20"
-    ];
     allowInterfaces = [
       "vlan10"
       "vlan20"
@@ -790,7 +780,7 @@ in
   config.containers.unifi = {
     autoStart = true;
     privateNetwork = true;
-    localAddress = "192.168.100.2";
+    localAddress = hosts.unifiController.ipv4;
     hostAddress = "192.168.100.1";
     
     bindMounts = {
@@ -830,4 +820,3 @@ in
 
   config.system.stateVersion = "25.05";
 }
-

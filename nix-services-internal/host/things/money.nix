@@ -1,8 +1,11 @@
 { config, ... }:
 
 let
-
+  domain = "money.internal.veetik.com";
+  authDomain = "sso.internal.veetik.com";
 in {
+  config.homelab.dns.records = [ domain ];
+
   config.services.postgresql.ensureDatabases = [ "money" ];
   config.services.postgresql.ensureUsers = [{
     name = "money";
@@ -42,8 +45,8 @@ in {
     ];
     environment = {
       DATABASE_URL = "postgresql://money@127.0.0.1/money?host=/run/postgresql";
-      BASE_URL = "https://money.internal.veetik.com";
-      AUTH_URL = "https://sso.internal.veetik.com";
+      BASE_URL = "https://${domain}";
+      AUTH_URL = "https://${authDomain}";
       AUTH_CLIENT_ID = "money";
       AUTH_USER_ID_WHITELIST = "";
       AUTH_USER_ID_WHITELIST_ENABLED = "false";
@@ -56,7 +59,7 @@ in {
     };
   };
 
-  config.services.nginx.virtualHosts."money.internal.veetik.com" = {
+  config.services.nginx.virtualHosts.${domain} = {
     useACMEHost = "internal.veetik.com";
     forceSSL = true;
     quic = true;
