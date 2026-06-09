@@ -13,6 +13,8 @@
     ./things/food.nix
   ];
 
+  config.homelab.dns.defaultTargetHost = "nixServicesInternal";
+
   config.boot.loader.systemd-boot.enable = true;
   config.boot.loader.efi.canTouchEfiVariables = true;
   config.nix.settings.experimental-features = [ "nix-command" "flakes" "pipe-operators" ];

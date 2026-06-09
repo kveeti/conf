@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+usage() {
+	cat <<'EOF'
+usage:
+  ./deploy <host> [target-host]
+
+hosts:
+  router                 defaults to 192.168.5.1
+  nix-services-internal  requires target-host
+  services-public        requires target-host
+  dev                    requires target-host
+  e | mac                local nix-darwin rebuild
+
+TARGET_HOST may be used instead of the target-host argument.
+EOF
+}
+
+require_target() {
+	local host=$1
+	local target=${2:-${TARGET_HOST:-}}
+
+	if [[ -z "$target" ]]; then
+		echo "deploy: $host requires a target host" >&2
+		usage >&2
+		exit 1
+	fi
+
+	printf '%s\n' "$target"
+}
+
+run_nixos_rebuild() {
+	local host=$1
+	local target=$2
+
+	local cmd=(
+		nixos-rebuild switch
+		--fast
+		--flake "$repo_root#$host"
+		--build-host "veeti@$target"
+		--target-host "veeti@$target"
+		--use-remote-sudo
+	)
+
+	if command -v nixos-rebuild >/dev/null 2>&1; then
+		"${cmd[@]}"
+	else
+		nix-shell -p nixos-rebuild --run "$(printf '%q ' "${cmd[@]}")"
+	fi
+}
+
+run_darwin_rebuild() {
+	if ! command -v darwin-rebuild >/dev/null 2>&1; then
+		echo "deploy: darwin-rebuild is not available in PATH" >&2
+		exit 1
+	fi
+
+	sudo darwin-rebuild switch --flake "$repo_root#e"
+}
+
+host=${1:-}
+target_arg=${2:-}
+
+if [[ -z "$host" || "$host" == "-h" || "$host" == "--help" ]]; then
+	usage
+	exit 0
+fi
+
+case "$host" in
+	router)
+		run_nixos_rebuild router "${target_arg:-${TARGET_HOST:-192.168.5.1}}"
+		;;
+	nix-services-internal | services-public | dev)
+		target=$(require_target "$host" "$target_arg")
+		run_nixos_rebuild "$host" "$target"
+		;;
+	e | mac)
+		run_darwin_rebuild
+		;;
+	*)
+		echo "deploy: unknown host: $host" >&2
+		usage >&2
+		exit 1
+		;;
+esac

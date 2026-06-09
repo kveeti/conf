@@ -1,8 +1,10 @@
 { config, ... }: 
 
 let
-
+  domain = "sso.internal.veetik.com";
 in {
+  config.homelab.dns.records = [ domain ];
+
   config.services.postgresql.ensureDatabases = [ "authelia" ];
   config.services.postgresql.ensureUsers = [{
     name = "authelia";
@@ -67,7 +69,7 @@ in {
       session = {
         cookies = [{
           domain = "internal.veetik.com";
-          authelia_url = "https://sso.internal.veetik.com";
+          authelia_url = "https://${domain}";
           inactivity = "1M";
           expiration = "3M";
           remember_me = "1y";
@@ -161,7 +163,7 @@ in {
     };
   };
 
-  config.services.nginx.virtualHosts."sso.internal.veetik.com" = {
+  config.services.nginx.virtualHosts.${domain} = {
     useACMEHost = "internal.veetik.com";
     forceSSL = true;
     quic = true;

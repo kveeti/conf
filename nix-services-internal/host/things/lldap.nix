@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 
 let
+  domain = "ldap.internal.veetik.com";
 
   groupConfigs = pkgs.linkFarm "lldap-group-configs" [
     {
@@ -50,6 +51,8 @@ let
   };
 
 in {
+  config.homelab.dns.records = [ domain ];
+
   config.age.secrets.lldap-user-pass.mode = "0400";
   config.age.secrets.lldap-user-pass.owner = "lldap";
   config.age.secrets.lldap-user-authelia-pass.mode = "0400";
@@ -92,7 +95,7 @@ in {
       ldap_host = "127.0.0.1";
       http_port = 20003;
       http_host = "127.0.0.1";
-      http_url = "https://ldap.internal.veetik.com";
+      http_url = "https://${domain}";
     };
   };
 
@@ -131,7 +134,7 @@ in {
     };
   };
 
-  config.services.nginx.virtualHosts."ldap.internal.veetik.com" = {
+  config.services.nginx.virtualHosts.${domain} = {
     useACMEHost = "internal.veetik.com";
     forceSSL = true;
     quic = true;

@@ -1,6 +1,8 @@
 { config, pkgs, lib, ... }:
 
 let
+  domain = "dav.internal.veetik.com";
+
   pythonEnv = pkgs.python3.withPackages (ps: with ps; [
     python-dateutil
     vobject
@@ -34,6 +36,7 @@ let
   '';
 
 in {
+  config.homelab.dns.records = [ domain ];
 
   config.age.secrets.radicale-users.mode = "0400";
   config.age.secrets.radicale-users.owner = "radicale";
@@ -53,7 +56,7 @@ in {
     };
   };
 
-  config.services.nginx.virtualHosts."dav.internal.veetik.com" = {
+  config.services.nginx.virtualHosts.${domain} = {
     useACMEHost = "internal.veetik.com";
     forceSSL = true;
     quic = true;
