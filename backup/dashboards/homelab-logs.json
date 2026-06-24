@@ -1,0 +1,128 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 0,
+  "schemaVersion": 39,
+  "tags": ["homelab", "logs"],
+  "title": "Homelab Logs",
+  "uid": "homelab-logs",
+  "time": { "from": "now-15m", "to": "now" },
+  "refresh": "10s",
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "1h"]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "host",
+        "label": "host",
+        "type": "query",
+        "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+        "query": { "refId": "host", "type": "fieldValue", "field": "host" },
+        "definition": "fieldValue(host)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": ["All"], "value": ["$__all"] },
+        "options": []
+      },
+      {
+        "name": "service",
+        "label": "service",
+        "type": "query",
+        "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+        "query": { "refId": "service", "type": "fieldValue", "field": "_SYSTEMD_UNIT" },
+        "definition": "fieldValue(_SYSTEMD_UNIT)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": ["All"], "value": ["$__all"] },
+        "options": []
+      },
+      {
+        "name": "level",
+        "label": "level",
+        "type": "custom",
+        "query": "Emergency : 0,Alert : 1,Critical : 2,Error : 3,Warning : 4,Notice : 5,Info : 6,Debug : 7",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": ["All"], "value": ["$__all"] },
+        "options": [
+          { "text": "All", "value": "$__all", "selected": true },
+          { "text": "Emergency", "value": "0", "selected": false },
+          { "text": "Alert", "value": "1", "selected": false },
+          { "text": "Critical", "value": "2", "selected": false },
+          { "text": "Error", "value": "3", "selected": false },
+          { "text": "Warning", "value": "4", "selected": false },
+          { "text": "Notice", "value": "5", "selected": false },
+          { "text": "Info", "value": "6", "selected": false },
+          { "text": "Debug", "value": "7", "selected": false }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Log volume",
+      "type": "timeseries",
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 50,
+            "lineWidth": 0,
+            "stacking": { "mode": "normal" }
+          },
+          "color": { "mode": "fixed", "fixedColor": "blue" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "showLegend": false },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+          "expr": "host:~\"${host:pipe}\" _SYSTEMD_UNIT:~\"${service:pipe}\" PRIORITY:~\"${level:pipe}\"",
+          "queryType": "hits"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Logs",
+      "type": "logs",
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "gridPos": { "h": 22, "w": 24, "x": 0, "y": 6 },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+          "expr": "host:~\"${host:pipe}\" _SYSTEMD_UNIT:~\"${service:pipe}\" PRIORITY:~\"${level:pipe}\"",
+          "queryType": "instant",
+          "maxLines": 1000
+        }
+      ]
+    }
+  ]
+}

@@ -72,9 +72,8 @@
 
     homeAssistant = {
       hostname = "ha";
-      mac = "BC:24:11:62:37:5C";
       network = "iot";
-      ipv4 = "192.168.20.2";
+      ipv4 = "192.168.20.4";
     };
 
     slzb = {
@@ -84,10 +83,24 @@
       ipv4 = "192.168.20.3";
     };
 
-    nixServicesInternal = {
-      hostname = "nix-services-internal";
+    atx = {
+      hostname = "atx";
+      mac = "c8:7f:54:65:d1:b8";
       network = "servers";
-      ipv4 = "192.168.40.206";
+      ipv4 = "192.168.40.10";
+    };
+
+    atxInternal = {
+      hostname = "atx-internal";
+      network = "servers";
+      ipv4 = "192.168.40.11";
+    };
+
+    backup = {
+      hostname = "backup";
+      mac = "e8:6a:64:e5:e5:56";
+      network = "servers";
+      ipv4 = "192.168.40.9";
     };
 
     vlan111Service = {
@@ -95,23 +108,39 @@
       ipv4 = "192.168.40.221";
     };
 
-    servicesPublic = {
-      hostname = "public";
-      mac = "bc:24:11:89:dd:7e";
-      network = "public";
-      ipv4 = "192.168.66.2";
+    printer = {
+      hostname = "printer";
+      network = "servers";
+      ipv4 = "192.168.40.12";
     };
 
-    dev = {
-      hostname = "dev";
-      mac = "bc:24:11:55:42:a1";
+    nginxPublic = {
+      hostname = "nginx-public";
       network = "public";
-      ipv4 = "192.168.66.3";
+      ipv4 = "192.168.66.10";
     };
 
-    vlan111Device = {
+    tasks = {
+      hostname = "tasks";
+      network = "public";
+      ipv4 = "192.168.66.11";
+    };
+
+    bm = {
+      hostname = "bm";
+      network = "public";
+      ipv4 = "192.168.66.12";
+    };
+
+    modi = {
+      hostname = "modi";
+      network = "public";
+      ipv4 = "192.168.66.13";
+    };
+
+    media = {
       network = "vlan111";
-      ipv4 = "192.168.111.8";
+      ipv4 = "192.168.111.10";
     };
 
     unifiController = {

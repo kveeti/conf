@@ -10,9 +10,9 @@ usage:
 
 hosts:
   router                 defaults to 192.168.5.1
-  nix-services-internal  requires target-host
-  services-public        requires target-host
-  dev                    requires target-host
+  atx                    requires target-host
+  backup                 requires target-host
+  pc                     requires target-host
   e | mac                local nix-darwin rebuild
 
 TARGET_HOST may be used instead of the target-host argument.
@@ -73,7 +73,7 @@ case "$host" in
 	router)
 		run_nixos_rebuild router "${target_arg:-${TARGET_HOST:-192.168.5.1}}"
 		;;
-	nix-services-internal | services-public | dev)
+	atx | backup | pc)
 		target=$(require_target "$host" "$target_arg")
 		run_nixos_rebuild "$host" "$target"
 		;;

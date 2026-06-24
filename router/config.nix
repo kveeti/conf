@@ -12,7 +12,7 @@ let
   ) serviceDnsRecords;
 in
 {
-  imports = [ ./ddns.nix ];
+  imports = [ ./ddns.nix ./observability.nix ];
 
   config.nix.settings.experimental-features = [ "nix-command" "flakes" ];
   config.nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
@@ -241,13 +241,11 @@ in
           ListenPort = 49002;
         };
         wireguardPeers = [
-          # mac
           {
             PublicKey = "/rfA2gDMRx9m3fCG5g7Oo6ir2jZFvJP9WvfTFqix7Ew=";
             PresharedKeyFile = config.age.secrets.wg_mac_presharedkey.path;
             AllowedIPs = [ "10.255.255.2/32" ];
           }
-          # ip
           {
             PublicKey = "XcTHMvTMJUCP87GphFxEYEL6vc6Fuq//93BLRWUqbng=";
             PresharedKeyFile = config.age.secrets.wg_ip_presharedkey.path;
@@ -352,7 +350,7 @@ in
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66", "vlan111" } udp dport 67 accept comment "vlan dhcp"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns except vlan111"
 
-        iifname { "vlan10", "vlan20" } udp dport 5353 accept comment "avahi mdns"
+        iifname { "vlan10", "vlan20", "vlan40" } udp dport 5353 accept comment "avahi mdns"
         meta l4proto igmp accept comment "allow igmp for multicast routing"
         iifname { "vlan10", "vlan20" } udp dport { 319, 320 } accept comment "AirPlay PTP sync"
 
@@ -377,6 +375,12 @@ in
         iifname "vlan40" oifname "vlan40" accept
         iifname "vlan40" oifname "vlan20" ip daddr ${hosts.homeAssistant.ipv4} accept comment "home assistant prometheus metrics scrape"
 
+        iifname "vlan66" oifname "vlan40" ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "public guests -> backup host rest-server + observability"
+        iifname "vlan20" oifname "vlan40" ip saddr ${hosts.homeAssistant.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "home assistant -> backup host rest-server + observability"
+        iifname "vlan111" oifname "vlan40" ip saddr ${hosts.media.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8428, 9428 } accept comment "media guest -> backup host observability"
+
+        iifname "vlan40" oifname "vlan66" ip saddr ${hosts.backup.ipv4} ip daddr ${hosts.nginxPublic.ipv4} tcp dport 443 accept comment "backup host blackbox probes -> nginx-public"
+
         iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
         ip daddr 224.0.1.129 udp dport { 319, 320 } accept comment "AirPlay PTP multicast routing"
         iifname "vlan20" oifname "vlan10" udp dport { 319, 320 } accept comment "AirPlay PTP return"
@@ -384,10 +388,7 @@ in
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr "${secrets.vlan111OutboundAllowedIP}" udp dport 49800 counter accept
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr ${hosts.vlan111Service.ipv4} meta l4proto { tcp, udp } th dport 5000 counter accept
 
-        ip daddr ${hosts.servicesPublic.ipv4} ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
-        ip daddr ${hosts.servicesPublic.ipv4} ct status dnat meta l4proto { tcp, udp } th dport 7777 counter accept comment "port forwards"
-        ip daddr ${hosts.servicesPublic.ipv4} ct status dnat tcp dport 8888 counter accept comment "port forwards"
-        ip daddr ${hosts.servicesPublic.ipv4} ct status dnat udp dport 9987 counter accept comment "port forwards"
+        ip daddr ${hosts.nginxPublic.ipv4} ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
 
         # unifi controller
         # https://help.ui.com/hc/en-us/articles/218506997-Required-Ports-Reference
@@ -410,26 +411,13 @@ in
       chain prerouting {
         type nat hook prerouting priority dstnat; policy accept;
 
-        # unifi controller
         iifname "vlan5" ip daddr 192.168.5.1 udp dport { 3478, 10001, 1900 } counter dnat to ${hosts.unifiController.ipv4}
         iifname "vlan5" ip daddr 192.168.5.1 tcp dport { 8080, 8443 } counter dnat to ${hosts.unifiController.ipv4}
         iifname { "vlan5", "vlan10" } ip daddr 192.168.5.1 tcp dport 443 counter dnat to ${hosts.unifiController.ipv4}:8443
 
-        # public http traffic to services-public
-        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.servicesPublic.ipv4}
-        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to ${hosts.servicesPublic.ipv4}
+        fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.nginxPublic.ipv4}
+        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to ${hosts.nginxPublic.ipv4}
 
-        # satisfactory server to services-public
-        fib daddr type local meta l4proto { tcp, udp } th dport 7777 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.servicesPublic.ipv4}
-        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport 7777 counter dnat to ${hosts.servicesPublic.ipv4}
-        fib daddr type local meta l4proto tcp th dport 8888 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.servicesPublic.ipv4}
-        meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto tcp th dport 8888 counter dnat to ${hosts.servicesPublic.ipv4}
-
-        # teamspeak server to services-public
-        fib daddr type local udp dport 9987 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.servicesPublic.ipv4}
-        meta nfproto ipv4 iifname "${IF_WAN}" udp dport 9987 counter dnat to ${hosts.servicesPublic.ipv4}
-
-        # dns through router, except vlan40, vlan66, vlan111
         iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
       }
 
@@ -565,7 +553,6 @@ in
     };
   };
 
-  # dns
   config.services.resolved.enable = false;
   config.services.unbound = {
     enable = true;
@@ -659,48 +646,40 @@ in
 
         local-zone = [
           ''"internal.veetik.com." static''
-          ''"home.lan." static''
+          ''"media.lan." redirect''
           ''"veetik.com." typetransparent''
         ];
         local-data = [
           ''"ui.internal.veetik.com. IN A ${hosts.router.ipv4}"''
           ''"ha.internal.veetik.com. IN A ${hosts.homeAssistant.ipv4}"''
+          ''"z2m.internal.veetik.com. IN A ${hosts.homeAssistant.ipv4}"''
 
-          ''"dev.internal.veetik.com. IN A ${hosts.dev.ipv4}"''
+          ''"printer.internal.veetik.com. IN A ${hosts.printer.ipv4}"''
 
-          ''"111.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"112.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"113.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"114.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"115.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"116.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"117.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"118.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"119.home.lan IN A ${hosts.vlan111Device.ipv4}"''
-          ''"120.home.lan IN A ${hosts.vlan111Device.ipv4}"''
+          ''"grafana.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
 
-          ''"authadmin.veetik.com. IN A ${hosts.servicesPublic.ipv4}"''
+          ''"media.lan. IN A ${hosts.media.ipv4}"''
         ] ++ serviceLocalData;
       };
-      # blocklists
       rpz = [
         {
           name = "hagezi_pro";
           url = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt";
         }
       ];
+      # Unix socket, no TLS: a TCP control port needs a runtime-only server-key-file that breaks checkconf.
       remote-control = {
-        control-enable = false;
+        control-enable = true;
+        control-interface = "/run/unbound/unbound.ctl";
+        control-use-cert = false;
       };
     };
   };
 
-  # dhcp
   config.services.dnsmasq = {
     enable = true;
     resolveLocalQueries = false;
     settings = {
-      # no dns, only dhcp
       port = 0;
 
       interface = [ "vlan5" "vlan10" "vlan20" "vlan30" "vlan40" "vlan66" "vlan111" ];
@@ -736,10 +715,9 @@ in
         "tag:vlan111, option:dns-server, 1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112"
       ];
       dhcp-host = [
-        "${hosts.homeAssistant.mac}, ${hosts.homeAssistant.hostname}, ${hosts.homeAssistant.ipv4}"
         "${hosts.slzb.mac}, ${hosts.slzb.hostname}, ${hosts.slzb.ipv4}"
-        "${hosts.servicesPublic.mac}, ${hosts.servicesPublic.hostname}, ${hosts.servicesPublic.ipv4}"
-        "${hosts.dev.mac}, ${hosts.dev.hostname}, ${hosts.dev.ipv4}"
+        "${hosts.atx.mac}, ${hosts.atx.hostname}, ${hosts.atx.ipv4}"
+        "${hosts.backup.mac}, ${hosts.backup.hostname}, ${hosts.backup.ipv4}"
       ];
     };
   };
@@ -758,7 +736,11 @@ in
     allowInterfaces = [
       "vlan10"
       "vlan20"
+      "vlan40"
     ];
+    extraConfig = ''
+      reflect-filters=_airplay._tcp.local,_raop._tcp.local,_ipp._tcp.local,_ipps._tcp.local,_printer._tcp.local
+    '';
     ipv4 = true;
     ipv6 = false;
     publish = {
@@ -768,7 +750,6 @@ in
     };
   };
 
-  # unifi controller
   config.systemd.tmpfiles.rules = [
     "d /var/lib/unifi-container 0755 unifi unifi -"
   ];
@@ -797,12 +778,11 @@ in
         enable = true;
         openFirewall = true;
         unifiPackage = hostPkgs.unifi-bleeding-edge;
-        initialJavaHeapSize = 512;  # = -Xms512m
-        maximumJavaHeapSize = 1024; # = -Xmx1024m
+        initialJavaHeapSize = 512;
+        maximumJavaHeapSize = 1024;
       };
 
       nixpkgs.config.permittedInsecurePackages = [
-        # Acknowledge MongoDB CVE-2025-11979 (https://nvd.nist.gov/vuln/detail/CVE-2025-11979)
         "mongodb-7.0.25"
       ];
 
