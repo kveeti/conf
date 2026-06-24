@@ -109,9 +109,6 @@
                 })
               ];
 
-              # ==========================================
-              # Options & Globals
-              # ==========================================
               globals = {
                 mapleader = " ";
                 maplocalleader = " ";
@@ -151,7 +148,6 @@
                 completeopt = "menuone,noselect,fuzzy,nosort";
               };
 
-              # Safely append to iskeyword
               extraConfigLua = ''
                 vim.opt.iskeyword:append("-")
                 require('dark_notify').run({
@@ -169,17 +165,11 @@
                 })
               '';
 
-              # ==========================================
-              # Colorscheme
-              # ==========================================
               colorschemes.onedark = {
                 enable = true;
                 settings.style = "dark";
               };
 
-              # ==========================================
-              # Autocmds
-              # ==========================================
               autoGroups = {
                 UserConfig = { };
               };
@@ -199,9 +189,6 @@
                 }
               ];
 
-              # ==========================================
-              # User Commands
-              # ==========================================
               userCommands = {
                 FormatDisable = {
                   command = "let g:disable_autoformat = v:true";
@@ -213,27 +200,21 @@
                 };
               };
 
-              # ==========================================
-              # Keymaps
-              # ==========================================
               keymaps = [
                 { mode = [ "n" "v" ]; key = "<Space>"; action = "<Nop>"; options = { silent = true; }; }
                 { mode = "n"; key = "<leader>w"; action = "<cmd>w<CR>"; options = { silent = true; noremap = true; }; }
                 
-                # Overridden by oil.nvim down below, but kept mapping for clarity
                 { mode = "n"; key = "<leader>x"; action = "<cmd>Oil<CR>"; options = { silent = true; noremap = true; }; }
 
                 { mode = "n"; key = "k"; action = "v:count == 0 ? 'gk' : 'k'"; options = { expr = true; silent = true; }; }
                 { mode = "n"; key = "j"; action = "v:count == 0 ? 'gj' : 'j'"; options = { expr = true; silent = true; }; }
                 { mode = "i"; key = "<C-c>"; action = "<Nop>"; }
 
-                # Window Navigation
                 { mode = "n"; key = "<C-h>"; action = "<C-w>h"; }
                 { mode = "n"; key = "<C-j>"; action = "<C-w>j"; }
                 { mode = "n"; key = "<C-k>"; action = "<C-w>k"; }
                 { mode = "n"; key = "<C-l>"; action = "<C-w>l"; }
 
-                # Centered Navigation
                 { mode = "n"; key = "<C-u>"; action = "<C-u>zz"; }
                 { mode = "n"; key = "<C-d>"; action = "<C-d>zz"; }
                 { mode = "n"; key = "{"; action = "{zz"; }
@@ -248,38 +229,30 @@
                 { mode = "n"; key = "*"; action = "*zz"; }
                 { mode = "n"; key = "#"; action = "#zz"; }
 
-                # Line Moving
                 { mode = "n"; key = "<A-j>"; action = "<cmd>m .+1<CR>=="; options = { desc = "Move line down"; }; }
                 { mode = "n"; key = "<A-k>"; action = "<cmd>m .-2<CR>=="; options = { desc = "Move line up"; }; }
                 { mode = "v"; key = "<A-j>"; action = ":m '>+1<CR>gv=gv"; options = { desc = "Move selection down"; }; }
                 { mode = "v"; key = "<A-k>"; action = ":m '<-2<CR>gv=gv"; options = { desc = "Move selection up"; }; }
 
-                # Clipboard & Deletion Operations
                 { mode = "x"; key = "<leader>p"; action = ''"_dP''; }
                 { mode = [ "n" "v" ]; key = "<leader>d"; action = ''"_d''; }
                 { mode = "v"; key = "<leader>y"; action = ''"+y''; options = { silent = true; noremap = true; }; }
 
-                # Highlight / Search
                 { mode = "n"; key = "<leader>i"; action = ":let @/='\\<'.expand('<cword>').'\\>'<CR>:set hlsearch<CR>"; options = { silent = true; noremap = true; }; }
                 { mode = "n"; key = "xx"; action = "<cmd>nohlsearch<CR>"; options = { silent = true; noremap = true; }; }
 
-                # Fugitive Keymaps
                 { mode = "n"; key = "<leader>ås"; action = "<cmd>Git<CR>"; options = { desc = "Git status"; }; }
                 { mode = "n"; key = "<leader>åb"; action = "<cmd>Git blame<CR>"; options = { desc = "Git blame"; }; }
                 { mode = "n"; key = "<leader>åd"; action = "<cmd>Gdiffsplit<CR>"; options = { desc = "Git diff"; }; }
                 { mode = "n"; key = "<leader>ål"; action = "<cmd>Git log<CR>"; options = { desc = "Git log"; }; }
               ];
 
-              # ==========================================
-              # Plugins
-              # ==========================================
               plugins = {
                 nvim-autopairs.enable = true;
                 ts-autotag.enable = true;
                 sleuth.enable = true;
                 fugitive.enable = true;
 
-                # Telescope
                 telescope = {
                   enable = true;
                   settings = {
@@ -300,7 +273,6 @@
                   };
                 };
 
-                # Treesitter
                 treesitter = {
                   enable = true;
                   settings = {
@@ -311,7 +283,6 @@
                   };
                 };
 
-                # Oil
                 oil = {
                   enable = true;
                   settings = {
@@ -332,7 +303,6 @@
                   };
                 };
 
-                # Conform (Formatting)
                 conform-nvim = {
                   enable = true;
                   settings = {
@@ -358,7 +328,6 @@
                   };
                 };
 
-                # Blink CMP
                 blink-cmp = {
                   enable = true;
                   settings = {
@@ -376,7 +345,6 @@
                       menu = {
                         auto_show = true;
                         draw = {
-                          # Use __raw to safely pass Lua's mixed table structure
                           columns = {
                             __raw = ''{ { "label", "label_description", gap = 1 } }'';
                           };
@@ -390,7 +358,6 @@
                   };
                 };
 
-                # LSP Configuration
                 lsp = {
                   enable = true;
                   keymaps = {
@@ -426,7 +393,6 @@
                         };
                         rustc.source = "discover";
                       };
-                      # Allows you to specify root markers dynamically
                       extraOptions = {
                         root_markers = [ "Config.toml" ".git" ];
                       };
@@ -434,8 +400,6 @@
                     ts_ls = {
                       enable = true;
                       
-                      # Optional: Disable the LSP's built-in formatting so it doesn't 
-                      # conflict with Prettier (which you configured in conform.nvim)
                       onAttach.function = ''
                         client.server_capabilities.documentFormattingProvider = false
                         client.server_capabilities.documentRangeFormattingProvider = false
