@@ -270,9 +270,8 @@ in {
                   type = "grid";
                   cards = [
                     { type = "heading"; heading_style = "title"; heading = "Main"; }
-                    { type = "tile"; entity = "light.living_room_light_desk"; name = "Desk"; vertical = false; features_position = "bottom"; }
+                    { type = "tile"; entity = "light.living_room_lights"; name = "Living room"; vertical = false; features_position = "bottom"; }
                     { type = "tile"; entity = "light.bedroom_light_left"; name = "Bedtable"; vertical = false; icon_tap_action.action = "toggle"; features_position = "bottom"; }
-                    { type = "tile"; entity = "light.living_room_light_behind_tv"; name = "TV"; show_entity_picture = false; hide_state = false; vertical = false; features_position = "bottom"; }
                     {
                       type = "tile";
                       entity = "scene.lights_off";
@@ -414,6 +413,7 @@ in {
                 entities = {
                   "light.living_room_light_desk"      = { state = "on"; brightness = 255; color_temp_kelvin = 3000; };
                   "light.living_room_light_behind_tv" = { state = "on"; brightness = 255; color_temp_kelvin = 3000; };
+                  "light.living_room_light_hole"      = { state = "on"; brightness = 255; color_temp_kelvin = 3000; };
                 };
               }
               {
@@ -422,6 +422,7 @@ in {
                 entities = {
                   "light.living_room_light_desk"      = { state = "on"; brightness = 128; color_temp_kelvin = 2700; };
                   "light.living_room_light_behind_tv" = { state = "on"; brightness = 128; color_temp_kelvin = 2700; };
+                  "light.living_room_light_hole"      = { state = "on"; brightness = 128; color_temp_kelvin = 2700; };
                 };
               }
               {
@@ -430,6 +431,7 @@ in {
                 entities = {
                   "light.living_room_light_desk"      = { state = "on"; brightness = 38; color_temp_kelvin = 2200; };
                   "light.living_room_light_behind_tv" = { state = "on"; brightness = 38; color_temp_kelvin = 2200; };
+                  "light.living_room_light_hole"      = { state = "on"; brightness = 38; color_temp_kelvin = 2200; };
                 };
               }
               {
@@ -449,13 +451,13 @@ in {
                 ];
                 action = [{
                   choose = [
-                    { conditions = "{{ trigger.payload_json.action == 'on_press' }}";
-                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_1"; }]; }
                     { conditions = "{{ trigger.payload_json.action == 'up_press' }}";
-                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_2"; }]; }
+                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_1"; }]; }
                     { conditions = "{{ trigger.payload_json.action == 'down_press' }}";
-                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_3"; }]; }
+                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_2"; }]; }
                     { conditions = "{{ trigger.payload_json.action == 'off_press' }}";
+                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_3"; }]; }
+                    { conditions = "{{ trigger.payload_json.action == 'on_press' }}";
                       sequence = [{ service = "light.turn_off"; target.entity_id = "light.all_lights"; }]; }
                   ];
                 }];
@@ -469,9 +471,9 @@ in {
                   { platform = "state"; entity_id = "binary_sensor.bathroom_motion_occupancy"; to = "off"; id = "off"; }
                 ];
                 variables = {
-                  lr_on   = "{{ is_state('light.living_room_light_desk','on') or is_state('light.living_room_light_behind_tv','on') }}";
-                  lr_bri  = "{{ [state_attr('light.living_room_light_desk','brightness') or 0, state_attr('light.living_room_light_behind_tv','brightness') or 0] | max }}";
-                  lr_temp = "{{ state_attr('light.living_room_light_desk','color_temp_kelvin') or state_attr('light.living_room_light_behind_tv','color_temp_kelvin') or 3000 }}";
+                  lr_on   = "{{ is_state('light.living_room_light_desk','on') or is_state('light.living_room_light_behind_tv','on') or is_state('light.living_room_light_hole','on') }}";
+                  lr_bri  = "{{ [state_attr('light.living_room_light_desk','brightness') or 0, state_attr('light.living_room_light_behind_tv','brightness') or 0, state_attr('light.living_room_light_hole','brightness') or 0] | max }}";
+                  lr_temp = "{{ state_attr('light.living_room_light_desk','color_temp_kelvin') or state_attr('light.living_room_light_behind_tv','color_temp_kelvin') or state_attr('light.living_room_light_hole','color_temp_kelvin') or 3000 }}";
                   night   = "{{ now().hour >= 23 or now().hour < 6 }}";
                 };
                 action = [{
@@ -479,16 +481,16 @@ in {
                     { conditions = "{{ trigger.id == 'off' }}";
                       sequence = [
                         { delay = "{{ '00:02:00' if night else '00:05:00' }}"; }
-                        { service = "light.turn_off"; target.entity_id = "light.bathroom_lights"; data.transition = 0.3; }
+                        { service = "light.turn_off"; target.entity_id = "light.bathroom_lights"; }
                       ]; }
                     { conditions = "{{ lr_on and lr_bri > 191 }}";
-                      sequence = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness_pct = 100; color_temp_kelvin = 3000; transition = 0.3; }; }]; }
+                      sequence = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness_pct = 100; color_temp_kelvin = 3000; }; }]; }
                     { conditions = "{{ lr_on }}";
-                      sequence = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness = "{{ lr_bri }}"; color_temp_kelvin = "{{ lr_temp }}"; transition = 0.3; }; }]; }
+                      sequence = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness = "{{ lr_bri }}"; color_temp_kelvin = "{{ lr_temp }}"; }; }]; }
                     { conditions = "{{ night }}";
-                      sequence = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness_pct = 8; color_temp_kelvin = 2200; transition = 0.3; }; }]; }
+                      sequence = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness_pct = 8; color_temp_kelvin = 2200; }; }]; }
                   ];
-                  default = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness_pct = 100; color_temp_kelvin = 3000; transition = 0.3; }; }];
+                  default = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness_pct = 100; color_temp_kelvin = 3000; }; }];
                 }];
               }
 
@@ -503,11 +505,11 @@ in {
                 condition = [{ condition = "template"; value_template = "{{ states('input_select.wake_up_lights') == trigger.id }}"; }];
                 action = [
                   { service = "light.turn_on";
-                    target.entity_id = [ "light.living_room_light_desk" "light.living_room_light_behind_tv" "light.bedroom_light_left" ];
+                    target.entity_id = [ "light.living_room_light_desk" "light.living_room_light_behind_tv" "light.living_room_light_hole" "light.bedroom_light_left" ];
                     data = { brightness = 1; color_temp_kelvin = 2200; }; }
                   { delay = "00:00:02"; }
                   { service = "light.turn_on";
-                    target.entity_id = [ "light.living_room_light_desk" "light.living_room_light_behind_tv" "light.bedroom_light_left" ];
+                    target.entity_id = [ "light.living_room_light_desk" "light.living_room_light_behind_tv" "light.living_room_light_hole" "light.bedroom_light_left" ];
                     data = { brightness = 255; color_temp_kelvin = 4000; transition = 1800; }; }
                   { service = "input_select.select_option";
                     target.entity_id = "input_select.wake_up_lights";
