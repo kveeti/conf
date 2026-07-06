@@ -307,6 +307,7 @@
                   enable = true;
                   settings = {
                     formatters_by_ft = {
+                      go = [ "goimports" "gofumpt" ];
                       lua = [ "stylua" ];
                       javascript = [ "prettier" ];
                       typescript = [ "prettier" ];
@@ -377,6 +378,27 @@
                     };
                   };
                   servers = {
+                    gopls = {
+                      enable = true;
+                      settings.gopls = {
+                        gofumpt = true;
+                        usePlaceholders = true;
+                        analyses = {
+                          unusedparams = true;
+                          nilness = true;
+                          unusedwrite = true;
+                        };
+                        staticcheck = true;
+                        hints = {
+                          assignVariableTypes = true;
+                          compositeLiteralFields = true;
+                          constantValues = true;
+                          functionTypeParameters = true;
+                          parameterNames = true;
+                          rangeVariableTypes = true;
+                        };
+                      };
+                    };
                     rust_analyzer = {
                       enable = true;
                       installCargo = true;
@@ -404,6 +426,11 @@
                         client.server_capabilities.documentFormattingProvider = false
                         client.server_capabilities.documentRangeFormattingProvider = false
                       '';
+                    };
+                    cssls.enable = true;
+                    emmet_ls = {
+                      enable = true;
+                      filetypes = [ "html" "css" "scss" "sass" "less" "javascriptreact" "typescriptreact" ];
                     };
                   };
                 };
