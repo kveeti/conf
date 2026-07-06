@@ -44,9 +44,30 @@ in {
           };
         } // cfg.extraSources;
 
+        # map journald's numeric syslog PRIORITY (0-7) into a `level` field so
+        # VictoriaLogs/Grafana recognize the log level instead of "unknown"
+        transforms.journald_level = {
+          type = "remap";
+          inputs = [ "journald" ];
+          source = ''
+            priority = to_int(.PRIORITY) ?? 6
+            .level = if priority <= 2 {
+              "critical"
+            } else if priority == 3 {
+              "error"
+            } else if priority == 4 {
+              "warning"
+            } else if priority == 5 || priority == 6 {
+              "info"
+            } else {
+              "debug"
+            }
+          '';
+        };
+
         sinks.vlogs = {
           type = "elasticsearch";
-          inputs = [ "journald" ] ++ cfg.extraInputs;
+          inputs = [ "journald_level" ] ++ cfg.extraInputs;
           endpoints = [ "${cfg.url}/insert/elasticsearch/" ];
           mode = "bulk";
           api_version = "v8";
