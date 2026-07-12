@@ -172,6 +172,7 @@ in
           "vlan40"
           "vlan66"
           "vlan111"
+          "vlan999"
         ];
       };
 
@@ -221,6 +222,11 @@ in
       "40-vlan111" = {
         matchConfig.Name = "vlan111";
         address = ["192.168.111.1/24"];
+        networkConfig.IPv4Forwarding = true;
+      };
+      "40-vlan999" = {
+        matchConfig.Name = "vlan999";
+        address = ["192.168.99.1/24"];
         networkConfig.IPv4Forwarding = true;
       };
       "50-container-interfaces" = {
@@ -303,6 +309,13 @@ in
         };
         vlanConfig.Id = 111;
       };
+      "40-vlan999-dev" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan999";
+        };
+        vlanConfig.Id = 999;
+      };
     };
   };
 
@@ -337,7 +350,7 @@ in
         iifname "lo" accept
         meta l4proto ipv6-icmp accept
 
-        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.66.1, 192.168.111.1, 10.255.255.1 } counter drop
+        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.66.1, 192.168.111.1, 192.168.99.1, 10.255.255.1 } counter drop
         ip6 saddr { ::1 } counter drop
 
         iifname "wg0" accept comment "connected wireguard clients"
@@ -348,7 +361,7 @@ in
 
         iifname "vlan10" tcp dport 22 accept comment "vlan10 ssh"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66", "vlan111" } udp dport 67 accept comment "vlan dhcp"
-        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns except vlan111"
+        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan999" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns except vlan111"
 
         iifname { "vlan10", "vlan20", "vlan40" } udp dport 5353 accept comment "avahi mdns"
         meta l4proto igmp accept comment "allow igmp for multicast routing"
@@ -365,7 +378,7 @@ in
         ct state vmap { invalid : drop, established : accept, related : accept }
 
         iifname { "wg0", "vlan10" } accept
-        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
+        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66", "vlan999" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
 
         tcp flags syn tcp option maxseg size set rt mtu
         iifname { "vlan10" } oifname "${SIX_RD}" accept
@@ -418,7 +431,7 @@ in
         fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.nginxPublic.ipv4}
         meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to ${hosts.nginxPublic.ipv4}
 
-        iifname { "vlan10", "vlan20", "vlan30" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
+        iifname { "vlan10", "vlan20", "vlan30", "vlan999" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
       }
 
       chain postrouting {
@@ -539,6 +552,7 @@ in
     phyint vlan40 disabled
     phyint vlan66 disabled
     phyint vlan111 disabled
+    phyint vlan999 disabled
     phyint ve-unifi disabled
     phyint lo disabled
   '';
@@ -591,6 +605,7 @@ in
           "192.168.20.1"
           "192.168.30.1"
           "192.168.40.1"
+          "192.168.99.1"
           "::0"
         ];
         access-control = [
@@ -601,6 +616,7 @@ in
           "192.168.20.0/24 allow"
           "192.168.30.0/24 allow"
           "192.168.40.0/24 allow"
+          "192.168.99.0/24 allow"
           "::1 allow"
           "fe80::/10 allow"
           "fd00::/8 allow"
@@ -657,6 +673,8 @@ in
           ''"printer.internal.veetik.com. IN A ${hosts.printer.ipv4}"''
 
           ''"grafana.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
+
+          ''"dev.internal.veetik.com. IN A ${hosts.dev.ipv4}"''
 
           ''"media.lan. IN A ${hosts.media.ipv4}"''
         ] ++ serviceLocalData;

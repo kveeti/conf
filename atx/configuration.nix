@@ -13,6 +13,7 @@ let
     printer       = hosts.printer.ipv4;
     media         = hosts.media.ipv4;
     homeassistant = hosts.homeAssistant.ipv4;
+    dev           = hosts.dev.ipv4;
   };
   vlanGateway = inventory.networks.servers.router4;
   publicGateway = inventory.networks.public.router4;
@@ -34,6 +35,7 @@ in
     ./guests/media.nix
     ./guests/homeassistant.nix
     ./guests/printer.nix
+    ./guests/dev.nix
   ];
 
   homelab.dns.defaultTargetHost = "atxInternal";
@@ -111,6 +113,7 @@ in
       "10-br-vlan66".netdevConfig  = { Name = "br-vlan66";  Kind = "bridge"; };
       "10-br-vlan20".netdevConfig  = { Name = "br-vlan20";  Kind = "bridge"; };
       "10-br-vlan111".netdevConfig = { Name = "br-vlan111"; Kind = "bridge"; };
+      "10-br-vlan999".netdevConfig = { Name = "br-vlan999"; Kind = "bridge"; };
 
       "20-vlan66" = {
         netdevConfig = { Name = "vlan66"; Kind = "vlan"; };
@@ -124,6 +127,10 @@ in
         netdevConfig = { Name = "vlan111"; Kind = "vlan"; };
         vlanConfig.Id = 111;
       };
+      "20-vlan999" = {
+        netdevConfig = { Name = "vlan999"; Kind = "vlan"; };
+        vlanConfig.Id = 999;
+      };
     };
 
     networks = {
@@ -131,7 +138,7 @@ in
         matchConfig.Name = "enxc87f5465d1b8";
         networkConfig = {
           Bridge = "br-vlan40";
-          VLAN = [ "vlan66" "vlan20" "vlan111" ];
+          VLAN = [ "vlan66" "vlan20" "vlan111" "vlan999" ];
         };
       };
 
@@ -143,6 +150,9 @@ in
 
       "40-vlan111".matchConfig.Name = "vlan111";
       "40-vlan111".networkConfig.Bridge = "br-vlan111";
+
+      "40-vlan999".matchConfig.Name  = "vlan999";
+      "40-vlan999".networkConfig.Bridge  = "br-vlan999";
 
       "50-br-vlan40" = {
         matchConfig.Name = "br-vlan40";
@@ -161,6 +171,10 @@ in
       };
       "50-br-vlan111" = {
         matchConfig.Name = "br-vlan111";
+        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
+      };
+      "50-br-vlan999" = {
+        matchConfig.Name = "br-vlan999";
         networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
       };
 
@@ -195,6 +209,10 @@ in
       "60-vm-ha" = {
         matchConfig.Name = "vm-ha";
         networkConfig.Bridge = "br-vlan20";
+      };
+      "60-vm-dev" = {
+        matchConfig.Name = "vm-dev";
+        networkConfig.Bridge = "br-vlan999";
       };
     };
   };
