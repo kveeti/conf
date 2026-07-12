@@ -1,4 +1,4 @@
-{ config, pkgs, lib, keys, microvm, pkgs-unstable, rss, food, weather, ... }:
+{ config, pkgs, lib, keys, microvm, pkgs-unstable, rss, food, weather, mac, nixvim, ... }:
 
 let
   inventory = import ../router/inventory.nix;
@@ -287,7 +287,7 @@ in
   ];
 
   _module.args = {
-    inherit keys guestIps hostMgmtIp publicGateway vlanGateway pkgs-unstable rss food weather;
+    inherit keys guestIps hostMgmtIp publicGateway vlanGateway pkgs-unstable rss food weather mac nixvim;
   };
 
   system.stateVersion = "25.11";

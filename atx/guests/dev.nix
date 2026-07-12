@@ -16,10 +16,15 @@ in {
 
     vm = {
       specialArgs = {
-        inherit (config._module.args) keys guestIps;
+        inherit (config._module.args) keys guestIps mac nixvim;
       };
-      config = { config, pkgs, lib, keys, guestIps, ... }: {
-        imports = [ ./_common.nix ];
+      config = { config, pkgs, lib, keys, guestIps, mac, nixvim, ... }: {
+        imports = [
+          ./_common.nix
+          nixvim.nixosModules.nixvim
+          # shared neovim config, sourced from the mac flake so both stay in sync
+          "${mac}/nvim.nix"
+        ];
 
         microvm.mem  = lib.mkForce 8192;
         microvm.vcpu = lib.mkForce 6;
@@ -59,8 +64,22 @@ in {
         environment.systemPackages = with pkgs; [
           git gh gnumake gcc
           nodejs_22 go python3 cargo rustc
-          ripgrep fd fzf jq curl tmux neovim direnv
+          ripgrep fd fzf jq curl tmux direnv
+          (pkgs.callPackage ../../mac/pi-coding-agent.nix { })
         ];
+
+        programs.mosh = {
+          enable = true;
+          openFirewall = true;
+        };
+
+        # shared tmux config (prefix, vi copy-mode, OSC 52 clipboard) from the mac flake
+        environment.etc."tmux.conf".source = "${mac}/tmux.conf";
+
+        # zsh for parity with the mac shell; full aliases/functions stay mac-side
+        programs.zsh.enable = true;
+        users.defaultUserShell = pkgs.zsh;
+        environment.shellAliases.e = "nvim";
       };
     };
   };

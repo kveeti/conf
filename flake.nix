@@ -21,6 +21,9 @@
     microvm.url = "github:astro/microvm.nix";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixvim.url = "github:nix-community/nixvim/nixos-25.11";
+    nixvim.inputs.nixpkgs.follows = "nixpkgs";
+
     secrets-router.url = "git+file:///Users/veeti/code/personal/secrets?rev=a2758487512d8456546da3c3fe7a7cbe675c56a3";
     secrets-atx.url = "git+file:///Users/veeti/code/personal/secrets?rev=a87d655a036669822fc23eee2736f1ab35c00563";
     secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets?rev=e4b32ebb26e9ea5ac19173c7e5ae6a6b70bf2aec";
@@ -50,6 +53,7 @@
       food,
       mac,
       microvm,
+      nixvim,
       home-manager,
       lanzaboote,
     }:
@@ -77,7 +81,7 @@
           secrets-atx.nixosModules.atx
         ];
         specialArgs = {
-          inherit microvm rss food weather;
+          inherit microvm rss food weather mac nixvim;
           keys = (import secrets-atx).keys;
           pkgs-unstable = import nixpkgs-unstable { system = linuxSystem; };
           mediaUser = import ./atx/media-ids.nix;
