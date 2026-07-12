@@ -30,6 +30,13 @@
       router4 = "192.168.30.1";
     };
 
+    dev = {
+      interface = "vlan999";
+      vlan = 999;
+      cidr4 = "192.168.99.0/24";
+      router4 = "192.168.99.1";
+    };
+
     servers = {
       interface = "vlan40";
       vlan = 40;
@@ -94,6 +101,12 @@
       hostname = "atx-internal";
       network = "servers";
       ipv4 = "192.168.40.11";
+    };
+
+    dev = {
+      hostname = "dev";
+      network = "dev";
+      ipv4 = "192.168.99.10";
     };
 
     backup = {
