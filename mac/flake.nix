@@ -1,8 +1,8 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
 
-    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     agenix = {
@@ -12,12 +12,12 @@
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixvim = {
-      url = "github:nix-community/nixvim/nixos-25.11";
+      url = "github:nix-community/nixvim/nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -104,6 +104,12 @@
 
         programs.zsh.enable = true;
         programs.zsh.interactiveShellInit = ''
+          mosh() {
+            local theme=light
+            defaults read -g AppleInterfaceStyle >/dev/null 2>&1 && theme=dark
+            command mosh --server="env NVIM_THEME=$theme mosh-server" "$@"
+          }
+
           enc() {
             local file="$1"
             if [[ -z "$file" ]]; then
