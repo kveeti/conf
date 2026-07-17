@@ -61,8 +61,9 @@
                   vim.g.clipboard = {
                     name = 'OSC 52',
                     copy = {
+                      -- Neovim maps the `+` register to OSC 52's `c` selector.
                       ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
-                      ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
+                      ['*'] = require('vim.ui.clipboard.osc52').copy('+'),
                     },
                     paste = {
                       ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
@@ -71,19 +72,23 @@
                   }
                 end
 
-                -- dark-notify follows the macOS system appearance; it has no effect
-                -- (and the helper binary is absent) on the headless Linux dev guest.
                 if vim.fn.has('mac') == 1 then
                   require('dark_notify').run({
                     onchange = function(mode)
-                      if mode == "light" then
-                        require('onedark').setup({ style = 'light' })
-                      else
-                        require('onedark').setup({ style = 'dark' })
-                      end
+                      require('onedark').setup({ style = mode })
                       require('onedark').load()
                     end
                   })
+                else
+                  local mode = vim.env.NVIM_THEME
+                  if vim.env.TMUX then
+                    mode = vim.fn.system({ 'tmux', 'show-environment', '-g', 'NVIM_THEME' }):match('NVIM_THEME=(%a+)') or mode
+                  end
+                  if mode == 'light' or mode == 'dark' then
+                    require('onedark').setup({ style = mode })
+                    vim.o.background = mode
+                    require('onedark').load()
+                  end
                 end
               '';
 
@@ -232,10 +237,6 @@
                     formatters_by_ft = {
                       go = [ "goimports" "gofumpt" ];
                       lua = [ "stylua" ];
-                      javascript = [ "prettier" ];
-                      typescript = [ "prettier" ];
-                      javascriptreact = [ "prettier" ];
-                      typescriptreact = [ "prettier" ];
                       json = [ "prettier" ];
                       jsonc = [ "prettier" ];
                       html = [ "prettier" ];
@@ -350,11 +351,19 @@
                         client.server_capabilities.documentRangeFormattingProvider = false
                       '';
                     };
-                    cssls.enable = true;
+                    cssls = {
+                      enable = true;
+                      onAttach.function = ''
+                        client.server_capabilities.documentFormattingProvider = false
+                        client.server_capabilities.documentRangeFormattingProvider = false
+                      '';
+                    };
                     emmet_ls = {
                       enable = true;
                       filetypes = [ "html" "css" "scss" "sass" "less" "javascriptreact" "typescriptreact" ];
                     };
+                    oxfmt.enable = true;
+                    oxlint.enable = true;
                   };
                 };
               };
