@@ -26,8 +26,16 @@ in {
     systemd.services = lib.listToAttrs (map (name:
       lib.nameValuePair (copySvc name) {
         description = "Copy renewed ${name} cert into ${vmName} guest state";
-        serviceConfig.Type = "oneshot";
-        script = copyCert name;
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
+        script = ''
+          if [ -f ${acmeDir name}/fullchain.pem ]; then
+          ${copyCert name}
+          fi
+        '';
       }) certNames);
 
     security.acme.certs = lib.genAttrs certNames (name: {

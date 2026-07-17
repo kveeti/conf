@@ -35,7 +35,7 @@ in
     ./guests/media.nix
     ./guests/homeassistant.nix
     ./guests/printer.nix
-    ./guests/dev.nix
+    ./guests/dev
   ];
 
   homelab.dns.defaultTargetHost = "atxInternal";
@@ -272,6 +272,10 @@ in
     certs."internal.veetik.com" = {
       domain = "internal.veetik.com";
       extraDomainNames = [ "*.internal.veetik.com" ];
+    };
+    certs."dev-internal.veetik.com" = {
+      domain = "dev-internal.veetik.com";
+      extraDomainNames = [ "*.dev-internal.veetik.com" ];
     };
   };
   # hand the HP LaserJet USB node to group kvm so the microvm qemu user can claim it (printer guest)
