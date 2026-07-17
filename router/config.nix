@@ -662,6 +662,7 @@ in
 
         local-zone = [
           ''"internal.veetik.com." static''
+          ''"dev-internal.veetik.com." redirect''
           ''"media.lan." redirect''
           ''"veetik.com." typetransparent''
         ];
@@ -675,6 +676,7 @@ in
           ''"grafana.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
 
           ''"dev.internal.veetik.com. IN A ${hosts.dev.ipv4}"''
+          ''"dev-internal.veetik.com. IN A ${hosts.dev.ipv4}"''
 
           ''"media.lan. IN A ${hosts.media.ipv4}"''
         ] ++ serviceLocalData;
