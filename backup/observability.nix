@@ -6,6 +6,7 @@ let
   ssoHost = inventory.hosts.atxInternal.ipv4;
   internalIp = inventory.hosts.atxInternal.ipv4;
   nginxPublicIp = inventory.hosts.nginxPublic.ipv4;
+  telemetryHtpasswd = "/var/lib/nginx/telemetry.htpasswd";
 
   publicProbes = [
     { host = "tasks-api.veetik.com"; path = "/api/v1/auth/me"; }
@@ -157,20 +158,55 @@ in {
     };
   };
 
-  # TLS front for VictoriaMetrics/Logs so guests push over https://backup.internal.veetik.com
+  # TLS write-only fronts for VictoriaMetrics/Logs. Grafana talks directly to
+  # the loopback listeners, so remote clients never need query/admin API access.
+  system.activationScripts.telemetry-htpasswd = {
+    deps = [ "agenix" "users" ];
+    text = ''
+      install -d -m 0750 -o nginx -g nginx /var/lib/nginx
+      install -m 0600 -o nginx -g nginx /dev/null ${telemetryHtpasswd}
+      printf '%s' "$(cat ${config.age.secrets.telemetry-pass.path})" \
+        | ${pkgs.apacheHttpd}/bin/htpasswd -iB ${telemetryHtpasswd} telemetry
+    '';
+  };
+
   services.nginx.virtualHosts."backup-metrics" = {
     serverName = "backup.internal.veetik.com";
     onlySSL = true;
     useACMEHost = "internal.veetik.com";
     listen = [{ addr = "0.0.0.0"; port = 8428; ssl = true; }];
-    locations."/".proxyPass = "http://127.0.0.1:18428";
+    locations = {
+      "= /api/v1/write" = {
+        proxyPass = "http://127.0.0.1:18428";
+        basicAuthFile = telemetryHtpasswd;
+        extraConfig = ''
+          limit_except POST { deny all; }
+          client_max_body_size 16m;
+          proxy_request_buffering off;
+          proxy_set_header Authorization "";
+        '';
+      };
+      "/".return = "404";
+    };
   };
   services.nginx.virtualHosts."backup-logs" = {
     serverName = "backup.internal.veetik.com";
     onlySSL = true;
     useACMEHost = "internal.veetik.com";
     listen = [{ addr = "0.0.0.0"; port = 9428; ssl = true; }];
-    locations."/".proxyPass = "http://127.0.0.1:19428";
+    locations = {
+      "= /insert/elasticsearch/_bulk" = {
+        proxyPass = "http://127.0.0.1:19428";
+        basicAuthFile = telemetryHtpasswd;
+        extraConfig = ''
+          limit_except POST { deny all; }
+          client_max_body_size 16m;
+          proxy_request_buffering off;
+          proxy_set_header Authorization "";
+        '';
+      };
+      "/".return = "404";
+    };
   };
 
   networking.firewall.allowedTCPPorts = [ 443 8428 9428 ];

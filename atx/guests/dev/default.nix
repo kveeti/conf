@@ -7,6 +7,7 @@ in {
   homelab.microvms.${vmName} = {
     inherit stateRoot;
     certDomains = [ "dev-internal.veetik.com" ];
+    secrets = [{ name = "telemetry-pass"; mode = "0400"; }];
 
     shares = {
       ssh-host = {
@@ -51,6 +52,13 @@ in {
               mountPoint = "/nix/.rw-store";
               size = 40960; # 40 GiB
             }
+            {
+              # Nix's SQLite database, profiles and daemon state must not live
+              # on the guest's temporary root filesystem.
+              image = "${stateRoot}/nix-state.img";
+              mountPoint = "/nix/var/nix";
+              size = 4096; # 4 GiB
+            }
           ];
           writableStoreOverlay = "/nix/.rw-store";
         };
@@ -75,17 +83,13 @@ in {
         environment.systemPackages = with pkgs; [
           git gh gnumake gcc
           nodejs_22 go python3 cargo rustc
-          ripgrep fd fzf jq curl tmux direnv
+          ripgrep fd fzf jq curl direnv
           ghostty.terminfo
 
           claude-code
           codex
           (pkgs.callPackage ../../../mac/pi-coding-agent.nix { })
 
-          (pkgs.callPackage ./dev-url.nix { })
-        ];
-        nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-          "claude-code"
         ];
 
         systemd.services.dev-url-init = {
@@ -122,8 +126,16 @@ in {
             locations."/" = {
               proxyPass = "http://127.0.0.1:$dev_url_port";
               proxyWebsockets = true;
+              recommendedProxySettings = false;
               extraConfig = ''
                 if ($dev_url_port = "") { return 404; }
+
+                proxy_set_header Host 127.0.0.1:$dev_url_port;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Host $host;
+                proxy_set_header X-Forwarded-Server $hostname;
               '';
             };
           };
@@ -139,9 +151,24 @@ in {
 
         # /home is a runtime-mounted microvm volume, so users.*.createHome can run
         # before the real /home exists. Ensure the dev user's home exists after mount.
+        # The guest root is a 4 GiB tmpfs. Put client-side temporary files on
+        # the persistent /home volume instead, so an abandoned nix shell cannot
+        # exhaust the root filesystem.
+        environment.variables.TMPDIR = "/home/veeti/.cache/tmp";
+        nix.settings.build-dir = "/nix/.rw-store/tmp";
+
         systemd.tmpfiles.rules = [
           "d /home/veeti 0700 veeti users -"
+          "d /home/veeti/.cache/tmp 0700 veeti users -"
+          "d /nix/.rw-store/tmp 0755 root root -"
         ];
+
+        # Override systemd's default 10-day /tmp retention. /tmp remains small
+        # by design, and stale nix-shell directories can be several GiB.
+        environment.etc."tmpfiles.d/tmp.conf".text = ''
+          q /tmp 1777 root root 2d
+          q /var/tmp 1777 root root 7d
+        '';
 
         # zsh for parity with the mac shell; full aliases/functions stay mac-side
         programs.zsh.enable = true;
@@ -151,3 +178,4 @@ in {
     };
   };
 }
+

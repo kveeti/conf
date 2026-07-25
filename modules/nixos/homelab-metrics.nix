@@ -11,6 +11,18 @@ in {
       description = "VictoriaMetrics remote-write endpoint (…/api/v1/write).";
     };
 
+    basicAuthUsername = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "HTTP Basic Auth username for remote-write.";
+    };
+
+    basicAuthPasswordFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "File containing the HTTP Basic Auth password for remote-write.";
+    };
+
     instance = lib.mkOption {
       type = lib.types.str;
       default = config.networking.hostName;
@@ -49,6 +61,13 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [{
+      assertion =
+        (cfg.basicAuthUsername == null)
+        == (cfg.basicAuthPasswordFile == null);
+      message = "homelab.metrics basicAuthUsername and basicAuthPasswordFile must be set together";
+    }];
+
     services.prometheus.exporters.node = lib.mkIf cfg.nodeExporter.enable {
       enable = true;
       listenAddress = "127.0.0.1";
@@ -62,7 +81,10 @@ in {
 
     services.vmagent = {
       enable = true;
-      remoteWrite.url = cfg.remoteWriteUrl;
+      remoteWrite = {
+        url = cfg.remoteWriteUrl;
+        inherit (cfg) basicAuthUsername basicAuthPasswordFile;
+      };
       prometheusConfig = {
         global = {
           scrape_interval = cfg.scrapeInterval;

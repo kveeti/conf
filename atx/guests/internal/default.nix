@@ -39,13 +39,16 @@ in {
   homelab.microvms.${vmName} = {
     inherit stateRoot;
     certDomains = [ "internal.veetik.com" ];
-    secrets = (map (name: { inherit name; }) guestSecrets) ++ [{
-      name = "restic-internal-repo";
-      value = secretDerive ''
-        printf 'rest:https://internal:%s@backup.internal.veetik.com:8000/internal' \
-          "$(cat ${config.age.secrets.restic-internal-rest-pass.path})"
-      '';
-    }];
+    secrets = (map (name: { inherit name; }) guestSecrets) ++ [
+      { name = "telemetry-pass"; mode = "0400"; }
+      {
+        name = "restic-internal-repo";
+        value = secretDerive ''
+          printf 'rest:https://internal:%s@backup.internal.veetik.com:8000/internal' \
+            "$(cat ${config.age.secrets.restic-internal-rest-pass.path})"
+        '';
+      }
+    ];
 
     shares.ssh-host = {
       owner = "root"; group = "root"; mode = "0755";

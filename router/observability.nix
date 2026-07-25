@@ -79,6 +79,8 @@ in {
     enable = true;
     instance = "router";
     remoteWriteUrl = "https://backup.internal.veetik.com:8428/api/v1/write";
+    basicAuthUsername = "telemetry";
+    basicAuthPasswordFile = config.age.secrets.telemetry-pass.path;
     nodeExporter.enabledCollectors = [ "systemd" "ethtool" ];
     scrapeConfigs = [
       { job_name = "wireguard"; static_configs = [{ targets = [ "127.0.0.1:9586" ]; }]; }
@@ -93,5 +95,7 @@ in {
   homelab.logs = {
     enable = true;
     url = "https://backup.internal.veetik.com:9428";
+    basicAuthUsername = "telemetry";
+    basicAuthPasswordFile = config.age.secrets.telemetry-pass.path;
   };
 }

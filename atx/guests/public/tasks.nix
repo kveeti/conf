@@ -9,6 +9,7 @@ in {
 
     secrets = [
       { name = "tasks-backend-env"; }
+      { name = "telemetry-pass"; mode = "0400"; }
       { name = "restic-tasks-encryption-pass"; }
       {
         name = "restic-tasks-repo";
@@ -25,8 +26,8 @@ in {
     };
 
     vm = {
-    specialArgs = { inherit (config._module.args) keys guestIps publicGateway; };
-    config = { config, pkgs, lib, keys, guestIps, publicGateway, ... }: {
+    specialArgs = { inherit (config._module.args) keys guestIps publicGateways; };
+    config = { config, pkgs, lib, keys, guestIps, publicGateways, ... }: {
       imports = [ ../_common.nix ../../../modules/nixos/homelab-volumes.nix ../../../modules/nixos/backedup-pg.nix ];
 
       networking.hostName = "tasks";
@@ -44,8 +45,8 @@ in {
       systemd.network.enable = true;
       systemd.network.networks."10-eth" = {
         matchConfig.Type = "ether";
-        address = [ "${guestIps.tasks}/24" ];
-        routes = [{ Gateway = publicGateway; }];
+        address = [ "${guestIps.tasks}/30" ];
+        routes = [{ Gateway = publicGateways.tasks; }];
         networkConfig.DHCP = "no";
       };
 

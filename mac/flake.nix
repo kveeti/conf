@@ -84,6 +84,7 @@
 
           ({ config, lib, pkgs, ... }: {
             programs.home-manager.enable = true;
+            programs.nixvim.nixpkgs.source = nixpkgs;
             programs.git.enable = true;
             programs.git.settings = {
               user.email = "veeti@veetik.com";

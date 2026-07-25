@@ -12,18 +12,23 @@
 }:
 buildNpmPackage (finalAttrs: {
   pname = "pi-coding-agent";
-  version = "0.80.10";
+  version = "0.80.8";
 
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-Vs/ndHYzFyfN4CjPV2zMYblLXe9IuM13UrPJI1VsZEQ=";
+    hash = "sha256-wCsZA1gb9sFri6OdTWBf0UCXYxqxlbImG8iE6K+D9u4=";
   };
 
-  npmDepsHash = "sha256-XGvDNH+eilsgc0Z7ITqbitB/9RVc+WuDfCcr1pibNqk=";
+  npmDepsHash = "sha256-WdSQHKKOVzEFxUQH3QnSVzs+HpJPATnCQ701nbRB0lc=";
 
   npmWorkspace = "packages/coding-agent";
+
+  postPatch = ''
+    substituteInPlace packages/coding-agent/src/core/model-runtime.ts \
+      --replace-fail "options.allowModelNetwork ?? process.env.PI_OFFLINE === undefined" "options.allowModelNetwork ?? false"
+  '';
 
   # Skip native module rebuild for unneeded workspaces (e.g. canvas from web-ui)
   npmRebuildFlags = [ "--ignore-scripts" ];

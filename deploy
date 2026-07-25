@@ -11,6 +11,7 @@ usage:
 hosts:
   router                 defaults to 192.168.5.1
   atx                    requires target-host
+  dev                    applies Home Manager directly to the dev VM; requires target-host
   backup                 requires target-host
   pc                     requires target-host
   e | mac                local nix-darwin rebuild
@@ -52,6 +53,27 @@ run_nixos_rebuild() {
 	fi
 }
 
+run_dev_home() {
+	local target=$1
+	local remote_dir='.local/share/dev-home-config'
+	local remote="veeti@$target"
+
+	ssh "$remote" "mkdir -p ~/$remote_dir"
+	(
+		cd "$repo_root"
+		rsync -azR \
+			atx/guests/dev/home.nix \
+			atx/guests/dev/dev-url.nix \
+			atx/guests/dev/home/ \
+			mac/nvim.nix \
+			mac/tmux.conf \
+			mac/pi-coding-agent.nix \
+			"$remote:$remote_dir/"
+	)
+
+	ssh "$remote" "cd ~/$remote_dir && cp atx/guests/dev/home/flake.nix flake.nix && cp atx/guests/dev/home/flake.lock flake.lock && nix build .#homeConfigurations.veeti.activationPackage && ./result/activate"
+}
+
 run_darwin_rebuild() {
 	if ! command -v darwin-rebuild >/dev/null 2>&1; then
 		echo "deploy: darwin-rebuild is not available in PATH" >&2
@@ -76,6 +98,10 @@ case "$host" in
 	atx | backup | pc)
 		target=$(require_target "$host" "$target_arg")
 		run_nixos_rebuild "$host" "$target"
+		;;
+	dev)
+		target=$(require_target "$host" "$target_arg")
+		run_dev_home "$target"
 		;;
 	e | mac)
 		run_darwin_rebuild

@@ -9,6 +9,7 @@ in {
 
     secrets = [
       { name = "cloudflare-env-file"; mode = "0400"; }
+      { name = "telemetry-pass"; mode = "0400"; }
     ];
 
     shares.ssh-host = {
@@ -17,8 +18,8 @@ in {
     };
 
     vm = {
-    specialArgs = { inherit (config._module.args) keys guestIps publicGateway; };
-    config = { config, pkgs, lib, keys, guestIps, publicGateway, ... }: {
+    specialArgs = { inherit (config._module.args) keys guestIps publicGateways; };
+    config = { config, pkgs, lib, keys, guestIps, publicGateways, ... }: {
       imports = [
         ../_common.nix
         ../../../modules/nixos/homelab-nginx-metrics.nix
@@ -47,8 +48,8 @@ in {
       systemd.network.enable = true;
       systemd.network.networks."10-eth" = {
         matchConfig.Type = "ether";
-        address = [ "${guestIps.nginx-public}/24" ];
-        routes = [{ Gateway = publicGateway; }];
+        address = [ "${guestIps.nginx-public}/30" ];
+        routes = [{ Gateway = publicGateways.nginx-public; }];
         networkConfig.DHCP = "no";
       };
 

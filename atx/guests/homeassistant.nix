@@ -12,6 +12,7 @@ in {
       { name = "mqtt-password"; value = secretPath config.age.secrets.ha-mqtt-password.path; }
       { name = "z2m-env";       value = secretPath config.age.secrets.ha-z2m-env.path; }
       { name = "prometheus-token"; value = secretPath config.age.secrets.ha-prometheus-token.path; }
+      { name = "telemetry-pass"; mode = "0400"; }
       { name = "wg-iot-priv"; }
       { name = "wg-iot-psk"; }
       { name = "restic-ha-encryption-pass"; }
