@@ -44,11 +44,32 @@
       router4 = "192.168.40.1";
     };
 
-    public = {
-      interface = "vlan66";
-      vlan = 66;
-      cidr4 = "192.168.66.0/24";
-      router4 = "192.168.66.1";
+    publicNginx = {
+      interface = "vlan70";
+      vlan = 70;
+      cidr4 = "192.168.70.0/30";
+      router4 = "192.168.70.1";
+    };
+
+    publicTasks = {
+      interface = "vlan71";
+      vlan = 71;
+      cidr4 = "192.168.71.0/30";
+      router4 = "192.168.71.1";
+    };
+
+    publicBm = {
+      interface = "vlan72";
+      vlan = 72;
+      cidr4 = "192.168.72.0/30";
+      router4 = "192.168.72.1";
+    };
+
+    publicModi = {
+      interface = "vlan73";
+      vlan = 73;
+      cidr4 = "192.168.73.0/30";
+      router4 = "192.168.73.1";
     };
 
     vlan111 = {
@@ -129,26 +150,26 @@
 
     nginxPublic = {
       hostname = "nginx-public";
-      network = "public";
-      ipv4 = "192.168.66.10";
+      network = "publicNginx";
+      ipv4 = "192.168.70.2";
     };
 
     tasks = {
       hostname = "tasks";
-      network = "public";
-      ipv4 = "192.168.66.11";
+      network = "publicTasks";
+      ipv4 = "192.168.71.2";
     };
 
     bm = {
       hostname = "bm";
-      network = "public";
-      ipv4 = "192.168.66.12";
+      network = "publicBm";
+      ipv4 = "192.168.72.2";
     };
 
     modi = {
       hostname = "modi";
-      network = "public";
-      ipv4 = "192.168.66.13";
+      network = "publicModi";
+      ipv4 = "192.168.73.2";
     };
 
     media = {

@@ -1066,16 +1066,16 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1782764239,
-        "narHash": "sha256-tH7yV0PWBM88GFHJhNLkDnlH3DT2hCYlWOl0bEL9C9s=",
+        "lastModified": 1784925963,
+        "narHash": "sha256-j0wXYA2EJGvILkZVkF6USpDpoYbtvpGMgsJIILDJZJQ=",
         "ref": "refs/heads/master",
-        "rev": "a87d655a036669822fc23eee2736f1ab35c00563",
-        "revCount": 41,
+        "rev": "4f3e6e167d17dabd608d22b80d5bde3f4ae44204",
+        "revCount": 42,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
       "original": {
-        "rev": "a87d655a036669822fc23eee2736f1ab35c00563",
+        "rev": "4f3e6e167d17dabd608d22b80d5bde3f4ae44204",
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       }
@@ -1086,16 +1086,16 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1782402207,
-        "narHash": "sha256-C6gHJL/tF0LSy6YD2DO7gWHcoZLRnUqIo3i29HMEgMM=",
+        "lastModified": 1784925963,
+        "narHash": "sha256-j0wXYA2EJGvILkZVkF6USpDpoYbtvpGMgsJIILDJZJQ=",
         "ref": "refs/heads/master",
-        "rev": "e4b32ebb26e9ea5ac19173c7e5ae6a6b70bf2aec",
-        "revCount": 35,
+        "rev": "4f3e6e167d17dabd608d22b80d5bde3f4ae44204",
+        "revCount": 42,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
       "original": {
-        "rev": "e4b32ebb26e9ea5ac19173c7e5ae6a6b70bf2aec",
+        "rev": "4f3e6e167d17dabd608d22b80d5bde3f4ae44204",
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       }
@@ -1126,16 +1126,16 @@
         "nixpkgs": "nixpkgs_8"
       },
       "locked": {
-        "lastModified": 1782414462,
-        "narHash": "sha256-r2Gt+fWMz/utCnbTz20joA0kzeIARdt/JTv2jcISyZ0=",
+        "lastModified": 1784925963,
+        "narHash": "sha256-j0wXYA2EJGvILkZVkF6USpDpoYbtvpGMgsJIILDJZJQ=",
         "ref": "refs/heads/master",
-        "rev": "a2758487512d8456546da3c3fe7a7cbe675c56a3",
-        "revCount": 36,
+        "rev": "4f3e6e167d17dabd608d22b80d5bde3f4ae44204",
+        "revCount": 42,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
       "original": {
-        "rev": "a2758487512d8456546da3c3fe7a7cbe675c56a3",
+        "rev": "4f3e6e167d17dabd608d22b80d5bde3f4ae44204",
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       }

@@ -9,6 +9,7 @@ in {
 
     secrets = [
       { name = "modi-env"; }
+      { name = "telemetry-pass"; mode = "0400"; }
       { name = "restic-modi-encryption-pass"; }
       {
         name = "restic-modi-repo";
@@ -25,8 +26,8 @@ in {
     };
 
     vm = {
-    specialArgs = { inherit (config._module.args) keys guestIps publicGateway; };
-    config = { config, pkgs, lib, keys, guestIps, publicGateway, ... }:
+    specialArgs = { inherit (config._module.args) keys guestIps publicGateways; };
+    config = { config, pkgs, lib, keys, guestIps, publicGateways, ... }:
     let
       modiHasData = pkgs.writeShellScript "modi-has-data" ''
         for _ in $(seq 1 60); do
@@ -58,8 +59,8 @@ in {
       systemd.network.enable = true;
       systemd.network.networks."10-eth" = {
         matchConfig.Type = "ether";
-        address = [ "${guestIps.modi}/24" ];
-        routes = [{ Gateway = publicGateway; }];
+        address = [ "${guestIps.modi}/30" ];
+        routes = [{ Gateway = publicGateways.modi; }];
         networkConfig.DHCP = "no";
       };
 

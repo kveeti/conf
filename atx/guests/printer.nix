@@ -7,6 +7,7 @@ in {
   homelab.microvms.${vmName} = {
     inherit stateRoot;
     certDomains = [ "internal.veetik.com" ];
+    secrets = [{ name = "telemetry-pass"; mode = "0400"; }];
 
     shares.ssh-host = {
       owner = "root"; group = "root"; mode = "0755";
@@ -16,7 +17,16 @@ in {
     vm = {
       specialArgs = { inherit (config._module.args) keys guestIps vlanGateway; };
       config = { config, pkgs, lib, keys, guestIps, vlanGateway, ... }: {
-        imports = [ ./_common.nix ];
+        imports = [ ./_common.nix ../../modules/nixos/homelab-volumes.nix ];
+
+        # Keep the CUPS queue UUID stable so Bonjour clients continue to
+        # recognize the printer after the VM is rebuilt or rebooted.
+        homelab.volumeSize = 64;
+        homelab.volumes.cups = {
+          owner = "root";
+          group = "root";
+          mode = "0755";
+        };
 
         microvm.mem = lib.mkForce 256;
         microvm.vcpu = lib.mkForce 1;

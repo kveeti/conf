@@ -16,7 +16,12 @@ let
     dev           = hosts.dev.ipv4;
   };
   vlanGateway = inventory.networks.servers.router4;
-  publicGateway = inventory.networks.public.router4;
+  publicGateways = {
+    nginx-public = inventory.networks.publicNginx.router4;
+    tasks = inventory.networks.publicTasks.router4;
+    bm = inventory.networks.publicBm.router4;
+    modi = inventory.networks.publicModi.router4;
+  };
   backupHostIp = hosts.backup.ipv4;
 in
 {
@@ -40,6 +45,11 @@ in
 
   homelab.dns.defaultTargetHost = "atxInternal";
 
+  # MicroVMs share this package set, so unfree policy belongs on the host.
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+    "claude-code"
+  ];
+
   services.prometheus.exporters.smartctl = {
     enable = true;
     listenAddress = "127.0.0.1";
@@ -50,6 +60,8 @@ in
   homelab.metrics = {
     enable = true;
     remoteWriteUrl = "https://backup.internal.veetik.com:8428/api/v1/write";
+    basicAuthUsername = "telemetry";
+    basicAuthPasswordFile = config.age.secrets.telemetry-pass.path;
     nodeExporter.enabledCollectors = [ "systemd" "zfs" ];
     scrapeConfigs = [{
       job_name = "smartctl";
@@ -59,6 +71,8 @@ in
   homelab.logs = {
     enable = true;
     url = "https://backup.internal.veetik.com:9428";
+    basicAuthUsername = "telemetry";
+    basicAuthPasswordFile = config.age.secrets.telemetry-pass.path;
   };
 
   boot.loader.systemd-boot.enable = true;
@@ -110,14 +124,29 @@ in
 
     netdevs = {
       "10-br-vlan40".netdevConfig  = { Name = "br-vlan40";  Kind = "bridge"; };
-      "10-br-vlan66".netdevConfig  = { Name = "br-vlan66";  Kind = "bridge"; };
+      "10-br-vlan70".netdevConfig  = { Name = "br-vlan70";  Kind = "bridge"; };
+      "10-br-vlan71".netdevConfig  = { Name = "br-vlan71";  Kind = "bridge"; };
+      "10-br-vlan72".netdevConfig  = { Name = "br-vlan72";  Kind = "bridge"; };
+      "10-br-vlan73".netdevConfig  = { Name = "br-vlan73";  Kind = "bridge"; };
       "10-br-vlan20".netdevConfig  = { Name = "br-vlan20";  Kind = "bridge"; };
       "10-br-vlan111".netdevConfig = { Name = "br-vlan111"; Kind = "bridge"; };
       "10-br-vlan999".netdevConfig = { Name = "br-vlan999"; Kind = "bridge"; };
 
-      "20-vlan66" = {
-        netdevConfig = { Name = "vlan66"; Kind = "vlan"; };
-        vlanConfig.Id = 66;
+      "20-vlan70" = {
+        netdevConfig = { Name = "vlan70"; Kind = "vlan"; };
+        vlanConfig.Id = 70;
+      };
+      "20-vlan71" = {
+        netdevConfig = { Name = "vlan71"; Kind = "vlan"; };
+        vlanConfig.Id = 71;
+      };
+      "20-vlan72" = {
+        netdevConfig = { Name = "vlan72"; Kind = "vlan"; };
+        vlanConfig.Id = 72;
+      };
+      "20-vlan73" = {
+        netdevConfig = { Name = "vlan73"; Kind = "vlan"; };
+        vlanConfig.Id = 73;
       };
       "20-vlan20" = {
         netdevConfig = { Name = "vlan20"; Kind = "vlan"; };
@@ -138,12 +167,18 @@ in
         matchConfig.Name = "enxc87f5465d1b8";
         networkConfig = {
           Bridge = "br-vlan40";
-          VLAN = [ "vlan66" "vlan20" "vlan111" "vlan999" ];
+          VLAN = [ "vlan70" "vlan71" "vlan72" "vlan73" "vlan20" "vlan111" "vlan999" ];
         };
       };
 
-      "40-vlan66".matchConfig.Name  = "vlan66";
-      "40-vlan66".networkConfig.Bridge  = "br-vlan66";
+      "40-vlan70".matchConfig.Name = "vlan70";
+      "40-vlan70".networkConfig.Bridge = "br-vlan70";
+      "40-vlan71".matchConfig.Name = "vlan71";
+      "40-vlan71".networkConfig.Bridge = "br-vlan71";
+      "40-vlan72".matchConfig.Name = "vlan72";
+      "40-vlan72".networkConfig.Bridge = "br-vlan72";
+      "40-vlan73".matchConfig.Name = "vlan73";
+      "40-vlan73".networkConfig.Bridge = "br-vlan73";
 
       "40-vlan20".matchConfig.Name  = "vlan20";
       "40-vlan20".networkConfig.Bridge  = "br-vlan20";
@@ -161,8 +196,20 @@ in
         networkConfig.DHCP = "no";
       };
 
-      "50-br-vlan66" = {
-        matchConfig.Name = "br-vlan66";
+      "50-br-vlan70" = {
+        matchConfig.Name = "br-vlan70";
+        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
+      };
+      "50-br-vlan71" = {
+        matchConfig.Name = "br-vlan71";
+        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
+      };
+      "50-br-vlan72" = {
+        matchConfig.Name = "br-vlan72";
+        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
+      };
+      "50-br-vlan73" = {
+        matchConfig.Name = "br-vlan73";
         networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
       };
       "50-br-vlan20" = {
@@ -180,19 +227,19 @@ in
 
       "60-vm-nginx-public" = {
         matchConfig.Name = "vm-nginx-public";
-        networkConfig.Bridge = "br-vlan66";
+        networkConfig.Bridge = "br-vlan70";
       };
       "60-vm-tasks" = {
         matchConfig.Name = "vm-tasks";
-        networkConfig.Bridge = "br-vlan66";
+        networkConfig.Bridge = "br-vlan71";
       };
       "60-vm-bm" = {
         matchConfig.Name = "vm-bm";
-        networkConfig.Bridge = "br-vlan66";
+        networkConfig.Bridge = "br-vlan72";
       };
       "60-vm-modi" = {
         matchConfig.Name = "vm-modi";
-        networkConfig.Bridge = "br-vlan66";
+        networkConfig.Bridge = "br-vlan73";
       };
       "60-vm-internal" = {
         matchConfig.Name = "vm-internal";
@@ -291,7 +338,7 @@ in
   ];
 
   _module.args = {
-    inherit keys guestIps hostMgmtIp publicGateway vlanGateway pkgs-unstable rss food weather mac nixvim;
+    inherit keys guestIps hostMgmtIp publicGateways vlanGateway pkgs-unstable rss food weather mac nixvim;
   };
 
   system.stateVersion = "25.11";

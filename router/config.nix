@@ -2,6 +2,9 @@
 let
   IF_WAN = "enp1s0f0";
   IF_LAN = "enp1s0f1";
+  IF_IFB = "ifb-wan";
+  UPLOAD_CAP_MBITS = 600;
+  DOWNLOAD_CAP_MBITS = 600;
   SIX_RD = "6rd-*";
 
   inventory = import ./inventory.nix;
@@ -92,6 +95,8 @@ in
     igmpproxy
   ];
 
+  config.boot.kernelModules = [ "ifb" ];
+
   config.boot.kernel.sysctl = {
     "net.ipv4.conf.all.forwarding" = 1;
     "net.ipv6.conf.all.forwarding" = 1;
@@ -170,7 +175,10 @@ in
           "vlan20"
           "vlan30"
           "vlan40"
-          "vlan66"
+          "vlan70"
+          "vlan71"
+          "vlan72"
+          "vlan73"
           "vlan111"
           "vlan999"
         ];
@@ -214,9 +222,24 @@ in
         address = ["192.168.40.1/24"];
         networkConfig.IPv4Forwarding = true;
       };
-      "40-vlan66" = {
-        matchConfig.Name = "vlan66";
-        address = ["192.168.66.1/24"];
+      "40-vlan70" = {
+        matchConfig.Name = "vlan70";
+        address = ["192.168.70.1/30"];
+        networkConfig.IPv4Forwarding = true;
+      };
+      "40-vlan71" = {
+        matchConfig.Name = "vlan71";
+        address = ["192.168.71.1/30"];
+        networkConfig.IPv4Forwarding = true;
+      };
+      "40-vlan72" = {
+        matchConfig.Name = "vlan72";
+        address = ["192.168.72.1/30"];
+        networkConfig.IPv4Forwarding = true;
+      };
+      "40-vlan73" = {
+        matchConfig.Name = "vlan73";
+        address = ["192.168.73.1/30"];
         networkConfig.IPv4Forwarding = true;
       };
       "40-vlan111" = {
@@ -295,12 +318,33 @@ in
         };
         vlanConfig.Id = 40;
       };
-      "40-vlan66-servers" = {
+      "40-vlan70-nginx-public" = {
         netdevConfig = {
           Kind = "vlan";
-          Name = "vlan66";
+          Name = "vlan70";
         };
-        vlanConfig.Id = 66;
+        vlanConfig.Id = 70;
+      };
+      "40-vlan71-tasks" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan71";
+        };
+        vlanConfig.Id = 71;
+      };
+      "40-vlan72-bm" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan72";
+        };
+        vlanConfig.Id = 72;
+      };
+      "40-vlan73-modi" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan73";
+        };
+        vlanConfig.Id = 73;
       };
       "40-vlan111" = {
         netdevConfig = {
@@ -332,6 +376,36 @@ in
     '';
   };
 
+  config.systemd.services.sqm = {
+    description = "WAN smart queue management";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      ${pkgs.iproute2}/bin/ip link add ${IF_IFB} type ifb 2>/dev/null || true
+      ${pkgs.iproute2}/bin/ip link set ${IF_IFB} up
+
+      ${pkgs.iproute2}/bin/tc qdisc replace dev ${IF_WAN} root handle 1: htb default 10
+      ${pkgs.iproute2}/bin/tc class replace dev ${IF_WAN} parent 1: classid 1:10 htb rate ${toString UPLOAD_CAP_MBITS}mbit ceil ${toString UPLOAD_CAP_MBITS}mbit
+      ${pkgs.iproute2}/bin/tc qdisc replace dev ${IF_WAN} parent 1:10 handle 10: fq_codel
+
+      ${pkgs.iproute2}/bin/tc qdisc replace dev ${IF_WAN} handle ffff: ingress
+      ${pkgs.iproute2}/bin/tc filter replace dev ${IF_WAN} parent ffff: protocol all pref 1 u32 match u32 0 0 action mirred egress redirect dev ${IF_IFB}
+      ${pkgs.iproute2}/bin/tc qdisc replace dev ${IF_IFB} root handle 1: htb default 10
+      ${pkgs.iproute2}/bin/tc class replace dev ${IF_IFB} parent 1: classid 1:10 htb rate ${toString DOWNLOAD_CAP_MBITS}mbit ceil ${toString DOWNLOAD_CAP_MBITS}mbit
+      ${pkgs.iproute2}/bin/tc qdisc replace dev ${IF_IFB} parent 1:10 handle 10: fq_codel
+    '';
+    preStop = ''
+      ${pkgs.iproute2}/bin/tc qdisc del dev ${IF_WAN} root 2>/dev/null || true
+      ${pkgs.iproute2}/bin/tc qdisc del dev ${IF_WAN} ingress 2>/dev/null || true
+      ${pkgs.iproute2}/bin/ip link del ${IF_IFB} 2>/dev/null || true
+    '';
+  };
+
   config.networking.firewall.enable = false; # if enabled, adds its own nftables rules
   config.networking.nftables.enable = true;
   config.networking.nftables.checkRuleset = true;
@@ -340,6 +414,7 @@ in
       chain rpfilter {
         type filter hook prerouting priority mangle + 10; policy drop;
         meta nfproto ipv4 udp sport . udp dport { 68 . 67, 67 . 68 } accept
+        iifname "${IF_IFB}" fib saddr . mark oifname "${IF_WAN}" accept
         fib saddr . mark . iif oif exists accept
       }
 
@@ -350,17 +425,17 @@ in
         iifname "lo" accept
         meta l4proto ipv6-icmp accept
 
-        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.66.1, 192.168.111.1, 192.168.99.1, 10.255.255.1 } counter drop
+        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.70.1, 192.168.71.1, 192.168.72.1, 192.168.73.1, 192.168.111.1, 192.168.99.1, 10.255.255.1 } counter drop
         ip6 saddr { ::1 } counter drop
 
         iifname "wg0" accept comment "connected wireguard clients"
-        iifname "${IF_WAN}" udp dport 49002 accept comment "wireguard handshaking"
+        iifname { "${IF_WAN}", "${IF_IFB}" } udp dport 49002 accept comment "wireguard handshaking"
 
-        iifname "${IF_WAN}" counter drop
+        iifname { "${IF_WAN}", "${IF_IFB}" } counter drop
         iifname "${SIX_RD}" counter drop
 
         iifname "vlan10" tcp dport 22 accept comment "vlan10 ssh"
-        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66", "vlan111" } udp dport 67 accept comment "vlan dhcp"
+        iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan111" } udp dport 67 accept comment "vlan dhcp"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan999" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns except vlan111"
 
         iifname { "vlan10", "vlan20", "vlan40" } udp dport 5353 accept comment "avahi mdns"
@@ -375,10 +450,15 @@ in
       chain forward {
         type filter hook forward priority 0; policy drop;
 
+        iifname "vlan70" ip saddr != ${hosts.nginxPublic.ipv4} counter drop comment "anti-spoof nginx-public"
+        iifname "vlan71" ip saddr != ${hosts.tasks.ipv4} counter drop comment "anti-spoof tasks"
+        iifname "vlan72" ip saddr != ${hosts.bm.ipv4} counter drop comment "anti-spoof bm"
+        iifname "vlan73" ip saddr != ${hosts.modi.ipv4} counter drop comment "anti-spoof modi"
+
         ct state vmap { invalid : drop, established : accept, related : accept }
 
         iifname { "wg0", "vlan10" } accept
-        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan66", "vlan999" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
+        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan70", "vlan71", "vlan72", "vlan73", "vlan999" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
 
         tcp flags syn tcp option maxseg size set rt mtu
         iifname { "vlan10" } oifname "${SIX_RD}" accept
@@ -388,11 +468,16 @@ in
         iifname "vlan40" oifname "vlan40" accept
         iifname "vlan40" oifname "vlan20" ip daddr ${hosts.homeAssistant.ipv4} accept comment "home assistant prometheus metrics scrape"
 
-        iifname "vlan66" oifname "vlan40" ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "public guests -> backup host rest-server + observability"
+        iifname "vlan70" oifname "vlan40" ip saddr ${hosts.nginxPublic.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8428, 9428 } accept comment "nginx-public -> backup host observability"
+        iifname "vlan71" oifname "vlan40" ip saddr ${hosts.tasks.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "tasks -> backup host rest-server + observability"
+        iifname "vlan72" oifname "vlan40" ip saddr ${hosts.bm.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "bm -> backup host rest-server + observability"
+        iifname "vlan73" oifname "vlan40" ip saddr ${hosts.modi.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "modi -> backup host rest-server + observability"
         iifname "vlan20" oifname "vlan40" ip saddr ${hosts.homeAssistant.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "home assistant -> backup host rest-server + observability"
-        iifname "vlan111" oifname "vlan40" ip saddr ${hosts.media.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8428, 9428 } accept comment "media guest -> backup host observability"
 
-        iifname "vlan40" oifname "vlan66" ip saddr ${hosts.backup.ipv4} ip daddr ${hosts.nginxPublic.ipv4} tcp dport 443 accept comment "backup host blackbox probes -> nginx-public"
+        iifname "vlan70" oifname "vlan71" ip saddr ${hosts.nginxPublic.ipv4} ip daddr ${hosts.tasks.ipv4} tcp dport 8000 accept comment "nginx-public -> tasks backend"
+        iifname "vlan70" oifname "vlan72" ip saddr ${hosts.nginxPublic.ipv4} ip daddr ${hosts.bm.ipv4} tcp dport 8000 accept comment "nginx-public -> bm backend"
+
+        iifname "vlan40" oifname "vlan70" ip saddr ${hosts.backup.ipv4} ip daddr ${hosts.nginxPublic.ipv4} tcp dport 443 accept comment "backup host blackbox probes -> nginx-public"
 
         iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
         ip daddr 224.0.1.129 udp dport { 319, 320 } accept comment "AirPlay PTP multicast routing"
@@ -550,7 +635,10 @@ in
     phyint vlan5 disabled
     phyint vlan30 disabled
     phyint vlan40 disabled
-    phyint vlan66 disabled
+    phyint vlan70 disabled
+    phyint vlan71 disabled
+    phyint vlan72 disabled
+    phyint vlan73 disabled
     phyint vlan111 disabled
     phyint vlan999 disabled
     phyint ve-unifi disabled
@@ -702,14 +790,13 @@ in
     settings = {
       port = 0;
 
-      interface = [ "vlan5" "vlan10" "vlan20" "vlan30" "vlan40" "vlan66" "vlan111" ];
+      interface = [ "vlan5" "vlan10" "vlan20" "vlan30" "vlan40" "vlan111" ];
       dhcp-range = [
         "set:vlan5,   192.168.5.2,    192.168.5.254,  24h"
         "set:vlan10,  192.168.10.200, 192.168.10.254, 24h"
         "set:vlan20,  192.168.20.10,  192.168.20.254, 24h"
         "set:vlan30,  192.168.30.2,   192.168.30.254, 24h"
         "set:vlan40,  192.168.40.200, 192.168.40.254, 24h"
-        "set:vlan66,  192.168.66.20,   192.168.66.254, 24h"
         "set:vlan111, 192.168.111.8,  192.168.111.8,  24h"
       ];
       dhcp-option = [
@@ -727,9 +814,6 @@ in
 
         "tag:vlan40,  option:router,     192.168.40.1"
         "tag:vlan40,  option:dns-server, 192.168.40.1"
-
-        "tag:vlan66,  option:router,     192.168.66.1"
-        "tag:vlan66,  option:dns-server, 1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112"
 
         "tag:vlan111, option:router,     192.168.111.1"
         "tag:vlan111, option:dns-server, 1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112"

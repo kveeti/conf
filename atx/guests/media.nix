@@ -24,6 +24,7 @@ in {
         inherit (config._module.args) keys guestIps pkgs-unstable;
         inherit mediaUser;
         adminUsername = mediaUser.user;
+        telemetryEnabled = false;
       };
       config = { config, pkgs, lib, keys, guestIps, adminUsername, mediaUser, ... }: {
         imports = [ ./_common.nix ./media-helpers.nix ../../modules/nixos/homelab-volumes.nix ];

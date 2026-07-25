@@ -24,9 +24,9 @@
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
 
-    secrets-router.url = "git+file:///Users/veeti/code/personal/secrets?rev=a2758487512d8456546da3c3fe7a7cbe675c56a3";
-    secrets-atx.url = "git+file:///Users/veeti/code/personal/secrets?rev=a87d655a036669822fc23eee2736f1ab35c00563";
-    secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets?rev=e4b32ebb26e9ea5ac19173c7e5ae6a6b70bf2aec";
+    secrets-router.url = "git+file:///Users/veeti/code/personal/secrets?rev=4f3e6e167d17dabd608d22b80d5bde3f4ae44204";
+    secrets-atx.url = "git+file:///Users/veeti/code/personal/secrets?rev=4f3e6e167d17dabd608d22b80d5bde3f4ae44204";
+    secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets?rev=4f3e6e167d17dabd608d22b80d5bde3f4ae44204";
     secrets-pc.url = "git+file:///Users/veeti/code/personal/secrets?rev=990f67cf535399bc448aa028d3f2d7e410bf5b30";
 
     weather.url = "github:kveeti/weather/6af9846820941a85aba04ea9a040308a2c23b358";

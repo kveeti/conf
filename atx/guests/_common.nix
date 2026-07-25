@@ -1,7 +1,8 @@
-{ pkgs, keys, ... }@args:
+{ config, lib, pkgs, keys, ... }@args:
 
 let
   adminUsername = args.adminUsername or "veeti";
+  telemetryEnabled = args.telemetryEnabled or true;
   backupIp = (import ../../router/inventory.nix).hosts.backup.ipv4;
 in {
   imports = [
@@ -11,13 +12,19 @@ in {
 
   networking.hosts.${backupIp} = [ "backup.internal.veetik.com" ];
 
-  homelab.metrics = {
+  age.secrets.telemetry-pass = lib.mkIf telemetryEnabled {};
+
+  homelab.metrics = lib.mkIf telemetryEnabled {
     enable = true;
     remoteWriteUrl = "https://backup.internal.veetik.com:8428/api/v1/write";
+    basicAuthUsername = "telemetry";
+    basicAuthPasswordFile = config.age.secrets.telemetry-pass.path;
   };
-  homelab.logs = {
+  homelab.logs = lib.mkIf telemetryEnabled {
     enable = true;
     url = "https://backup.internal.veetik.com:9428";
+    basicAuthUsername = "telemetry";
+    basicAuthPasswordFile = config.age.secrets.telemetry-pass.path;
   };
 
   microvm = {
@@ -72,3 +79,4 @@ in {
 
   system.stateVersion = "25.11";
 }
+

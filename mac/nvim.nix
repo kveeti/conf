@@ -362,8 +362,8 @@
                       enable = true;
                       filetypes = [ "html" "css" "scss" "sass" "less" "javascriptreact" "typescriptreact" ];
                     };
-                    oxfmt.enable = true;
                     oxlint.enable = true;
+                    tailwindcss.enable = true;
                   };
                 };
               };
