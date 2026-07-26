@@ -12,9 +12,17 @@ in {
       { name = "telemetry-pass"; mode = "0400"; }
     ];
 
-    shares.ssh-host = {
-      owner = "root"; group = "root"; mode = "0755";
-      path = "/run/ssh-host"; hostPath = "${stateRoot}/ssh";
+    shares = {
+      ssh-host = {
+        owner = "root"; group = "root"; mode = "0755";
+        path = "/run/ssh-host"; hostPath = "${stateRoot}/ssh";
+      };
+      jellyfin-cert = {
+        create = false;
+        readOnly = true;
+        path = "/run/jellyfin-cert";
+        hostPath = "/var/lib/jellyfin-certificate/public";
+      };
     };
 
     vm = {
@@ -77,6 +85,20 @@ in {
         recommendedGzipSettings = true;
         recommendedOptimisation = true;
         recommendedProxySettings = true;
+
+        virtualHosts."jellyfin-cert.veetik.com" = {
+          useACMEHost = "veetik.com";
+          forceSSL = true;
+          quic = true;
+          locations."= /" = {
+            root = "/run/jellyfin-cert";
+            tryFiles = "/jellyfin.media.lan.mobileconfig =404";
+            extraConfig = ''
+              default_type application/x-apple-aspen-config;
+              add_header Content-Disposition 'attachment; filename="jellyfin.media.lan.mobileconfig"' always;
+            '';
+          };
+        };
 
         virtualHosts."tasks-api.veetik.com" = {
           useACMEHost = "veetik.com";

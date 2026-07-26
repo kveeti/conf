@@ -1,11 +1,11 @@
 final: prev: {
   unifi-bleeding-edge = prev.stdenvNoCC.mkDerivation rec {
     pname = "unifi-controller-bleeding-edge";
-    version = "10.0.162";
+    version = "10.2.105";
 
     src = prev.fetchurl {
       url = "https://dl.ui.com/unifi/${version}/unifi_sysvinit_all.deb";
-      hash = "sha256-1wuI6Dg/cKBEhtcoLipXa1q4UiKtqOpRAc8FF0dY5T4=";
+      hash = "sha256-MBTFxNwrIbx6UKZYCcZ+BjYjSlfdxL60Ogei/ba4O+U=";
     };
 
     nativeBuildInputs = with prev; [

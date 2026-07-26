@@ -9,7 +9,7 @@ let
 
   resolve = name: s: {
     inherit name;
-    inherit (s) create;
+    inherit (s) create readOnly;
     owner    = pick s.owner name;
     group    = pick s.group (pick s.owner name);
     mode     = pick s.mode "0750";
@@ -37,6 +37,7 @@ in {
       mountPoint = r.path;
       tag = r.name;
       proto = "virtiofs";
+      inherit (r) readOnly;
     }) resolved;
   };
 }

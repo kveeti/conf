@@ -3,6 +3,7 @@
 let
   vmName = "media";
   stateRoot = "/var/lib/microvms/${vmName}";
+  jellyfinCertInVMDir = "/run/jellyfin-certificate";
 in {
   homelab.microvms.${vmName} = {
     inherit stateRoot;
@@ -16,23 +17,34 @@ in {
         owner = "root"; group = "root"; mode = "0755";
         path = "/run/ssh-host"; hostPath = "${stateRoot}/ssh";
       };
+      jellyfin-certificate = {
+        create = false;
+        readOnly = true;
+        path = jellyfinCertInVMDir;
+        hostPath = "/var/lib/jellyfin-certificate/media";
+      };
       media = { create = false; path = "/mnt/storage"; hostPath = "/mnt/storage"; };
     };
 
     vm = {
       specialArgs = {
         inherit (config._module.args) keys guestIps pkgs-unstable;
-        inherit mediaUser;
+        inherit mediaUser jellyfinCertInVMDir;
         adminUsername = mediaUser.user;
         telemetryEnabled = false;
       };
       config = { config, pkgs, lib, keys, guestIps, adminUsername, mediaUser, ... }: {
-        imports = [ ./_common.nix ./media-helpers.nix ../../modules/nixos/homelab-volumes.nix ];
+        imports = [ ./_common.nix ./media-cert.nix ../../modules/nixos/homelab-volumes.nix ];
 
         homelab.volumeSize = 614400; # MiB = 600 GiB
-        homelab.volumes.jellyfin = {
-          owner = "root"; mode = "0755";
-          dirs = { config = {}; cache = {}; };
+        homelab.volumes = {
+          jellyfin = {
+            owner = "root"; mode = "0755";
+            dirs = { config = {}; cache = {}; };
+          };
+          selfsigned = {
+            owner = "root"; group = "cert-readers"; mode = "0750";
+          };
         };
 
         microvm.hypervisor = lib.mkForce "qemu";
@@ -73,11 +85,16 @@ in {
           extraGroups = [ "video" "render" ];
         };
 
-        # /16 route pins LAN destinations to eth0 so off-subnet SSH/HTTP isn't swallowed by the wg tunnel
+        # /16 route pins LAN destinations to the LAN NIC so off-subnet
+        # SSH/HTTP isn't swallowed by the wg tunnel. Match the configured MAC:
+        # interface names can change and Type=ether also matches Podman veths.
         systemd.network.enable = true;
         systemd.network.networks."10-eth" = {
-          matchConfig.Type = "ether";
-          address = [ "${guestIps.media}/24" ];
+          matchConfig.MACAddress = "02:00:00:6f:00:01";
+          address = [
+            "${guestIps.media}/24"
+            "${guestIps.jellyfin}/32"
+          ];
           routes = [
             { Gateway = "192.168.111.1"; }
             { Destination = "192.168.0.0/16"; Gateway = "192.168.111.1"; }
@@ -162,10 +179,8 @@ in {
 
         networking.firewall = {
           enable = true;
-          allowedTCPPorts = [ 22 80 443 8096 ];
+          allowedTCPPorts = [ 22 80 443 ];
         };
-
-        services.mediaHelpers.enable = true;
 
         networking.nftables.enable = true;
         networking.nftables.tables.dns-leak-block = {
@@ -191,13 +206,13 @@ in {
           image = "docker.io/jellyfin/jellyfin@sha256:0b901391a662862eddb5dc55d244d7883cbb6236ef5b9a6ea82abc78a89819f0";
           extraOptions = [
             "--hostuser=${mediaUser.user}"
-            "--network=host"
             "--device=/dev/dri/renderD128"
             "--device=/dev/dri/card0"
             # Numeric gids (video=26, render=303): names don't resolve in the image.
             "--group-add=26"
             "--group-add=303"
           ];
+          ports = [ "127.0.0.1:18096:8096" ];
           volumes = [
             "/var/lib/jellyfin/config:/config"
             "/var/lib/jellyfin/cache:/cache"
@@ -209,7 +224,7 @@ in {
           requires = [ "wg-quick-wg0.service" ];
         };
         services.nginx.virtualHosts."jellyfin.media.lan".locations."/" = {
-          proxyPass = "http://127.0.0.1:8096";
+          proxyPass = "http://127.0.0.1:18096";
           proxyWebsockets = true;
           extraConfig = ''
             proxy_read_timeout 3600s;

@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/1267bb4920d0fc06ea916734c11b0bf004bbe17e";
-    nixpkgs-router.url = "github:NixOS/nixpkgs/ac62194c3917d5f474c1a844b6fd6da2db95077d";
+    nixpkgs-router.url = "github:NixOS/nixpkgs/597283ad8aa0b331c788e97c4c262d58877074ef";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/9ae611a455b90cf061d8f332b977e387bda8e1ca";
 
     disko.url = "github:nix-community/disko/a4cb7bf73f264d40560ba527f9280469f1f081c6";
@@ -95,6 +95,7 @@
           system = linuxSystem;
           modules = [
             disko-router.nixosModules.disko
+            microvm.nixosModules.host
             ./modules/nixos/dns-records.nix
             ./router/config.nix
             ./router/disk.nix
