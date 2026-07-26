@@ -436,6 +436,33 @@ in {
                 };
               }
               {
+                id = "living_room_red_1";
+                name = "Living room red 1";
+                entities = {
+                  "light.living_room_light_desk"      = { state = "on"; brightness = 255; rgb_color = [ 255 0 0 ]; };
+                  "light.living_room_light_behind_tv" = { state = "on"; brightness = 255; rgb_color = [ 255 0 0 ]; };
+                  "light.living_room_light_hole"      = { state = "on"; brightness = 255; rgb_color = [ 255 0 0 ]; };
+                };
+              }
+              {
+                id = "living_room_red_2";
+                name = "Living room red 2";
+                entities = {
+                  "light.living_room_light_desk"      = { state = "on"; brightness = 128; rgb_color = [ 255 0 0 ]; };
+                  "light.living_room_light_behind_tv" = { state = "on"; brightness = 128; rgb_color = [ 255 0 0 ]; };
+                  "light.living_room_light_hole"      = { state = "on"; brightness = 128; rgb_color = [ 255 0 0 ]; };
+                };
+              }
+              {
+                id = "living_room_red_3";
+                name = "Living room red 3";
+                entities = {
+                  "light.living_room_light_desk"      = { state = "on"; brightness = 38; rgb_color = [ 255 0 0 ]; };
+                  "light.living_room_light_behind_tv" = { state = "on"; brightness = 38; rgb_color = [ 255 0 0 ]; };
+                  "light.living_room_light_hole"      = { state = "on"; brightness = 38; rgb_color = [ 255 0 0 ]; };
+                };
+              }
+              {
                 id = "lights_off";
                 name = "lights off";
                 entities."light.all_lights" = { state = "off"; };
@@ -446,19 +473,30 @@ in {
               {
                 alias = "Switches - scenes";
                 mode = "queued";
-                trigger = [
-                  { platform = "mqtt"; topic = "zigbee2mqtt/living_room_switch"; }
-                  { platform = "mqtt"; topic = "zigbee2mqtt/hallway_switch"; }
-                ];
+                trigger = builtins.concatMap (topic:
+                  map (action: {
+                    platform = "mqtt";
+                    inherit topic;
+                    value_template = "{{ value_json.action }}";
+                    payload = action;
+                    id = action;
+                  }) [ "up_press_release" "down_press_release" "off_press_release" "on_press_release" "up_hold" "down_hold" "off_hold" ]
+                ) [ "zigbee2mqtt/living_room_switch" "zigbee2mqtt/hallway_switch" ];
                 action = [{
                   choose = [
-                    { conditions = "{{ trigger.payload_json.action == 'up_press' }}";
+                    { conditions = "{{ trigger.id == 'up_hold' }}";
+                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_red_1"; }]; }
+                    { conditions = "{{ trigger.id == 'down_hold' }}";
+                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_red_2"; }]; }
+                    { conditions = "{{ trigger.id == 'off_hold' }}";
+                      sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_red_3"; }]; }
+                    { conditions = "{{ trigger.id == 'up_press_release' }}";
                       sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_1"; }]; }
-                    { conditions = "{{ trigger.payload_json.action == 'down_press' }}";
+                    { conditions = "{{ trigger.id == 'down_press_release' }}";
                       sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_2"; }]; }
-                    { conditions = "{{ trigger.payload_json.action == 'off_press' }}";
+                    { conditions = "{{ trigger.id == 'off_press_release' }}";
                       sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_3"; }]; }
-                    { conditions = "{{ trigger.payload_json.action == 'on_press' }}";
+                    { conditions = "{{ trigger.id == 'on_press_release' }}";
                       sequence = [{ service = "light.turn_off"; target.entity_id = "light.all_lights"; }]; }
                   ];
                 }];
@@ -473,9 +511,19 @@ in {
                 ];
                 variables = {
                   lr_on   = "{{ is_state('light.living_room_light_desk','on') or is_state('light.living_room_light_behind_tv','on') or is_state('light.living_room_light_hole','on') }}";
-                  lr_bri  = "{{ [state_attr('light.living_room_light_desk','brightness') or 0, state_attr('light.living_room_light_behind_tv','brightness') or 0, state_attr('light.living_room_light_hole','brightness') or 0] | max }}";
+                  lr_bri = "{{ [state_attr('light.living_room_light_desk','brightness') or 0, state_attr('light.living_room_light_behind_tv','brightness') or 0, state_attr('light.living_room_light_hole','brightness') or 0] | max }}";
+                  lr_red = ''
+                    {% set ns = namespace(red=false) %}
+                    {% for entity_id in ['light.living_room_light_desk', 'light.living_room_light_behind_tv', 'light.living_room_light_hole'] %}
+                      {% set rgb = state_attr(entity_id, 'rgb_color') %}
+                      {% if is_state(entity_id, 'on') and state_attr(entity_id, 'color_mode') in ['hs', 'xy', 'rgb', 'rgbw', 'rgbww'] and rgb and rgb[0] > 200 and rgb[1] < 80 and rgb[2] < 80 %}
+                        {% set ns.red = true %}
+                      {% endif %}
+                    {% endfor %}
+                    {{ ns.red }}
+                  '';
                   lr_temp = "{{ state_attr('light.living_room_light_desk','color_temp_kelvin') or state_attr('light.living_room_light_behind_tv','color_temp_kelvin') or state_attr('light.living_room_light_hole','color_temp_kelvin') or 3000 }}";
-                  night   = "{{ now().hour >= 23 or now().hour < 6 }}";
+                  night = "{{ now().hour >= 23 or now().hour < 6 }}";
                 };
                 action = [{
                   choose = [
@@ -484,6 +532,8 @@ in {
                         { delay = "{{ '00:02:00' if night else '00:05:00' }}"; }
                         { service = "light.turn_off"; target.entity_id = "light.bathroom_lights"; }
                       ]; }
+                    { conditions = "{{ lr_red | bool }}";
+                      sequence = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness = "{{ lr_bri }}"; rgb_color = [ 255 0 0 ]; }; }]; }
                     { conditions = "{{ lr_on and lr_bri > 191 }}";
                       sequence = [{ service = "light.turn_on"; target.entity_id = "light.bathroom_lights"; data = { brightness_pct = 100; color_temp_kelvin = 3000; }; }]; }
                     { conditions = "{{ lr_on }}";
