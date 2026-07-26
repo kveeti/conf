@@ -3,7 +3,7 @@
 with lib;
 
 let
-  cfg = config.services.cloudflare-ddns;
+  cfg = config.homelab.cloudflare-ddns;
 
   ddnsScript = pkgs.writeShellApplication {
     name = "cf-ddns";
@@ -145,7 +145,7 @@ let
   };
 
 in {
-  options.services.cloudflare-ddns = {
+  options.homelab.cloudflare-ddns = {
     enable = mkEnableOption "Cloudflare Dynamic DNS service";
 
     environmentFile = mkOption {

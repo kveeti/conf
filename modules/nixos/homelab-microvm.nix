@@ -38,6 +38,11 @@ let
       default = true;
       description = "Create/manage the host source dir. Set false for externally-owned mounts (e.g. a host mergerfs) to leave perms/ownership alone.";
     };
+    readOnly = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Mount the virtiofs share read-only in the guest.";
+    };
     dirs = lib.mkOption {
       type = lib.types.attrsOf dirMod;
       default = {};

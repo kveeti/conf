@@ -15,14 +15,16 @@ let
   ) serviceDnsRecords;
 in
 {
-  imports = [ ./ddns.nix ./observability.nix ];
+  imports = [ ./ddns.nix ./observability.nix ./unifi-vm.nix ];
 
   config.nix.settings.experimental-features = [ "nix-command" "flakes" ];
   config.nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+    "mongodb-ce"
     "unifi-controller"
     "unifi-controller-bleeding-edge"
   ];
   config.nixpkgs.overlays = [
+    (import ./overlays/mongodb-ce-7.nix)
     (import ./overlays/unifi-bleeding-edge.nix)
   ];
 
@@ -205,6 +207,11 @@ in
           DNS = [ "fd00:10::1" ];
         };
         ipv6SendRAConfig.EmitDNS = true;
+        ipv6Prefixes = [{
+          Prefix = inventory.networks.trusted.cidr6;
+          AddressAutoconfiguration = true;
+          OnLink = true;
+        }];
         dhcpV6Config.UseDNS = false;
       };
       "40-vlan20" = {
@@ -252,10 +259,14 @@ in
         address = ["192.168.99.1/24"];
         networkConfig.IPv4Forwarding = true;
       };
-      "50-container-interfaces" = {
-        matchConfig.Name = "ve-*";
-        networkConfig.DHCPServer = "no";
-        address = ["192.168.100.1/24"];
+      "50-unifi-interface" = {
+        matchConfig.Name = "vm-unifi";
+        networkConfig = {
+          DHCP = "no";
+          IPv4Forwarding = true;
+          LinkLocalAddressing = false;
+        };
+        address = [ "192.168.100.1/24" ];
       };
     };
     netdevs = {
@@ -442,7 +453,7 @@ in
         meta l4proto igmp accept comment "allow igmp for multicast routing"
         iifname { "vlan10", "vlan20" } udp dport { 319, 320 } accept comment "AirPlay PTP sync"
 
-        iifname "ve-unifi" meta l4proto { tcp, udp } th dport { 8080, 8443, 10001, 3478 } accept
+        iifname "vm-unifi" meta l4proto { tcp, udp } th dport { 8080, 8443, 10001, 3478 } accept
 
         icmp type echo-request accept
       }
@@ -479,6 +490,8 @@ in
 
         iifname "vlan40" oifname "vlan70" ip saddr ${hosts.backup.ipv4} ip daddr ${hosts.nginxPublic.ipv4} tcp dport 443 accept comment "backup host blackbox probes -> nginx-public"
 
+        iifname "vlan20" oifname "vlan111" ether saddr ${hosts.appleTv.mac} ip saddr ${hosts.appleTv.ipv4} ip daddr ${hosts.jellyfin.ipv4} tcp dport 443 counter accept comment "Apple TV -> Jellyfin"
+
         iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
         ip daddr 224.0.1.129 udp dport { 319, 320 } accept comment "AirPlay PTP multicast routing"
         iifname "vlan20" oifname "vlan10" udp dport { 319, 320 } accept comment "AirPlay PTP return"
@@ -497,10 +510,10 @@ in
         # tcp      | 8080  | ingress   | Device and application communication
         # tcp      | 8443  | ingress   | Application GUI/API (on UniFi Console)
         #
-        iifname "vlan5" oifname "ve-unifi" udp dport { 3478, 10001, 1900 } counter accept
-        iifname "vlan5" oifname "ve-unifi" tcp dport { 8080, 8443 } counter accept
-        iifname "ve-unifi" oifname "vlan5" udp dport { 3478, 10001, 1900 } counter accept
-        iifname "ve-unifi" oifname "vlan5" tcp dport { 8080, 8443 } counter accept
+        iifname "vlan5" oifname "vm-unifi" udp dport { 3478, 10001, 1900 } counter accept
+        iifname "vlan5" oifname "vm-unifi" tcp dport { 8080, 8443 } counter accept
+        iifname "vm-unifi" oifname "vlan5" udp dport { 3478, 10001, 1900 } counter accept
+        iifname "vm-unifi" oifname "vlan5" tcp dport { 8080, 8443 } counter accept
         iifname { "vlan5", "vlan10" } tcp dport { 8443 } counter accept
       }
     }
@@ -641,17 +654,19 @@ in
     phyint vlan73 disabled
     phyint vlan111 disabled
     phyint vlan999 disabled
-    phyint ve-unifi disabled
+    phyint vm-unifi disabled
     phyint lo disabled
   '';
   
   config.systemd.services.igmpproxy = {
     description = "IGMP Proxy for AirPlay PTP";
-    after = [ "network.target" ];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       ExecStart = "${pkgs.igmpproxy}/bin/igmpproxy -n /etc/igmpproxy.conf";
-      Restart = "always";
+      Restart = "on-failure";
+      RestartSec = "5s";
     };
   };
 
@@ -752,6 +767,7 @@ in
           ''"internal.veetik.com." static''
           ''"dev-internal.veetik.com." redirect''
           ''"media.lan." redirect''
+          ''"jellyfin.media.lan." static''
           ''"veetik.com." typetransparent''
         ];
         local-data = [
@@ -767,6 +783,7 @@ in
           ''"dev-internal.veetik.com. IN A ${hosts.dev.ipv4}"''
 
           ''"media.lan. IN A ${hosts.media.ipv4}"''
+          ''"jellyfin.media.lan. IN A ${hosts.jellyfin.ipv4}"''
         ] ++ serviceLocalData;
       };
       rpz = [
@@ -820,13 +837,14 @@ in
       ];
       dhcp-host = [
         "${hosts.slzb.mac}, ${hosts.slzb.hostname}, ${hosts.slzb.ipv4}"
+        "${hosts.appleTv.mac}, ${hosts.appleTv.hostname}, ${hosts.appleTv.ipv4}"
         "${hosts.atx.mac}, ${hosts.atx.hostname}, ${hosts.atx.ipv4}"
         "${hosts.backup.mac}, ${hosts.backup.hostname}, ${hosts.backup.ipv4}"
       ];
     };
   };
 
-  config.services.cloudflare-ddns = {
+  config.homelab.cloudflare-ddns = {
     enable = true;
     environmentFile = config.age.secrets.cloudflare_ddns_env.path;
     interval = "*:0/1";
@@ -851,54 +869,6 @@ in
       enable = false;
       addresses = false;
       workstation = false;
-    };
-  };
-
-  config.systemd.tmpfiles.rules = [
-    "d /var/lib/unifi-container 0755 unifi unifi -"
-  ];
-  config.users.users.unifi = {
-    isSystemUser = true;
-    group = "unifi";
-  };
-  config.users.groups.unifi = {};
-  config.containers.unifi = {
-    autoStart = true;
-    privateNetwork = true;
-    localAddress = hosts.unifiController.ipv4;
-    hostAddress = "192.168.100.1";
-    
-    bindMounts = {
-      "/var/lib/unifi" = {
-        hostPath = "/var/lib/unifi-container";
-        isReadOnly = false;
-      };
-    };
-
-    specialArgs = { hostPkgs = pkgs; };
-    config = { config, pkgs, hostPkgs, ... }: {
-      nixpkgs.config.allowUnfree = true;
-      services.unifi = {
-        enable = true;
-        openFirewall = true;
-        unifiPackage = hostPkgs.unifi-bleeding-edge;
-        initialJavaHeapSize = 512;
-        maximumJavaHeapSize = 1024;
-      };
-
-      nixpkgs.config.permittedInsecurePackages = [
-        "mongodb-7.0.25"
-      ];
-
-      services.resolved.enable = true;
-      networking = {
-        firewall.allowedTCPPorts = [ 8080 8443 ];
-        firewall.allowedUDPPorts = [ 3478 10001 ];
-        useHostResolvConf = lib.mkForce false;
-        defaultGateway = "192.168.100.1";
-      };
-
-      system.stateVersion = "25.05";
     };
   };
 

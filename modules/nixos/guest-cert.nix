@@ -49,6 +49,7 @@ in {
       mountPoint = "/run/cert";
       tag = "cert";
       proto = "virtiofs";
+      readOnly = true;
     }];
 
     # gid must match the host's cert-readers so virtiofs group perms let nginx read the keys

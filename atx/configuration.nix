@@ -12,6 +12,7 @@ let
     internal      = hosts.atxInternal.ipv4;
     printer       = hosts.printer.ipv4;
     media         = hosts.media.ipv4;
+    jellyfin      = hosts.jellyfin.ipv4;
     homeassistant = hosts.homeAssistant.ipv4;
     dev           = hosts.dev.ipv4;
   };
@@ -38,6 +39,7 @@ in
     ./guests/public/modi.nix
     ./guests/internal
     ./guests/media.nix
+    ./jellyfin-certificate.nix
     ./guests/homeassistant.nix
     ./guests/printer.nix
     ./guests/dev

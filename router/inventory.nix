@@ -85,8 +85,8 @@
       router4 = "10.255.255.1";
     };
 
-    unifiContainer = {
-      interface = "ve-unifi";
+    unifiNetwork = {
+      interface = "vm-unifi";
       cidr4 = "192.168.100.0/24";
       router4 = "192.168.100.1";
     };
@@ -109,6 +109,13 @@
       mac = "68:25:DD:49:0D:13";
       network = "iot";
       ipv4 = "192.168.20.3";
+    };
+
+    appleTv = {
+      hostname = "appletv";
+      mac = "c0:95:6d:51:fb:32";
+      network = "iot";
+      ipv4 = "192.168.20.2";
     };
 
     atx = {
@@ -177,8 +184,13 @@
       ipv4 = "192.168.111.10";
     };
 
+    jellyfin = {
+      network = "vlan111";
+      ipv4 = "192.168.111.11";
+    };
+
     unifiController = {
-      network = "unifiContainer";
+      network = "unifiNetwork";
       ipv4 = "192.168.100.2";
     };
   };
