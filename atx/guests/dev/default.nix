@@ -18,14 +18,13 @@ in {
 
     vm = {
       specialArgs = {
-        inherit (config._module.args) keys guestIps mac nixvim;
+        inherit (config._module.args) keys guestIps nixvim;
       };
-      config = { config, pkgs, lib, keys, guestIps, mac, nixvim, ... }: {
+      config = { config, pkgs, lib, keys, guestIps, nixvim, ... }: {
         imports = [
           ../_common.nix
           nixvim.nixosModules.nixvim
-          # shared neovim config, sourced from the mac flake so both stay in sync
-          "${mac}/nvim.nix"
+          ../../../mac/nvim.nix
         ];
 
         microvm.mem  = lib.mkForce 8192;
@@ -146,8 +145,7 @@ in {
           openFirewall = true;
         };
 
-        # shared tmux config (prefix, vi copy-mode, OSC 52 clipboard) from the mac flake
-        environment.etc."tmux.conf".source = "${mac}/tmux.conf";
+        environment.etc."tmux.conf".text = builtins.readFile ../../../mac/tmux.conf;
 
         # /home is a runtime-mounted microvm volume, so users.*.createHome can run
         # before the real /home exists. Ensure the dev user's home exists after mount.

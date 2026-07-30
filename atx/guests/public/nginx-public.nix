@@ -17,11 +17,11 @@ in {
         owner = "root"; group = "root"; mode = "0755";
         path = "/run/ssh-host"; hostPath = "${stateRoot}/ssh";
       };
-      jellyfin-cert = {
+      media-cert = {
         create = false;
         readOnly = true;
-        path = "/run/jellyfin-cert";
-        hostPath = "/var/lib/jellyfin-certificate/public";
+        path = "/run/media-cert";
+        hostPath = "/run/media-certificate-profile";
       };
     };
 
@@ -86,16 +86,16 @@ in {
         recommendedOptimisation = true;
         recommendedProxySettings = true;
 
-        virtualHosts."jellyfin-cert.veetik.com" = {
+        virtualHosts."media-cert.veetik.com" = {
           useACMEHost = "veetik.com";
           forceSSL = true;
           quic = true;
           locations."= /" = {
-            root = "/run/jellyfin-cert";
-            tryFiles = "/jellyfin.media.lan.mobileconfig =404";
+            root = "/run/media-cert";
+            tryFiles = "/media.lan.mobileconfig =404";
             extraConfig = ''
               default_type application/x-apple-aspen-config;
-              add_header Content-Disposition 'attachment; filename="jellyfin.media.lan.mobileconfig"' always;
+              add_header Content-Disposition 'attachment; filename="media.lan.mobileconfig"' always;
             '';
           };
         };

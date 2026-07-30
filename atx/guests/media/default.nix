@@ -3,7 +3,7 @@
 let
   vmName = "media";
   stateRoot = "/var/lib/microvms/${vmName}";
-  jellyfinCertInVMDir = "/run/jellyfin-certificate";
+  mediaCertInVMDir = "/run/media-certificate";
 in {
   homelab.microvms.${vmName} = {
     inherit stateRoot;
@@ -17,11 +17,11 @@ in {
         owner = "root"; group = "root"; mode = "0755";
         path = "/run/ssh-host"; hostPath = "${stateRoot}/ssh";
       };
-      jellyfin-certificate = {
+      media-certificate = {
         create = false;
         readOnly = true;
-        path = jellyfinCertInVMDir;
-        hostPath = "/var/lib/jellyfin-certificate/media";
+        path = mediaCertInVMDir;
+        hostPath = "/var/lib/media-certificate/media";
       };
       media = { create = false; path = "/mnt/storage"; hostPath = "/mnt/storage"; };
     };
@@ -29,21 +29,18 @@ in {
     vm = {
       specialArgs = {
         inherit (config._module.args) keys guestIps pkgs-unstable;
-        inherit mediaUser jellyfinCertInVMDir;
+        inherit mediaUser mediaCertInVMDir;
         adminUsername = mediaUser.user;
         telemetryEnabled = false;
       };
       config = { config, pkgs, lib, keys, guestIps, adminUsername, mediaUser, ... }: {
-        imports = [ ./_common.nix ./media-cert.nix ../../modules/nixos/homelab-volumes.nix ];
+        imports = [ ../_common.nix ./nginx.nix ../../../modules/nixos/homelab-volumes.nix ];
 
         homelab.volumeSize = 614400; # MiB = 600 GiB
         homelab.volumes = {
           jellyfin = {
             owner = "root"; mode = "0755";
             dirs = { config = {}; cache = {}; };
-          };
-          selfsigned = {
-            owner = "root"; group = "cert-readers"; mode = "0750";
           };
         };
 
