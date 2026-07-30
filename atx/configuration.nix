@@ -1,4 +1,4 @@
-{ config, pkgs, lib, keys, microvm, pkgs-unstable, rss, food, weather, mac, nixvim, ... }:
+{ config, pkgs, lib, keys, microvm, pkgs-unstable, rss, food, weather, nixvim, ... }:
 
 let
   inventory = import ../router/inventory.nix;
@@ -38,8 +38,8 @@ in
     ./guests/public/bm.nix
     ./guests/public/modi.nix
     ./guests/internal
-    ./guests/media.nix
-    ./jellyfin-certificate.nix
+    ./guests/media
+    ./media-certificate.nix
     ./guests/homeassistant.nix
     ./guests/printer.nix
     ./guests/dev
@@ -340,7 +340,7 @@ in
   ];
 
   _module.args = {
-    inherit keys guestIps hostMgmtIp publicGateways vlanGateway pkgs-unstable rss food weather mac nixvim;
+    inherit keys guestIps hostMgmtIp publicGateways vlanGateway pkgs-unstable rss food weather nixvim;
   };
 
   system.stateVersion = "25.11";

@@ -81,7 +81,7 @@
           secrets-atx.nixosModules.atx
         ];
         specialArgs = {
-          inherit microvm rss food weather mac nixvim;
+          inherit microvm rss food weather nixvim;
           keys = (import secrets-atx).keys;
           pkgs-unstable = import nixpkgs-unstable { system = linuxSystem; };
           mediaUser = import ./atx/media-ids.nix;
