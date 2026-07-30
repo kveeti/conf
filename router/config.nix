@@ -94,7 +94,6 @@ in
     speedtest-cli
     btop
     vim
-    igmpproxy
   ];
 
   config.boot.kernelModules = [ "ifb" ];
@@ -449,9 +448,8 @@ in
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan111" } udp dport 67 accept comment "vlan dhcp"
         iifname { "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan999" } meta l4proto { tcp, udp } th dport 53 accept comment "vlan dns except vlan111"
 
-        iifname { "vlan10", "vlan20", "vlan40" } udp dport 5353 accept comment "avahi mdns"
-        meta l4proto igmp accept comment "allow igmp for multicast routing"
         iifname { "vlan10", "vlan20" } udp dport { 319, 320 } accept comment "AirPlay PTP sync"
+        iifname { "vlan10", "vlan20", "vlan30", "vlan40" } udp dport 5353 accept comment "AirPlay and AirPrint mDNS reflection"
 
         iifname "vm-unifi" meta l4proto { tcp, udp } th dport { 8080, 8443, 10001, 3478 } accept
 
@@ -477,7 +475,7 @@ in
         iifname "${SIX_RD}" ct state { new, untracked } counter drop
 
         iifname "vlan40" oifname "vlan40" accept
-        iifname "vlan40" oifname "vlan20" ip daddr ${hosts.homeAssistant.ipv4} accept comment "home assistant prometheus metrics scrape"
+        iifname "vlan30" oifname "vlan40" ip daddr ${hosts.printer.ipv4} tcp dport 631 accept comment "guest AirPrint -> printer"
 
         iifname "vlan70" oifname "vlan40" ip saddr ${hosts.nginxPublic.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8428, 9428 } accept comment "nginx-public -> backup host observability"
         iifname "vlan71" oifname "vlan40" ip saddr ${hosts.tasks.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "tasks -> backup host rest-server + observability"
@@ -492,14 +490,11 @@ in
 
         iifname "vlan20" oifname "vlan111" ether saddr ${hosts.appleTv.mac} ip saddr ${hosts.appleTv.ipv4} ip daddr ${hosts.jellyfin.ipv4} tcp dport 443 counter accept comment "Apple TV -> Jellyfin"
 
-        iifname "vlan20" oifname "vlan10" udp dport 5353 accept comment "mdns reflection"
-        ip daddr 224.0.1.129 udp dport { 319, 320 } accept comment "AirPlay PTP multicast routing"
-        iifname "vlan20" oifname "vlan10" udp dport { 319, 320 } accept comment "AirPlay PTP return"
-
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr "${secrets.vlan111OutboundAllowedIP}" udp dport 49800 counter accept
-        iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr ${hosts.vlan111Service.ipv4} meta l4proto { tcp, udp } th dport 5000 counter accept
 
         ip daddr ${hosts.nginxPublic.ipv4} ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
+
+        iifname { vlan10, vlan20 } udp dport { 5353, 319, 320 } accept comment "mDNS reflection and AirPlay PTP multicast routing"
 
         # unifi controller
         # https://help.ui.com/hc/en-us/articles/218506997-Required-Ports-Reference
@@ -514,7 +509,6 @@ in
         iifname "vlan5" oifname "vm-unifi" tcp dport { 8080, 8443 } counter accept
         iifname "vm-unifi" oifname "vlan5" udp dport { 3478, 10001, 1900 } counter accept
         iifname "vm-unifi" oifname "vlan5" tcp dport { 8080, 8443 } counter accept
-        iifname { "vlan5", "vlan10" } tcp dport { 8443 } counter accept
       }
     }
 
@@ -634,41 +628,6 @@ in
 #      };
 #    };
 #  };
-
-  config.environment.etc."igmpproxy.conf".text = ''
-    quickleave
-
-    phyint vlan10 upstream ratelimit 0 threshold 1
-            altnet 192.168.10.0/24
-
-    phyint vlan20 downstream ratelimit 0 threshold 1
-            altnet 192.168.20.0/24
-
-    phyint wg0 disabled
-    phyint vlan5 disabled
-    phyint vlan30 disabled
-    phyint vlan40 disabled
-    phyint vlan70 disabled
-    phyint vlan71 disabled
-    phyint vlan72 disabled
-    phyint vlan73 disabled
-    phyint vlan111 disabled
-    phyint vlan999 disabled
-    phyint vm-unifi disabled
-    phyint lo disabled
-  '';
-  
-  config.systemd.services.igmpproxy = {
-    description = "IGMP Proxy for AirPlay PTP";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      ExecStart = "${pkgs.igmpproxy}/bin/igmpproxy -n /etc/igmpproxy.conf";
-      Restart = "on-failure";
-      RestartSec = "5s";
-    };
-  };
 
   config.services.resolved.enable = false;
   config.services.unbound = {
@@ -858,6 +817,7 @@ in
     allowInterfaces = [
       "vlan10"
       "vlan20"
+      "vlan30"
       "vlan40"
     ];
     extraConfig = ''
