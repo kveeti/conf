@@ -2,14 +2,14 @@
   description = "Veeti's NixOS and nix-darwin configurations";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-router.url = "github:NixOS/nixpkgs/597283ad8aa0b331c788e97c4c262d58877074ef";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/9ae611a455b90cf061d8f332b977e387bda8e1ca";
 
     disko.url = "github:nix-community/disko/a4cb7bf73f264d40560ba527f9280469f1f081c6";
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
-    home-manager.url = "github:nix-community/home-manager/release-25.11";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     lanzaboote.url = "github:nix-community/lanzaboote/v1.1.0";
@@ -21,7 +21,7 @@
     microvm.url = "github:astro/microvm.nix";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
 
-    nixvim.url = "github:nix-community/nixvim/nixos-25.11";
+    nixvim.url = "github:nix-community/nixvim/nixos-26.05";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
 
     secrets-router.url = "git+file:///Users/veeti/code/personal/secrets?rev=4f3e6e167d17dabd608d22b80d5bde3f4ae44204";

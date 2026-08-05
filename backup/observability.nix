@@ -90,6 +90,9 @@ in {
     enable = true;
     declarativePlugins = [ pkgs.grafanaPlugins.victoriametrics-logs-datasource ];
     settings = {
+      # Preserve Grafana's old default so existing encrypted DB values remain readable.
+      security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
+
       server = {
         http_addr = "127.0.0.1";
         http_port = 3000;

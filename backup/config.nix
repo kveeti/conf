@@ -26,6 +26,7 @@ in
   # ip=dhcp for the initrd unlock prompt; VLAN 40 must serve DHCP
   boot.kernelParams = [ "ip=dhcp" ];
   boot.initrd = {
+    systemd.users.root.shell = "/usr/bin/systemd-tty-ask-password-agent";
     availableKernelModules = [ "igb" "ixgbe" "e1000e" ];  # TODO trim once NIC is known
     network = {
       enable = true;
@@ -34,7 +35,6 @@ in
         port = 2222;
         authorizedKeys = keys.admins;
         hostKeys = [ "/etc/secrets/initrd/ssh_host_ed25519_key" ];
-        shell = "/bin/cryptsetup-askpass";
       };
     };
   };
