@@ -75,6 +75,8 @@ in {
 
   networking.hosts.${backupIp} = [ "backup.internal.veetik.com" ];
 
+  services.vmagent.extraArgs = [ "-httpListenAddr=127.0.0.1:8429" ];
+
   homelab.metrics = {
     enable = true;
     instance = "router";

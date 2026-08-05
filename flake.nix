@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-    nixpkgs-router.url = "github:NixOS/nixpkgs/597283ad8aa0b331c788e97c4c262d58877074ef";
+    nixpkgs-router.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/9ae611a455b90cf061d8f332b977e387bda8e1ca";
 
     disko.url = "github:nix-community/disko/a4cb7bf73f264d40560ba527f9280469f1f081c6";
