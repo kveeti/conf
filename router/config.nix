@@ -6,6 +6,7 @@ let
   UPLOAD_CAP_MBITS = 950;
   DOWNLOAD_CAP_MBITS = 950;
   SIX_RD = "6rd-*";
+  WG_MAC_IP = "10.255.255.2";
 
   inventory = import ./inventory.nix;
   hosts = inventory.hosts;
@@ -15,7 +16,7 @@ let
   ) serviceDnsRecords;
 in
 {
-  imports = [ ./ddns.nix ./observability.nix ./unifi-vm.nix ];
+  imports = [ ./ddns.nix ./hardening.nix ./observability.nix ./unifi-vm.nix ];
 
   config.nix.settings.experimental-features = [ "nix-command" "flakes" ];
   config.nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
@@ -54,12 +55,13 @@ in
 
   config.services.openssh = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     settings = {
+      AllowUsers = [ "veeti" ];
       PermitRootLogin = "no";
       PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
       PubkeyAuthentication = true;
-      ChallengeResponseAuthentication = false;
       X11Forwarding = false;
     };
     hostKeys = [{
@@ -283,7 +285,7 @@ in
           {
             PublicKey = "/rfA2gDMRx9m3fCG5g7Oo6ir2jZFvJP9WvfTFqix7Ew=";
             PresharedKeyFile = config.age.secrets.wg_mac_presharedkey.path;
-            AllowedIPs = [ "10.255.255.2/32" ];
+            AllowedIPs = [ "${WG_MAC_IP}/32" ];
           }
           {
             PublicKey = "XcTHMvTMJUCP87GphFxEYEL6vc6Fuq//93BLRWUqbng=";
@@ -438,7 +440,8 @@ in
         ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.70.1, 192.168.71.1, 192.168.72.1, 192.168.73.1, 192.168.111.1, 192.168.99.1, 10.255.255.1 } counter drop
         ip6 saddr { ::1 } counter drop
 
-        iifname "wg0" accept comment "connected wireguard clients"
+        iifname "wg0" meta l4proto { tcp, udp } th dport 53 accept comment "wireguard clients -> DNS"
+        iifname "wg0" ip saddr ${WG_MAC_IP} tcp dport 22 accept comment "Mac wireguard -> SSH"
         iifname { "${IF_WAN}", "${IF_IFB}" } udp dport 49002 accept comment "wireguard handshaking"
 
         iifname { "${IF_WAN}", "${IF_IFB}" } counter drop
