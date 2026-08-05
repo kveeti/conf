@@ -98,6 +98,7 @@ in
     "usblp"
   ];
   boot.initrd = {
+    systemd.users.root.shell = "/usr/bin/systemd-tty-ask-password-agent";
     availableKernelModules = [ "igc" ];
     # load vfio in initrd so it claims the iGPU before i915
     kernelModules = [ "vfio_pci" "vfio" "vfio_iommu_type1" ];
@@ -108,7 +109,6 @@ in
         port = 2222;
         authorizedKeys = keys.admins;
         hostKeys = [ "/etc/secrets/initrd/ssh_host_ed25519_key" ];
-        shell = "/bin/cryptsetup-askpass";
       };
     };
   };

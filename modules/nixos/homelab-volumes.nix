@@ -56,6 +56,7 @@ in {
 
     fileSystems = lib.mapAttrs' (_: v: lib.nameValuePair v.path {
       device = "/var/lib/state/${v.source}";
+      fsType = "none";
       options = [ "bind" ];
       depends = [ "/var/lib/state" ];
     }) cfg;

@@ -26,6 +26,7 @@
   networking.hostId = "8f2c1ad7";  # must stay stable or the ZFS pool won't import
 
   boot.initrd = {
+    systemd.users.root.shell = "/usr/bin/systemd-tty-ask-password-agent";
     availableKernelModules = [ "e1000e" ];
     network = {
       enable = true;
@@ -34,7 +35,6 @@
         port = 2222;
         authorizedKeys = keys.admins;
         hostKeys = [ "/etc/secrets/initrd/ssh_host_ed25519_key" ];
-        shell = "/bin/cryptsetup-askpass";
       };
     };
   };

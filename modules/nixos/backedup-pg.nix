@@ -85,6 +85,7 @@ in {
     systemd.tmpfiles.rules = [ "d ${cfg.stateDir}/postgresql 0750 postgres postgres -" ];
     fileSystems."/var/lib/postgresql" = {
       device = "${cfg.stateDir}/postgresql";
+      fsType = "none";
       options = [ "bind" ];
       depends = [ cfg.stateDir ];
     };
