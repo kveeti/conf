@@ -45,7 +45,7 @@ in {
         };
 
         microvm.hypervisor = lib.mkForce "qemu";
-        microvm.mem  = lib.mkForce 4096;
+        microvm.mem  = lib.mkForce 6144;
         microvm.vcpu = lib.mkForce 4;
 
         networking.hostName = "media";

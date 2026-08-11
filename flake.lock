@@ -996,16 +996,16 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1785449355,
-        "narHash": "sha256-sJDK4htJRreLcYX+vpy3D624KVUVHeGpneeZBDn+NCQ=",
+        "lastModified": 1786432449,
+        "narHash": "sha256-a0GUXzkGtXtWQym7NMPyNJ3iBGNQc0HV9qit9wG0w8E=",
         "ref": "refs/heads/master",
-        "rev": "bc8c3d1131a13e3f08382996053ee09032c7de92",
-        "revCount": 44,
+        "rev": "c56c80f0c5416d14222bf79b861cea0f35b0a507",
+        "revCount": 45,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
       "original": {
-        "rev": "bc8c3d1131a13e3f08382996053ee09032c7de92",
+        "rev": "c56c80f0c5416d14222bf79b861cea0f35b0a507",
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       }
