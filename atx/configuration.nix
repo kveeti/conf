@@ -123,6 +123,7 @@ in
   networking.useNetworkd = true;
   systemd.network = {
     enable = true;
+    wait-online.ignoredInterfaces = [ "wlo1" ];
 
     netdevs = {
       "10-br-vlan40".netdevConfig  = { Name = "br-vlan40";  Kind = "bridge"; };
