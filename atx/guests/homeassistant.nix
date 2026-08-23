@@ -272,6 +272,7 @@ in {
                   cards = [
                     { type = "heading"; heading_style = "title"; heading = "Main"; }
                     { type = "tile"; entity = "light.living_room_lights"; name = "Living room"; vertical = false; features_position = "bottom"; }
+                    { type = "tile"; entity = "light.kitchen_ceiling_light"; name = "Kitchen"; vertical = false; features_position = "bottom"; }
                     { type = "tile"; entity = "light.bedroom_light_left"; name = "Bedtable"; vertical = false; icon_tap_action.action = "toggle"; features_position = "bottom"; }
                     {
                       type = "tile";
