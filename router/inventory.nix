@@ -72,6 +72,13 @@
       router4 = "192.168.73.1";
     };
 
+    auth = {
+      interface = "vlan74";
+      vlan = 74;
+      cidr4 = "192.168.74.0/30";
+      router4 = "192.168.74.1";
+    };
+
     vlan111 = {
       interface = "vlan111";
       vlan = 111;
@@ -177,6 +184,12 @@
       hostname = "modi";
       network = "publicModi";
       ipv4 = "192.168.73.2";
+    };
+
+    auth = {
+      hostname = "auth";
+      network = "auth";
+      ipv4 = "192.168.74.2";
     };
 
     media = {

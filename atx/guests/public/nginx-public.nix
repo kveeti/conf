@@ -100,6 +100,35 @@ in {
           };
         };
 
+        virtualHosts."auth.veetik.com" = {
+          useACMEHost = "veetik.com";
+          forceSSL = true;
+          quic = true;
+          # Keycloak's admin API and console must never pass through the public proxy.
+          locations."= /admin".extraConfig = "return 404;";
+          locations."^~ /admin/".extraConfig = "return 404;";
+          locations."= /realms/main".proxyPass = "http://${guestIps.auth}:8080";
+          locations."^~ /realms/main/".proxyPass = "http://${guestIps.auth}:8080";
+          locations."= /realms/master" = {
+            proxyPass = "http://${guestIps.auth}:8080";
+            extraConfig = ''
+              allow 192.168.10.0/24;
+              allow 10.255.255.0/24;
+              deny all;
+            '';
+          };
+          locations."^~ /realms/master/" = {
+            proxyPass = "http://${guestIps.auth}:8080";
+            extraConfig = ''
+              allow 192.168.10.0/24;
+              allow 10.255.255.0/24;
+              deny all;
+            '';
+          };
+          locations."^~ /resources/".proxyPass = "http://${guestIps.auth}:8080";
+          locations."/".extraConfig = "return 404;";
+        };
+
         virtualHosts."tasks-api.veetik.com" = {
           useACMEHost = "veetik.com";
           forceSSL = true;

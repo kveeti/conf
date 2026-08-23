@@ -3,7 +3,7 @@
 let
   srcDir = "/var/lib/restic";
   dstDir = "/var/lib/restic-archive";
-  repos = [ "internal" "tasks" "bm" "modi" "ha" ];
+  repos = [ "internal" "tasks" "bm" "modi" "ha" "auth" ];
   encPassSecret = name: config.age.secrets."restic-${name}-encryption-pass".path;
 in {
   # nofail: a missing USB must not drop the host to emergency at boot
