@@ -5,30 +5,16 @@ let
   stateRoot = "/var/lib/microvms/${vmName}";
 
   guestSecrets = [
-    "lldap-env"
-    "lldap-user-pass"
-    "lldap-user-authelia-pass"
-    "lldap-user-veeti-pass"
-    "lldap-user-security-pass"
-    "authelia-jwt-secret"
-    "authelia-hmac-secret"
-    "authelia-issuer-priv-key"
-    "authelia-session-secret"
-    "authelia-storage-encryption-key"
-    "authelia-ldap-bind-password"
     "radicale-users"
     "food-secrets"
     "weather-secrets"
     "samba-syncer-pass"
     "paperless-security-password"
-    "paperless-oidc-client-secret"
     "restic-internal-encryption-pass"
   ];
 
 in {
   homelab.dns.records = [
-    "ldap.internal.veetik.com"
-    "sso.internal.veetik.com"
     "dav.internal.veetik.com"
     "food.internal.veetik.com"
     "weather.internal.veetik.com"
@@ -41,6 +27,18 @@ in {
     certDomains = [ "internal.veetik.com" ];
     secrets = (map (name: { inherit name; }) guestSecrets) ++ [
       { name = "telemetry-pass"; mode = "0400"; }
+      { name = "oidc-rss-client-secret"; mode = "0400"; }
+      { name = "oidc-paperless-client-secret"; mode = "0400"; }
+      { name = "oauth2-rss-cookie-secret"; mode = "0400"; }
+      { name = "oauth2-paperless-cookie-secret"; mode = "0400"; }
+      {
+        name = "paperless-oidc-env";
+        mode = "0400";
+        value = secretDerive ''
+          printf 'PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"SCOPE":["openid","profile","email"],"APPS":[{"provider_id":"keycloak","name":"Keycloak","client_id":"paperless","secret":"%s","settings":{"server_url":"https://auth.veetik.com/realms/main/.well-known/openid-configuration","oauth_pkce_enabled":true}}]}}\n' \
+            "$(cat ${config.age.secrets.oidc-paperless-client-secret.path})"
+        '';
+      }
       {
         name = "restic-internal-repo";
         value = secretDerive ''
@@ -90,8 +88,6 @@ in {
           rss.nixosModules.default
           food.nixosModules.default
           weather.nixosModules.default
-          ./lldap.nix
-          ./authelia.nix
           ./radicale.nix
           ./rss.nix
           ./food.nix
@@ -107,8 +103,7 @@ in {
         microvm.mem = lib.mkForce 3072;
 
         networking.hostName = "internal";
-
-        networking.hosts."127.0.0.1" = [ "sso.internal.veetik.com" ];
+        networking.hosts.${guestIps.nginx-public} = [ "auth.veetik.com" ];
 
         microvm.interfaces = [{
           type = "tap";

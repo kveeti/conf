@@ -3,7 +3,7 @@
 let
   dataDir = "/var/lib/restic";
 
-  repos = [ "internal" "tasks" "bm" "modi" "ha" ];
+  repos = [ "internal" "tasks" "bm" "modi" "ha" "auth" ];
   restPassSecret = name: config.age.secrets."restic-${name}-rest-pass".path;
   encPassSecret  = name: config.age.secrets."restic-${name}-encryption-pass".path;
 in {

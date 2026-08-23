@@ -182,6 +182,7 @@ in
           "vlan71"
           "vlan72"
           "vlan73"
+          "vlan74"
           "vlan111"
           "vlan999"
         ];
@@ -248,6 +249,11 @@ in
       "40-vlan73" = {
         matchConfig.Name = "vlan73";
         address = ["192.168.73.1/30"];
+        networkConfig.IPv4Forwarding = true;
+      };
+      "40-vlan74" = {
+        matchConfig.Name = "vlan74";
+        address = ["${inventory.networks.auth.router4}/30"];
         networkConfig.IPv4Forwarding = true;
       };
       "40-vlan111" = {
@@ -358,6 +364,13 @@ in
         };
         vlanConfig.Id = 73;
       };
+      "40-vlan74-auth" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan74";
+        };
+        vlanConfig.Id = 74;
+      };
       "40-vlan111" = {
         netdevConfig = {
           Kind = "vlan";
@@ -437,7 +450,7 @@ in
         iifname "lo" accept
         meta l4proto ipv6-icmp accept
 
-        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.70.1, 192.168.71.1, 192.168.72.1, 192.168.73.1, 192.168.111.1, 192.168.99.1, 10.255.255.1 } counter drop
+        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.70.1, 192.168.71.1, 192.168.72.1, 192.168.73.1, 192.168.74.1, 192.168.111.1, 192.168.99.1, 10.255.255.1 } counter drop
         ip6 saddr { ::1 } counter drop
 
         iifname "wg0" meta l4proto { tcp, udp } th dport 53 accept comment "wireguard clients -> DNS"
@@ -466,11 +479,12 @@ in
         iifname "vlan71" ip saddr != ${hosts.tasks.ipv4} counter drop comment "anti-spoof tasks"
         iifname "vlan72" ip saddr != ${hosts.bm.ipv4} counter drop comment "anti-spoof bm"
         iifname "vlan73" ip saddr != ${hosts.modi.ipv4} counter drop comment "anti-spoof modi"
+        iifname "vlan74" ip saddr != ${hosts.auth.ipv4} counter drop comment "anti-spoof auth"
 
         ct state vmap { invalid : drop, established : accept, related : accept }
 
         iifname { "wg0", "vlan10" } accept
-        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan70", "vlan71", "vlan72", "vlan73", "vlan999" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
+        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan70", "vlan71", "vlan72", "vlan73", "vlan74", "vlan999" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
 
         tcp flags syn tcp option maxseg size set rt mtu
         iifname { "vlan10" } oifname "${SIX_RD}" accept
@@ -484,11 +498,14 @@ in
         iifname "vlan71" oifname "vlan40" ip saddr ${hosts.tasks.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "tasks -> backup host rest-server + observability"
         iifname "vlan72" oifname "vlan40" ip saddr ${hosts.bm.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "bm -> backup host rest-server + observability"
         iifname "vlan73" oifname "vlan40" ip saddr ${hosts.modi.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "modi -> backup host rest-server + observability"
+        iifname "vlan74" oifname "vlan40" ip saddr ${hosts.auth.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "auth -> backup host rest-server + observability"
         iifname "vlan20" oifname "vlan40" ip saddr ${hosts.homeAssistant.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "home assistant -> backup host rest-server + observability"
 
         iifname "vlan70" oifname "vlan71" ip saddr ${hosts.nginxPublic.ipv4} ip daddr ${hosts.tasks.ipv4} tcp dport 8000 accept comment "nginx-public -> tasks backend"
         iifname "vlan70" oifname "vlan72" ip saddr ${hosts.nginxPublic.ipv4} ip daddr ${hosts.bm.ipv4} tcp dport 8000 accept comment "nginx-public -> bm backend"
+        iifname "vlan70" oifname "vlan74" ip saddr ${hosts.nginxPublic.ipv4} ip daddr ${hosts.auth.ipv4} tcp dport 8080 accept comment "nginx-public -> Keycloak"
 
+        iifname "vlan40" ip saddr ${hosts.atxInternal.ipv4} oifname "vlan70" ip daddr ${hosts.nginxPublic.ipv4} tcp dport 443 accept comment "internal apps -> Keycloak frontend"
         iifname "vlan40" oifname "vlan70" ip saddr ${hosts.backup.ipv4} ip daddr ${hosts.nginxPublic.ipv4} tcp dport 443 accept comment "backup host blackbox probes -> nginx-public"
 
         iifname "vlan20" oifname "vlan111" ether saddr ${hosts.appleTv.mac} ip saddr ${hosts.appleTv.ipv4} ip daddr ${hosts.jellyfin.ipv4} tcp dport 443 counter accept comment "Apple TV -> Jellyfin"
@@ -731,9 +748,12 @@ in
           ''"media.lan." redirect''
           ''"jellyfin.media.lan." static''
           ''"veetik.com." typetransparent''
+          ''"auth.veetik.com." static''
         ];
         local-data = [
           ''"ui.internal.veetik.com. IN A ${hosts.router.ipv4}"''
+          ''"auth.veetik.com. IN A ${hosts.nginxPublic.ipv4}"''
+          ''"auth.internal.veetik.com. IN A ${hosts.auth.ipv4}"''
           ''"ha.internal.veetik.com. IN A ${hosts.homeAssistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.homeAssistant.ipv4}"''
 

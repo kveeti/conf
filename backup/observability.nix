@@ -102,21 +102,23 @@ in {
 
       "auth.generic_oauth" = {
         enabled = true;
-        name = "Authelia";
+        name = "Keycloak";
         icon = "signin";
         client_id = "grafana";
         client_secret = "$__file{${config.age.secrets.oidc-grafana-client-secret.path}}";
-        scopes = "openid profile email groups";
+        scopes = "openid profile email";
         empty_scopes = false;
-        auth_url = "https://sso.internal.veetik.com/api/oidc/authorization";
-        token_url = "https://sso.internal.veetik.com/api/oidc/token";
-        api_url = "https://sso.internal.veetik.com/api/oidc/userinfo";
+        auth_url = "https://auth.veetik.com/realms/main/protocol/openid-connect/auth";
+        token_url = "https://auth.veetik.com/realms/main/protocol/openid-connect/token";
+        api_url = "https://auth.veetik.com/realms/main/protocol/openid-connect/userinfo";
         login_attribute_path = "preferred_username";
         groups_attribute_path = "groups";
         name_attribute_path = "name";
         use_pkce = true;
-        role_attribute_path = "(contains(groups[*], 'admins') || contains(groups[*], 'grafana-admin')) && 'Admin' || 'Viewer'";
-        role_attribute_strict = false;
+        use_refresh_token = true;
+        allowed_groups = "admins internal-users grafana-users grafana-admins";
+        role_attribute_path = "(contains(groups[*], 'admins') || contains(groups[*], 'grafana-admins')) && 'Admin' || 'Viewer'";
+        role_attribute_strict = true;
       };
     };
 
@@ -215,13 +217,13 @@ in {
   networking.firewall.allowedTCPPorts = [ 443 8428 9428 ];
 
   networking.hosts.${internalIp} = [
-    "sso.internal.veetik.com"
     "dav.internal.veetik.com"
     "food.internal.veetik.com"
     "weather.internal.veetik.com"
     "p.internal.veetik.com"
     "rss.internal.veetik.com"
   ];
+  networking.hosts.${nginxPublicIp} = [ "auth.veetik.com" ];
   networking.hosts."127.0.0.1" = [ "grafana.internal.veetik.com" "backup.internal.veetik.com" ];
 
   # Must be owned by grafana or it can't read the secret at startup and won't come up.
@@ -246,7 +248,7 @@ in {
       { job_name = "vmagent"; static_configs = [{ targets = [ "127.0.0.1:8429" ]; }]; }
       (blackboxJob "public" "http_2xx_public" (map (p: "https://${p.host}${p.path}") publicProbes))
       (blackboxJob "internal" "http_2xx" [
-        "https://sso.internal.veetik.com"
+        "https://auth.veetik.com/realms/main/.well-known/openid-configuration"
         "https://dav.internal.veetik.com"
         "https://food.internal.veetik.com"
         "https://weather.internal.veetik.com"

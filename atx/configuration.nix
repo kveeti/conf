@@ -9,6 +9,7 @@ let
     tasks         = hosts.tasks.ipv4;
     bm            = hosts.bm.ipv4;
     modi          = hosts.modi.ipv4;
+    auth          = hosts.auth.ipv4;
     internal      = hosts.atxInternal.ipv4;
     printer       = hosts.printer.ipv4;
     media         = hosts.media.ipv4;
@@ -22,6 +23,7 @@ let
     tasks = inventory.networks.publicTasks.router4;
     bm = inventory.networks.publicBm.router4;
     modi = inventory.networks.publicModi.router4;
+    auth = inventory.networks.auth.router4;
   };
   backupHostIp = hosts.backup.ipv4;
 in
@@ -37,6 +39,7 @@ in
     ./guests/public/tasks.nix
     ./guests/public/bm.nix
     ./guests/public/modi.nix
+    ./guests/auth
     ./guests/internal
     ./guests/media
     ./media-certificate.nix
@@ -131,6 +134,7 @@ in
       "10-br-vlan71".netdevConfig  = { Name = "br-vlan71";  Kind = "bridge"; };
       "10-br-vlan72".netdevConfig  = { Name = "br-vlan72";  Kind = "bridge"; };
       "10-br-vlan73".netdevConfig  = { Name = "br-vlan73";  Kind = "bridge"; };
+      "10-br-vlan74".netdevConfig  = { Name = "br-vlan74";  Kind = "bridge"; };
       "10-br-vlan20".netdevConfig  = { Name = "br-vlan20";  Kind = "bridge"; };
       "10-br-vlan111".netdevConfig = { Name = "br-vlan111"; Kind = "bridge"; };
       "10-br-vlan999".netdevConfig = { Name = "br-vlan999"; Kind = "bridge"; };
@@ -151,6 +155,10 @@ in
         netdevConfig = { Name = "vlan73"; Kind = "vlan"; };
         vlanConfig.Id = 73;
       };
+      "20-vlan74" = {
+        netdevConfig = { Name = "vlan74"; Kind = "vlan"; };
+        vlanConfig.Id = 74;
+      };
       "20-vlan20" = {
         netdevConfig = { Name = "vlan20"; Kind = "vlan"; };
         vlanConfig.Id = 20;
@@ -170,7 +178,7 @@ in
         matchConfig.Name = "enxc87f5465d1b8";
         networkConfig = {
           Bridge = "br-vlan40";
-          VLAN = [ "vlan70" "vlan71" "vlan72" "vlan73" "vlan20" "vlan111" "vlan999" ];
+          VLAN = [ "vlan70" "vlan71" "vlan72" "vlan73" "vlan74" "vlan20" "vlan111" "vlan999" ];
         };
       };
 
@@ -182,6 +190,8 @@ in
       "40-vlan72".networkConfig.Bridge = "br-vlan72";
       "40-vlan73".matchConfig.Name = "vlan73";
       "40-vlan73".networkConfig.Bridge = "br-vlan73";
+      "40-vlan74".matchConfig.Name = "vlan74";
+      "40-vlan74".networkConfig.Bridge = "br-vlan74";
 
       "40-vlan20".matchConfig.Name  = "vlan20";
       "40-vlan20".networkConfig.Bridge  = "br-vlan20";
@@ -215,6 +225,10 @@ in
         matchConfig.Name = "br-vlan73";
         networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
       };
+      "50-br-vlan74" = {
+        matchConfig.Name = "br-vlan74";
+        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
+      };
       "50-br-vlan20" = {
         matchConfig.Name = "br-vlan20";
         networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
@@ -243,6 +257,10 @@ in
       "60-vm-modi" = {
         matchConfig.Name = "vm-modi";
         networkConfig.Bridge = "br-vlan73";
+      };
+      "60-vm-auth" = {
+        matchConfig.Name = "vm-auth";
+        networkConfig.Bridge = "br-vlan74";
       };
       "60-vm-internal" = {
         matchConfig.Name = "vm-internal";

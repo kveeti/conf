@@ -996,16 +996,16 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1786432449,
-        "narHash": "sha256-a0GUXzkGtXtWQym7NMPyNJ3iBGNQc0HV9qit9wG0w8E=",
+        "lastModified": 1787521629,
+        "narHash": "sha256-xHIxatfdgeRRKtq2DTH1VuuXF84m5lmQXoYOlTGgecw=",
         "ref": "refs/heads/master",
-        "rev": "c56c80f0c5416d14222bf79b861cea0f35b0a507",
-        "revCount": 45,
+        "rev": "937facb72104cb6a206aaa1198151f4753a87023",
+        "revCount": 48,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
       "original": {
-        "rev": "c56c80f0c5416d14222bf79b861cea0f35b0a507",
+        "rev": "937facb72104cb6a206aaa1198151f4753a87023",
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       }
@@ -1016,16 +1016,16 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1784925963,
-        "narHash": "sha256-j0wXYA2EJGvILkZVkF6USpDpoYbtvpGMgsJIILDJZJQ=",
+        "lastModified": 1787441789,
+        "narHash": "sha256-UWZJjedxDht7Yu7MRAwQ3vsqyPlB3e6hB1U4FdVDW7w=",
         "ref": "refs/heads/master",
-        "rev": "4f3e6e167d17dabd608d22b80d5bde3f4ae44204",
-        "revCount": 42,
+        "rev": "4c59c8ed83099b798b7d67ce09e715dc2db9e06e",
+        "revCount": 46,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
       "original": {
-        "rev": "4f3e6e167d17dabd608d22b80d5bde3f4ae44204",
+        "rev": "4c59c8ed83099b798b7d67ce09e715dc2db9e06e",
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       }
