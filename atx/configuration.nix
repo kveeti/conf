@@ -325,7 +325,7 @@ in
     allowedTCPPorts = [ 22 ];
   };
 
-  environment.systemPackages = with pkgs; [ vim git btop tmux ];
+  environment.systemPackages = with pkgs; [ vim git btop tmux ghostty.terminfo ];
 
   security.acme = {
     acceptTerms = true;
