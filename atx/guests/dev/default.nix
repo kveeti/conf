@@ -62,6 +62,10 @@ in {
           writableStoreOverlay = "/nix/.rw-store";
         };
 
+        # The boot closure must be registered in the persistent Nix database,
+        # not the temporary database that this volume would otherwise hide.
+        fileSystems."/nix/var/nix".neededForBoot = true;
+
         systemd.network.enable = true;
         systemd.network.networks."10-eth" = {
           matchConfig.Type = "ether";
