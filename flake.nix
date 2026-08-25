@@ -25,13 +25,15 @@
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
 
     secrets-router.url = "git+file:///Users/veeti/code/personal/secrets?rev=4f3e6e167d17dabd608d22b80d5bde3f4ae44204";
-    secrets-atx.url = "git+file:///Users/veeti/code/personal/secrets?rev=937facb72104cb6a206aaa1198151f4753a87023";
-    secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets?rev=4c59c8ed83099b798b7d67ce09e715dc2db9e06e";
+    secrets-atx.url = "git+file:///Users/veeti/code/personal/secrets";
+    secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
     secrets-pc.url = "git+file:///Users/veeti/code/personal/secrets?rev=990f67cf535399bc448aa028d3f2d7e410bf5b30";
 
     weather.url = "github:kveeti/weather/6af9846820941a85aba04ea9a040308a2c23b358";
     rss.url = "github:kveeti/rss/375850566401198f7736ef0a4a75998c731cd784";
     food.url = "github:kveeti/food/cc61e77586c3f016ea61515ce6133f4d17f99b92";
+    money.url = "github:kveeti/money/main";
+    money.inputs.nixpkgs.follows = "nixpkgs";
 
     mac.url = "path:./mac";
   };
@@ -51,6 +53,7 @@
       weather,
       rss,
       food,
+      money,
       mac,
       microvm,
       nixvim,
@@ -81,7 +84,7 @@
           secrets-atx.nixosModules.atx
         ];
         specialArgs = {
-          inherit microvm rss food weather nixvim;
+          inherit microvm rss food weather money nixvim;
           keys = (import secrets-atx).keys;
           pkgs-unstable = import nixpkgs-unstable { system = linuxSystem; };
           mediaUser = import ./atx/media-ids.nix;
