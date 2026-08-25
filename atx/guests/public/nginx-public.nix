@@ -195,6 +195,17 @@ in {
           };
         };
 
+        virtualHosts."money.veetik.com" = {
+          useACMEHost = "veetik.com";
+          forceSSL = true;
+          quic = true;
+          extraConfig = proxyHeaders;
+          locations."/" = {
+            proxyPass = "http://${guestIps.money}:8000";
+            recommendedProxySettings = false;
+          };
+        };
+
         virtualHosts."bm_back.veetik.com" = {
           useACMEHost = "veetik.com";
           forceSSL = true;

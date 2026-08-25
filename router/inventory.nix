@@ -79,6 +79,13 @@
       router4 = "192.168.74.1";
     };
 
+    publicMoney = {
+      interface = "vlan75";
+      vlan = 75;
+      cidr4 = "192.168.75.0/30";
+      router4 = "192.168.75.1";
+    };
+
     vlan111 = {
       interface = "vlan111";
       vlan = 111;
@@ -190,6 +197,12 @@
       hostname = "auth";
       network = "auth";
       ipv4 = "192.168.74.2";
+    };
+
+    money = {
+      hostname = "money";
+      network = "publicMoney";
+      ipv4 = "192.168.75.2";
     };
 
     media = {

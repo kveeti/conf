@@ -636,6 +636,27 @@
         "type": "github"
       }
     },
+    "money": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787681679,
+        "narHash": "sha256-rWXweHIMEoDtUsvpW6OTyYJ5WAoxZ0Gvds6JbIDuUt0=",
+        "owner": "kveeti",
+        "repo": "money",
+        "rev": "a4dc98706ee95730ab78db18ea9e6963a993aa3a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kveeti",
+        "ref": "main",
+        "repo": "money",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -938,6 +959,7 @@
         "lanzaboote": "lanzaboote",
         "mac": "mac",
         "microvm": "microvm",
+        "money": "money",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-router": "nixpkgs-router",
         "nixpkgs-unstable": "nixpkgs-unstable",
@@ -996,16 +1018,15 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1787521629,
-        "narHash": "sha256-xHIxatfdgeRRKtq2DTH1VuuXF84m5lmQXoYOlTGgecw=",
+        "lastModified": 1787671065,
+        "narHash": "sha256-vH5LlfrY/uLabX3/nt5L6+60VqXfTYjHOSawq7pDXj0=",
         "ref": "refs/heads/master",
-        "rev": "937facb72104cb6a206aaa1198151f4753a87023",
-        "revCount": 48,
+        "rev": "318a80b1184207b304a5ed21d631a42138f5eef8",
+        "revCount": 49,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
       "original": {
-        "rev": "937facb72104cb6a206aaa1198151f4753a87023",
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       }
@@ -1016,16 +1037,15 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1787441789,
-        "narHash": "sha256-UWZJjedxDht7Yu7MRAwQ3vsqyPlB3e6hB1U4FdVDW7w=",
+        "lastModified": 1787671065,
+        "narHash": "sha256-vH5LlfrY/uLabX3/nt5L6+60VqXfTYjHOSawq7pDXj0=",
         "ref": "refs/heads/master",
-        "rev": "4c59c8ed83099b798b7d67ce09e715dc2db9e06e",
-        "revCount": 46,
+        "rev": "318a80b1184207b304a5ed21d631a42138f5eef8",
+        "revCount": 49,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
       "original": {
-        "rev": "4c59c8ed83099b798b7d67ce09e715dc2db9e06e",
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       }

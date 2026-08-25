@@ -11,6 +11,7 @@ let
   publicProbes = [
     { host = "tasks-api.veetik.com"; path = "/api/v1/auth/me"; }
     { host = "bm_back.veetik.com"; path = "/api/bootstrap"; }
+    { host = "money.veetik.com"; path = "/api/v1/currencies"; }
   ];
   lanModuleName = host: "lan-" + builtins.replaceStrings [ "." ] [ "-" ] host;
 
