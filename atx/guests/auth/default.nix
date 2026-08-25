@@ -11,6 +11,7 @@ let
     "oidc-rss-client-secret"
     "oidc-paperless-client-secret"
     "oidc-grafana-client-secret"
+    "oidc-money-client-secret"
     "restic-auth-encryption-pass"
   ];
 in {
