@@ -41,11 +41,11 @@ let
 
   realmConfig = pkgs.writeText "main-keycloak.json" (builtins.toJSON {
     realm = "main";
-    displayName = "Main";
+    displayName = "veetik.com";
     enabled = true;
     sslRequired = "external";
-    registrationAllowed = false;
-    registrationEmailAsUsername = false;
+    registrationAllowed = true;
+    registrationEmailAsUsername = true;
     rememberMe = true;
     verifyEmail = false;
     loginWithEmailAllowed = true;
@@ -115,6 +115,12 @@ let
         redirects = [ "https://grafana.internal.veetik.com/login/generic_oauth" ];
         origins = [ "https://grafana.internal.veetik.com" ];
       })
+      (mkClient {
+        id = "money";
+        secretEnv = "OIDC_MONEY_CLIENT_SECRET";
+        redirects = [ "https://money.veetik.com/api/v1/auth/callback" ];
+        origins = [ "https://money.veetik.com" ];
+      })
     ];
   });
 in {
@@ -124,6 +130,7 @@ in {
   config.age.secrets.oidc-rss-client-secret = {};
   config.age.secrets.oidc-paperless-client-secret = {};
   config.age.secrets.oidc-grafana-client-secret = {};
+  config.age.secrets.oidc-money-client-secret = {};
 
   config.services.keycloak = {
     enable = true;
@@ -176,6 +183,7 @@ in {
       export OIDC_RSS_CLIENT_SECRET="$(cat ${config.age.secrets.oidc-rss-client-secret.path})"
       export OIDC_PAPERLESS_CLIENT_SECRET="$(cat ${config.age.secrets.oidc-paperless-client-secret.path})"
       export OIDC_GRAFANA_CLIENT_SECRET="$(cat ${config.age.secrets.oidc-grafana-client-secret.path})"
+      export OIDC_MONEY_CLIENT_SECRET="$(cat ${config.age.secrets.oidc-money-client-secret.path})"
       exec keycloak-config-cli
     '';
     serviceConfig.Type = "oneshot";
