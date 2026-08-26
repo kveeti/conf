@@ -643,11 +643,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787681679,
-        "narHash": "sha256-rWXweHIMEoDtUsvpW6OTyYJ5WAoxZ0Gvds6JbIDuUt0=",
+        "lastModified": 1787733991,
+        "narHash": "sha256-tdaVdFuSmiFhj6swfmmDApjgbaQXrru7ksMvuVwi9DU=",
         "owner": "kveeti",
         "repo": "money",
-        "rev": "a4dc98706ee95730ab78db18ea9e6963a993aa3a",
+        "rev": "4508467b447e96204ef4ec8a88810abe0b2b4511",
         "type": "github"
       },
       "original": {
