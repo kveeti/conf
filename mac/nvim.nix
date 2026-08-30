@@ -176,6 +176,7 @@
 
               plugins = {
                 nvim-autopairs.enable = true;
+                fidget.enable = true;
                 ts-autotag.enable = true;
                 sleuth.enable = true;
                 fugitive.enable = true;
@@ -325,8 +326,9 @@
                     };
                     rust_analyzer = {
                       enable = true;
-                      installCargo = true;
-                      installRustc = true;
+                      package = null;
+                      installCargo = false;
+                      installRustc = false;
                       settings = {
                         files.watcher = "server";
                         cargo.targetDir = true;
@@ -337,10 +339,9 @@
                           closureReturnTypeHints.enable = "always";
                           maxLength = 100;
                         };
-                        rustc.source = "discover";
                       };
                       extraOptions = {
-                        root_markers = [ "Config.toml" ".git" ];
+                        root_markers = [ "Cargo.toml" ".git" ];
                       };
                     };
                     ts_ls = {
@@ -364,6 +365,7 @@
                     };
                     oxlint.enable = true;
                     tailwindcss.enable = true;
+                    denols.enable = true;
                   };
                 };
               };
