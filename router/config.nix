@@ -3,8 +3,8 @@ let
   IF_WAN = "enp1s0f0";
   IF_LAN = "enp1s0f1";
   IF_IFB = "ifb-wan";
-  UPLOAD_CAP_MBITS = 950;
-  DOWNLOAD_CAP_MBITS = 950;
+  UPLOAD_CAP_MBITS = 95;
+  DOWNLOAD_CAP_MBITS = 95;
   SIX_RD = "6rd-*";
   WG_MAC_IP = "10.255.255.2";
 
