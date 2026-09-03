@@ -184,6 +184,7 @@ in
           "vlan73"
           "vlan74"
           "vlan75"
+          "vlan76"
           "vlan111"
           "vlan999"
         ];
@@ -260,6 +261,11 @@ in
       "40-vlan75" = {
         matchConfig.Name = "vlan75";
         address = ["${inventory.networks.publicMoney.router4}/30"];
+        networkConfig.IPv4Forwarding = true;
+      };
+      "40-vlan76" = {
+        matchConfig.Name = "vlan76";
+        address = ["${inventory.networks.publicMinecraft.router4}/30"];
         networkConfig.IPv4Forwarding = true;
       };
       "40-vlan111" = {
@@ -384,6 +390,13 @@ in
         };
         vlanConfig.Id = 75;
       };
+      "40-vlan76-minecraft" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan76";
+        };
+        vlanConfig.Id = 76;
+      };
       "40-vlan111" = {
         netdevConfig = {
           Kind = "vlan";
@@ -463,7 +476,7 @@ in
         iifname "lo" accept
         meta l4proto ipv6-icmp accept
 
-        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.70.1, 192.168.71.1, 192.168.72.1, 192.168.73.1, 192.168.74.1, 192.168.75.1, 192.168.111.1, 192.168.99.1, 10.255.255.1 } counter drop
+        ip saddr { 192.168.5.1, 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1, 192.168.70.1, 192.168.71.1, 192.168.72.1, 192.168.73.1, 192.168.74.1, 192.168.75.1, 192.168.76.1, 192.168.111.1, 192.168.99.1, 10.255.255.1 } counter drop
         ip6 saddr { ::1 } counter drop
 
         iifname "wg0" meta l4proto { tcp, udp } th dport 53 accept comment "wireguard clients -> DNS"
@@ -494,11 +507,12 @@ in
         iifname "vlan73" ip saddr != ${hosts.modi.ipv4} counter drop comment "anti-spoof modi"
         iifname "vlan74" ip saddr != ${hosts.auth.ipv4} counter drop comment "anti-spoof auth"
         iifname "vlan75" ip saddr != ${hosts.money.ipv4} counter drop comment "anti-spoof money"
+        iifname "vlan76" ip saddr != ${hosts.minecraft.ipv4} counter drop comment "anti-spoof minecraft"
 
         ct state vmap { invalid : drop, established : accept, related : accept }
 
         iifname { "wg0", "vlan10" } accept
-        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan70", "vlan71", "vlan72", "vlan73", "vlan74", "vlan75", "vlan999" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
+        iifname { "wg0", "vlan5", "vlan10", "vlan20", "vlan30", "vlan40", "vlan70", "vlan71", "vlan72", "vlan73", "vlan74", "vlan75", "vlan76", "vlan999" } oifname "${IF_WAN}" accept comment "everyone gets to the WWW except vlan111"
 
         tcp flags syn tcp option maxseg size set rt mtu
         iifname { "vlan10" } oifname "${SIX_RD}" accept
@@ -514,6 +528,7 @@ in
         iifname "vlan73" oifname "vlan40" ip saddr ${hosts.modi.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "modi -> backup host rest-server + observability"
         iifname "vlan74" oifname "vlan40" ip saddr ${hosts.auth.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "auth -> backup host rest-server + observability"
         iifname "vlan75" oifname "vlan40" ip saddr ${hosts.money.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "money -> backup host rest-server + observability"
+        iifname "vlan76" oifname "vlan40" ip saddr ${hosts.minecraft.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8428, 9428 } accept comment "minecraft -> backup host observability"
         iifname "vlan20" oifname "vlan40" ip saddr ${hosts.homeAssistant.ipv4} ip daddr ${hosts.backup.ipv4} tcp dport { 8000, 8428, 9428 } accept comment "home assistant -> backup host rest-server + observability"
 
         iifname "vlan70" oifname "vlan71" ip saddr ${hosts.nginxPublic.ipv4} ip daddr ${hosts.tasks.ipv4} tcp dport 8000 accept comment "nginx-public -> tasks backend"
@@ -529,7 +544,8 @@ in
 
         iifname "vlan111" ip saddr 192.168.111.0/24 ip daddr "${secrets.vlan111OutboundAllowedIP}" udp dport 49800 counter accept
 
-        ip daddr ${hosts.nginxPublic.ipv4} ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "port forwards"
+        ip daddr ${hosts.nginxPublic.ipv4} ct status dnat meta l4proto { tcp, udp } th dport { 80, 443 } counter accept comment "web port forwards"
+        ip daddr ${hosts.minecraft.ipv4} ct status dnat tcp dport 25565 counter accept comment "Minecraft port forward"
 
         iifname { vlan10, vlan20 } udp dport { 5353, 319, 320 } accept comment "mDNS reflection and AirPlay PTP multicast routing"
 
@@ -559,6 +575,8 @@ in
 
         fib daddr type local meta l4proto { tcp, udp } th dport { 80, 443 } ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.nginxPublic.ipv4}
         meta nfproto ipv4 iifname "${IF_WAN}" meta l4proto { tcp, udp } th dport { 80, 443 } counter dnat to ${hosts.nginxPublic.ipv4}
+        fib daddr type local tcp dport 25565 ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter dnat to ${hosts.minecraft.ipv4}
+        meta nfproto ipv4 iifname "${IF_WAN}" tcp dport 25565 counter dnat to ${hosts.minecraft.ipv4}
 
         iifname { "vlan10", "vlan20", "vlan30", "vlan999" } meta l4proto { tcp, udp } th dport 53 counter redirect to 53
       }
@@ -770,6 +788,7 @@ in
         local-data = [
           ''"ui.internal.veetik.com. IN A ${hosts.router.ipv4}"''
           ''"auth.veetik.com. IN A ${hosts.nginxPublic.ipv4}"''
+          ''"mc.veetik.com. IN CNAME oul-1.veetik.com."''
           ''"auth.internal.veetik.com. IN A ${hosts.auth.ipv4}"''
           ''"ha.internal.veetik.com. IN A ${hosts.homeAssistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.homeAssistant.ipv4}"''

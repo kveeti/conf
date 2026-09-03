@@ -86,6 +86,13 @@
       router4 = "192.168.75.1";
     };
 
+    publicMinecraft = {
+      interface = "vlan76";
+      vlan = 76;
+      cidr4 = "192.168.76.0/30";
+      router4 = "192.168.76.1";
+    };
+
     vlan111 = {
       interface = "vlan111";
       vlan = 111;
@@ -203,6 +210,12 @@
       hostname = "money";
       network = "publicMoney";
       ipv4 = "192.168.75.2";
+    };
+
+    minecraft = {
+      hostname = "minecraft";
+      network = "publicMinecraft";
+      ipv4 = "192.168.76.2";
     };
 
     media = {
