@@ -53,7 +53,7 @@ in {
           allowedTCPPorts = [ 22 25565 ];
         };
 
-        environment.systemPackages = [ pkgs.jdk25_headless pkgs.tmux pkgs.ghostty.terminfo ];
+        environment.systemPackages = [ pkgs.jdk25_headless pkgs.tmux pkgs.ghostty.terminfo pkgs.zip pkgs.unzip ];
       };
     };
   };
