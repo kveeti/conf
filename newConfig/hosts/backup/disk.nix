@@ -24,7 +24,7 @@
               name = "cryptroot";
               settings = {
                 allowDiscards = true;
-                crypttabExtraOpts = [ "timeout=0" "tries=0" ];
+                crypttabExtraOpts = [ "timeout=0" "tries=3" ];
               };
               content = {
                 type = "zfs";
@@ -79,7 +79,7 @@
         name = "cryptapool";
         settings = {
           allowDiscards = true;
-          crypttabExtraOpts = [ "timeout=0" "tries=0" ];
+          crypttabExtraOpts = [ "timeout=0" "tries=3" ];
         };
         content = {
           type = "zfs";
