@@ -77,7 +77,7 @@ in {
     locations."/".proxyPass = "http://127.0.0.1:8003";
   };
 
-  homelab.logs.units.money = {
+  homelab.logs.units."money.service" = {
     format = "auto";
     serviceName = "money";
   };

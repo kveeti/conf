@@ -102,7 +102,7 @@ in {
     };
   };
 
-  homelab.logs.units.nginx = {
+  homelab.logs.units."nginx.service" = {
     format = "auto";
     serviceName = "nginx";
   };

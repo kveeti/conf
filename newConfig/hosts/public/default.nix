@@ -13,6 +13,7 @@ in {
     ../../modules/telemetry/logs.nix
     ./disk.nix
     ./hardware.nix
+    ./keycloak.nix
     ./money.nix
     ./nginx.nix
     ./secure-boot.nix
