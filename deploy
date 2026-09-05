@@ -11,6 +11,7 @@ usage:
 hosts:
   router                 defaults to 192.168.5.1
   atx                    requires target-host
+  public                 requires target-host
   dev                    applies Home Manager directly to the dev VM; requires target-host
   backup                 requires target-host
   pc                     requires target-host
@@ -95,7 +96,7 @@ case "$host" in
 	router)
 		run_nixos_rebuild router "${target_arg:-${TARGET_HOST:-192.168.5.1}}"
 		;;
-	atx | backup | pc)
+	atx | public | backup | pc)
 		target=$(require_target "$host" "$target_arg")
 		run_nixos_rebuild "$host" "$target"
 		;;

@@ -5,7 +5,7 @@ let
   inventory = import ../router/inventory.nix;
   ssoHost = inventory.hosts.atxInternal.ipv4;
   internalIp = inventory.hosts.atxInternal.ipv4;
-  nginxPublicIp = inventory.hosts.nginxPublic.ipv4;
+  publicIp = inventory.hosts.public.ipv4;
   telemetryHtpasswd = "/var/lib/nginx/telemetry.htpasswd";
 
   publicProbes = [
@@ -60,7 +60,7 @@ let
     job_name = "blackbox-lan-${builtins.replaceStrings [ "." ] [ "-" ] p.host}";
     metrics_path = "/probe";
     params.module = [ (lanModuleName p.host) ];
-    static_configs = [{ targets = [ "https://${nginxPublicIp}${p.path}" ]; }];
+    static_configs = [{ targets = [ "https://${publicIp}${p.path}" ]; }];
     relabel_configs = [
       { source_labels = [ "__address__" ]; target_label = "__param_target"; }
       { target_label = "instance"; replacement = "https://${p.host}${p.path}"; }
@@ -224,7 +224,7 @@ in {
     "p.internal.veetik.com"
     "rss.internal.veetik.com"
   ];
-  networking.hosts.${nginxPublicIp} = [ "auth.veetik.com" ];
+  networking.hosts.${publicIp} = [ "auth.veetik.com" ];
   networking.hosts."127.0.0.1" = [ "grafana.internal.veetik.com" "backup.internal.veetik.com" ];
 
   # Must be owned by grafana or it can't read the secret at startup and won't come up.

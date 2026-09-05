@@ -6,6 +6,8 @@ let
   pgPkg = cfg.postgresPackage;
 
   dumpPath = db: "/tmp/pg-${db}.dump";
+  repositoryFileOf = i: if i.repositoryFile != null then i.repositoryFile else cfg.repositoryFile;
+  passwordFileOf = i: if i.passwordFile != null then i.passwordFile else cfg.passwordFile;
 in {
   imports = [ ./homelab-backups.nix ];
 
@@ -43,6 +45,16 @@ in {
             default = [ "${name}.service" ];
             description = "Units that must wait for the database to be ready.";
           };
+          repositoryFile = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "Restic repository file override for this database.";
+          };
+          passwordFile = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "Restic password file override for this database.";
+          };
           tag = lib.mkOption {
             type = lib.types.nullOr lib.types.str;
             default = config.database;
@@ -61,7 +73,16 @@ in {
     services.postgresql = {
       enable = true;
       enableJIT = true;
+      enableTCPIP = false;
       package = cfg.postgresPackage;
+      settings.listen_addresses = lib.mkForce "";
+      authentication = lib.mkForce ''
+        #     DATABASE USER      AUTHENTICATION
+        local all      postgres  peer
+        local all      root      peer
+        local sameuser all       peer
+        local all      all       reject
+      '';
       ensureDatabases = map (i: i.database) instances;
       ensureUsers =
         [{ name = "root"; ensureClauses = { login = true; superuser = true; }; }]
@@ -93,8 +114,8 @@ in {
     homelab.backups.instances = lib.mapAttrs' (_: i:
       let tagFlag = lib.optionalString (i.tag != null) "--tag ${i.tag}"; in
       lib.nameValuePair i.database {
-        repositoryFile = cfg.repositoryFile;
-        passwordFile   = cfg.passwordFile;
+        repositoryFile = repositoryFileOf i;
+        passwordFile   = passwordFileOf i;
         tag = i.tag;
         paths = [ (dumpPath i.database) ];
         prepare = "${pgPkg}/bin/pg_dump -Fc --no-owner --no-acl ${i.database} > ${dumpPath i.database}";

@@ -968,6 +968,9 @@
         "secrets-atx": "secrets-atx",
         "secrets-backup": "secrets-backup",
         "secrets-pc": "secrets-pc",
+        "secrets-public": [
+          "secrets-atx"
+        ],
         "secrets-router": "secrets-router",
         "weather": "weather"
       }
@@ -1018,11 +1021,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1787671065,
-        "narHash": "sha256-vH5LlfrY/uLabX3/nt5L6+60VqXfTYjHOSawq7pDXj0=",
+        "lastModified": 1788595420,
+        "narHash": "sha256-XqVstCN/yJOsY3QQA1GMtsd97Ni9CBbzttZnv5RD2VA=",
         "ref": "refs/heads/master",
-        "rev": "318a80b1184207b304a5ed21d631a42138f5eef8",
-        "revCount": 49,
+        "rev": "bc2042f2e91cdff719a46b502e54df44316dce68",
+        "revCount": 50,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
@@ -1037,11 +1040,11 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1787671065,
-        "narHash": "sha256-vH5LlfrY/uLabX3/nt5L6+60VqXfTYjHOSawq7pDXj0=",
+        "lastModified": 1788595420,
+        "narHash": "sha256-XqVstCN/yJOsY3QQA1GMtsd97Ni9CBbzttZnv5RD2VA=",
         "ref": "refs/heads/master",
-        "rev": "318a80b1184207b304a5ed21d631a42138f5eef8",
-        "revCount": 49,
+        "rev": "bc2042f2e91cdff719a46b502e54df44316dce68",
+        "revCount": 50,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },
