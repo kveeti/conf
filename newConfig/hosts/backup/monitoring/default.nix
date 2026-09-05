@@ -5,6 +5,9 @@
     ../../../modules/features/disk-health.nix
     ../../../modules/telemetry/logs.nix
     ../../../modules/telemetry/metrics.nix
+    ./grafana.nix
+    ./ingest.nix
+    ./probes.nix
     ./storage.nix
   ];
 

@@ -140,7 +140,7 @@ in {
             static_configs = [{ targets = [ "127.0.0.1:${toString cfg.nodeExporter.port}" ]; }];
           })
           ++ scrapeJobs
-          ++ map addInstanceLabel cfg.extraScrapeConfigs;
+          ++ cfg.extraScrapeConfigs;
       };
     };
   };
