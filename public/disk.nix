@@ -23,7 +23,10 @@
             content = {
               type = "luks";
               name = "cryptroot";
-              settings.allowDiscards = true;
+              settings = {
+                allowDiscards = true;
+                crypttabExtraOpts = [ "timeout=0" "tries=0" ];
+              };
               content = {
                 type = "zfs";
                 pool = "rpool";
