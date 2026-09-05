@@ -13,11 +13,13 @@ in {
     ../../modules/telemetry/logs.nix
     ./disk.nix
     ./hardware.nix
+    ./nginx.nix
     ./secure-boot.nix
   ];
 
   age.secrets = {
     password = {};
+    cloudflare-env-file = {};
     telemetry-pass = {};
   };
 
