@@ -16,6 +16,7 @@ in {
     ./disk.nix
     ./hardware.nix
     ./keycloak.nix
+    ./modi.nix
     ./money.nix
     ./nginx.nix
     ./secure-boot.nix
