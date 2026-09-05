@@ -44,46 +44,11 @@
       router4 = "192.168.40.1";
     };
 
-    publicNginx = {
-      interface = "vlan70";
-      vlan = 70;
-      cidr4 = "192.168.70.0/30";
-      router4 = "192.168.70.1";
-    };
-
-    publicTasks = {
-      interface = "vlan71";
-      vlan = 71;
-      cidr4 = "192.168.71.0/30";
-      router4 = "192.168.71.1";
-    };
-
-    publicBm = {
-      interface = "vlan72";
-      vlan = 72;
-      cidr4 = "192.168.72.0/30";
-      router4 = "192.168.72.1";
-    };
-
-    publicModi = {
-      interface = "vlan73";
-      vlan = 73;
-      cidr4 = "192.168.73.0/30";
-      router4 = "192.168.73.1";
-    };
-
-    auth = {
-      interface = "vlan74";
-      vlan = 74;
-      cidr4 = "192.168.74.0/30";
-      router4 = "192.168.74.1";
-    };
-
-    publicMoney = {
-      interface = "vlan75";
-      vlan = 75;
-      cidr4 = "192.168.75.0/30";
-      router4 = "192.168.75.1";
+    dmz = {
+      interface = "vlan66";
+      vlan = 66;
+      cidr4 = "192.168.66.0/29";
+      router4 = "192.168.66.1";
     };
 
     publicMinecraft = {
@@ -176,40 +141,12 @@
       ipv4 = "192.168.40.12";
     };
 
-    nginxPublic = {
-      hostname = "nginx-public";
-      network = "publicNginx";
-      ipv4 = "192.168.70.2";
-    };
-
-    tasks = {
-      hostname = "tasks";
-      network = "publicTasks";
-      ipv4 = "192.168.71.2";
-    };
-
-    bm = {
-      hostname = "bm";
-      network = "publicBm";
-      ipv4 = "192.168.72.2";
-    };
-
-    modi = {
-      hostname = "modi";
-      network = "publicModi";
-      ipv4 = "192.168.73.2";
-    };
-
-    auth = {
-      hostname = "auth";
-      network = "auth";
-      ipv4 = "192.168.74.2";
-    };
-
-    money = {
-      hostname = "money";
-      network = "publicMoney";
-      ipv4 = "192.168.75.2";
+    public = {
+      hostname = "public";
+      mac = "e8:6a:64:99:a8:76";
+      network = "dmz";
+      ipv4 = "192.168.66.2";
+      adminIpv4 = "192.168.66.3";
     };
 
     minecraft = {

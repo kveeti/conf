@@ -103,7 +103,7 @@ in {
         microvm.mem = lib.mkForce 3072;
 
         networking.hostName = "internal";
-        networking.hosts.${guestIps.nginx-public} = [ "auth.veetik.com" ];
+        networking.hosts.${guestIps.public} = [ "auth.veetik.com" ];
 
         microvm.interfaces = [{
           type = "tap";

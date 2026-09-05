@@ -1,16 +1,11 @@
-{ config, pkgs, lib, keys, microvm, pkgs-unstable, rss, food, weather, money, nixvim, ... }:
+{ config, pkgs, lib, keys, microvm, pkgs-unstable, rss, food, weather, nixvim, ... }:
 
 let
   inventory = import ../router/inventory.nix;
   hosts = inventory.hosts;
   hostMgmtIp = hosts.atx.ipv4;
   guestIps = {
-    nginx-public  = hosts.nginxPublic.ipv4;
-    tasks         = hosts.tasks.ipv4;
-    bm            = hosts.bm.ipv4;
-    modi          = hosts.modi.ipv4;
-    auth          = hosts.auth.ipv4;
-    money         = hosts.money.ipv4;
+    public        = hosts.public.ipv4;
     minecraft     = hosts.minecraft.ipv4;
     internal      = hosts.atxInternal.ipv4;
     printer       = hosts.printer.ipv4;
@@ -21,12 +16,6 @@ let
   };
   vlanGateway = inventory.networks.servers.router4;
   publicGateways = {
-    nginx-public = inventory.networks.publicNginx.router4;
-    tasks = inventory.networks.publicTasks.router4;
-    bm = inventory.networks.publicBm.router4;
-    modi = inventory.networks.publicModi.router4;
-    auth = inventory.networks.auth.router4;
-    money = inventory.networks.publicMoney.router4;
     minecraft = inventory.networks.publicMinecraft.router4;
   };
   backupHostIp = hosts.backup.ipv4;
@@ -39,13 +28,7 @@ in
     ../modules/nixos/homelab-metrics.nix
     ../modules/nixos/homelab-logs.nix
     ./storage/media.nix
-    ./guests/public/nginx-public.nix
-    ./guests/public/tasks.nix
-    ./guests/public/bm.nix
-    ./guests/public/modi.nix
-    ./guests/public/money.nix
     ./guests/public/minecraft.nix
-    ./guests/auth
     ./guests/internal
     ./guests/media
     ./media-certificate.nix
@@ -136,41 +119,11 @@ in
 
     netdevs = {
       "10-br-vlan40".netdevConfig  = { Name = "br-vlan40";  Kind = "bridge"; };
-      "10-br-vlan70".netdevConfig  = { Name = "br-vlan70";  Kind = "bridge"; };
-      "10-br-vlan71".netdevConfig  = { Name = "br-vlan71";  Kind = "bridge"; };
-      "10-br-vlan72".netdevConfig  = { Name = "br-vlan72";  Kind = "bridge"; };
-      "10-br-vlan73".netdevConfig  = { Name = "br-vlan73";  Kind = "bridge"; };
-      "10-br-vlan74".netdevConfig  = { Name = "br-vlan74";  Kind = "bridge"; };
-      "10-br-vlan75".netdevConfig  = { Name = "br-vlan75";  Kind = "bridge"; };
       "10-br-vlan76".netdevConfig  = { Name = "br-vlan76";  Kind = "bridge"; };
       "10-br-vlan20".netdevConfig  = { Name = "br-vlan20";  Kind = "bridge"; };
       "10-br-vlan111".netdevConfig = { Name = "br-vlan111"; Kind = "bridge"; };
       "10-br-vlan999".netdevConfig = { Name = "br-vlan999"; Kind = "bridge"; };
 
-      "20-vlan70" = {
-        netdevConfig = { Name = "vlan70"; Kind = "vlan"; };
-        vlanConfig.Id = 70;
-      };
-      "20-vlan71" = {
-        netdevConfig = { Name = "vlan71"; Kind = "vlan"; };
-        vlanConfig.Id = 71;
-      };
-      "20-vlan72" = {
-        netdevConfig = { Name = "vlan72"; Kind = "vlan"; };
-        vlanConfig.Id = 72;
-      };
-      "20-vlan73" = {
-        netdevConfig = { Name = "vlan73"; Kind = "vlan"; };
-        vlanConfig.Id = 73;
-      };
-      "20-vlan74" = {
-        netdevConfig = { Name = "vlan74"; Kind = "vlan"; };
-        vlanConfig.Id = 74;
-      };
-      "20-vlan75" = {
-        netdevConfig = { Name = "vlan75"; Kind = "vlan"; };
-        vlanConfig.Id = 75;
-      };
       "20-vlan76" = {
         netdevConfig = { Name = "vlan76"; Kind = "vlan"; };
         vlanConfig.Id = 76;
@@ -194,22 +147,10 @@ in
         matchConfig.Name = "enxc87f5465d1b8";
         networkConfig = {
           Bridge = "br-vlan40";
-          VLAN = [ "vlan70" "vlan71" "vlan72" "vlan73" "vlan74" "vlan75" "vlan76" "vlan20" "vlan111" "vlan999" ];
+          VLAN = [ "vlan76" "vlan20" "vlan111" "vlan999" ];
         };
       };
 
-      "40-vlan70".matchConfig.Name = "vlan70";
-      "40-vlan70".networkConfig.Bridge = "br-vlan70";
-      "40-vlan71".matchConfig.Name = "vlan71";
-      "40-vlan71".networkConfig.Bridge = "br-vlan71";
-      "40-vlan72".matchConfig.Name = "vlan72";
-      "40-vlan72".networkConfig.Bridge = "br-vlan72";
-      "40-vlan73".matchConfig.Name = "vlan73";
-      "40-vlan73".networkConfig.Bridge = "br-vlan73";
-      "40-vlan74".matchConfig.Name = "vlan74";
-      "40-vlan74".networkConfig.Bridge = "br-vlan74";
-      "40-vlan75".matchConfig.Name = "vlan75";
-      "40-vlan75".networkConfig.Bridge = "br-vlan75";
       "40-vlan76".matchConfig.Name = "vlan76";
       "40-vlan76".networkConfig.Bridge = "br-vlan76";
 
@@ -229,30 +170,6 @@ in
         networkConfig.DHCP = "no";
       };
 
-      "50-br-vlan70" = {
-        matchConfig.Name = "br-vlan70";
-        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
-      };
-      "50-br-vlan71" = {
-        matchConfig.Name = "br-vlan71";
-        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
-      };
-      "50-br-vlan72" = {
-        matchConfig.Name = "br-vlan72";
-        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
-      };
-      "50-br-vlan73" = {
-        matchConfig.Name = "br-vlan73";
-        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
-      };
-      "50-br-vlan74" = {
-        matchConfig.Name = "br-vlan74";
-        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
-      };
-      "50-br-vlan75" = {
-        matchConfig.Name = "br-vlan75";
-        networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
-      };
       "50-br-vlan76" = {
         matchConfig.Name = "br-vlan76";
         networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
@@ -270,30 +187,6 @@ in
         networkConfig = { LinkLocalAddressing = "no"; DHCP = "no"; };
       };
 
-      "60-vm-nginx-public" = {
-        matchConfig.Name = "vm-nginx-public";
-        networkConfig.Bridge = "br-vlan70";
-      };
-      "60-vm-tasks" = {
-        matchConfig.Name = "vm-tasks";
-        networkConfig.Bridge = "br-vlan71";
-      };
-      "60-vm-bm" = {
-        matchConfig.Name = "vm-bm";
-        networkConfig.Bridge = "br-vlan72";
-      };
-      "60-vm-modi" = {
-        matchConfig.Name = "vm-modi";
-        networkConfig.Bridge = "br-vlan73";
-      };
-      "60-vm-auth" = {
-        matchConfig.Name = "vm-auth";
-        networkConfig.Bridge = "br-vlan74";
-      };
-      "60-vm-money" = {
-        matchConfig.Name = "vm-money";
-        networkConfig.Bridge = "br-vlan75";
-      };
       "60-vm-minecraft" = {
         matchConfig.Name = "vm-minecraft";
         networkConfig.Bridge = "br-vlan76";
@@ -395,7 +288,7 @@ in
   ];
 
   _module.args = {
-    inherit keys guestIps hostMgmtIp publicGateways vlanGateway pkgs-unstable rss food weather money nixvim;
+    inherit keys guestIps hostMgmtIp publicGateways vlanGateway pkgs-unstable rss food weather nixvim;
   };
 
   system.stateVersion = "25.11";

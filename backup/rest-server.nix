@@ -64,12 +64,19 @@ in {
   systemd.services = lib.listToAttrs (map (name: lib.nameValuePair "restic-${name}-prune" {
     description = "Prune ${name} restic repo (host-side; append-only blocks client prune)";
     path = [ pkgs.restic ];
-    serviceConfig.Type = "oneshot";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "restic";
+      Group = "restic";
+      CacheDirectory = "restic";
+      LoadCredential = [ "password:${encPassSecret name}" ];
+    };
     environment = {
       RESTIC_REPOSITORY = "${dataDir}/${name}";
-      RESTIC_PASSWORD_FILE = encPassSecret name;
+      RESTIC_CACHE_DIR = "/var/cache/restic";
     };
     script = ''
+      export RESTIC_PASSWORD_FILE="$CREDENTIALS_DIRECTORY/password"
       if ! restic cat config >/dev/null 2>&1; then
         echo "repo not initialized yet, skipping prune"
         exit 0

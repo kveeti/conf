@@ -26,6 +26,7 @@
 
     secrets-router.url = "git+file:///Users/veeti/code/personal/secrets?rev=4f3e6e167d17dabd608d22b80d5bde3f4ae44204";
     secrets-atx.url = "git+file:///Users/veeti/code/personal/secrets";
+    secrets-public.follows = "secrets-atx";
     secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
     secrets-pc.url = "git+file:///Users/veeti/code/personal/secrets?rev=990f67cf535399bc448aa028d3f2d7e410bf5b30";
 
@@ -48,6 +49,7 @@
       disko-router,
       secrets-router,
       secrets-atx,
+      secrets-public,
       secrets-backup,
       secrets-pc,
       weather,
@@ -123,6 +125,22 @@
         };
 
         inherit atx;
+
+        public = nixpkgs.lib.nixosSystem {
+          system = linuxSystem;
+          modules = [
+            disko.nixosModules.disko
+            lanzaboote.nixosModules.lanzaboote
+            ./public/config.nix
+            ./public/disk.nix
+            ./public/hardware-config.nix
+            secrets-public.nixosModules.public
+          ];
+          specialArgs = {
+            keys = (import secrets-public).keys;
+            inherit money;
+          };
+        };
 
         backup = nixpkgs.lib.nixosSystem {
           system = linuxSystem;
