@@ -1,9 +1,11 @@
+{ device ? "/dev/nvme0n1", ... }:
+
 {
   disko.devices = {
     disk = {
       main = {
         type = "disk";
-        device = "/dev/nvme0n1";
+        inherit device;
         content = {
           type = "gpt";
           partitions = {
@@ -20,9 +22,18 @@
             root = {
               size = "100%";
               content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/";
+                type = "luks";
+                name = "crypted";
+                settings.crypttabExtraOpts = [
+                  "tpm2-device=auto"
+                  "timeout=0"
+                  "tries=0"
+                ];
+                content = {
+                  type = "filesystem";
+                  format = "ext4";
+                  mountpoint = "/";
+                };
               };
             };
           };
