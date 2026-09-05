@@ -72,7 +72,8 @@ let
       };
       script = ''
         set -euo pipefail
-        if ${instance.hasData}; then
+        if ${instance.hasData}
+        then
           echo "${name} already has state; skipping restore"
           exit 0
         fi

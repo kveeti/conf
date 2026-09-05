@@ -167,6 +167,27 @@
         "type": "github"
       }
     },
+    "money": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787733991,
+        "narHash": "sha256-tdaVdFuSmiFhj6swfmmDApjgbaQXrru7ksMvuVwi9DU=",
+        "owner": "kveeti",
+        "repo": "money",
+        "rev": "4508467b447e96204ef4ec8a88810abe0b2b4511",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kveeti",
+        "ref": "main",
+        "repo": "money",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1788405554,
@@ -226,6 +247,7 @@
       "inputs": {
         "disko": "disko",
         "lanzaboote": "lanzaboote",
+        "money": "money",
         "nixpkgs": "nixpkgs",
         "secrets-backup": "secrets-backup",
         "secrets-public": [

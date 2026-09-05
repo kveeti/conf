@@ -19,10 +19,10 @@ in {
       description = "Service databases keyed by database name.";
       type = lib.types.attrsOf (lib.types.submodule ({ name, ... }: {
         options = {
-          units = lib.mkOption {
+          services = lib.mkOption {
             type = lib.types.listOf lib.types.str;
-            default = [ "${name}.service" ];
-            description = "Units which need this database.";
+            default = [ name ];
+            description = "Systemd services which need this database.";
           };
 
           backup = {
@@ -97,8 +97,8 @@ in {
         ${cfg.package}/bin/pg_dump -Fc --no-owner --no-acl ${name} > ${dumpPath name}
       '';
       cleanup = "rm -f ${dumpPath name}";
-      before = database.units;
-      requiredBy = database.units;
+      before = map (service: "${service}.service") database.services;
+      requiredBy = map (service: "${service}.service") database.services;
       after = [ "postgresql.service" ];
       extraPackages = [ cfg.package ];
       hasData = ''
@@ -113,7 +113,7 @@ in {
     }) cfg.databases;
 
     systemd.services = lib.mkMerge (lib.mapAttrsToList (_: database:
-      lib.genAttrs database.units (_: {
+      lib.genAttrs database.services (_: {
         after = [ "postgresql.service" ];
         requires = [ "postgresql.service" ];
       })

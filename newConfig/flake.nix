@@ -12,11 +12,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    money = {
+      url = "github:kveeti/money/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
     secrets-public.follows = "secrets-backup";
   };
 
-  outputs = { self, nixpkgs, disko, lanzaboote, secrets-backup, secrets-public }:
+  outputs = { self, nixpkgs, disko, lanzaboote, money, secrets-backup, secrets-public }:
     let
       inventory = import ./inventory.nix;
 
@@ -53,7 +58,10 @@
 
         public = mkHost {
           hostName = "public";
-          specialArgs.adminKeys = (import secrets-public).keys.admins;
+          specialArgs = {
+            adminKeys = (import secrets-public).keys.admins;
+            inherit money;
+          };
           modules = [
             disko.nixosModules.disko
             lanzaboote.nixosModules.lanzaboote
