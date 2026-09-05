@@ -99,6 +99,7 @@
           modules = [
             disko-router.nixosModules.disko
             microvm.nixosModules.host
+            lanzaboote.nixosModules.lanzaboote
             ./modules/nixos/dns-records.nix
             ./router/config.nix
             ./router/disk.nix
@@ -108,6 +109,16 @@
           specialArgs = {
             secrets = import secrets-router;
             inherit serviceDnsRecords;
+          };
+        };
+
+        router-recovery = nixpkgs-router.lib.nixosSystem {
+          system = linuxSystem;
+          modules = [ ./router/recovery.nix ];
+          specialArgs = {
+            keys = (import secrets-router).keys.admins;
+            routerSystem = router.config.system.build.toplevel;
+            diskoPackage = disko-router.packages.${linuxSystem}.disko;
           };
         };
 
