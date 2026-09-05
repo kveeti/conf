@@ -9,6 +9,7 @@ in {
     ../../modules/profiles/base.nix
     ../../modules/profiles/server.nix
     ../../modules/features/disk-health.nix
+    ../../modules/services/postgresql.nix
     ../../modules/telemetry/logs.nix
     ./disk.nix
     ./hardware.nix
