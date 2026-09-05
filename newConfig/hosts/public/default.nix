@@ -11,12 +11,15 @@ in {
     ../../modules/features/disk-health.nix
     ../../modules/services/postgresql.nix
     ../../modules/telemetry/logs.nix
+    ./bm.nix
+    ./containers.nix
     ./disk.nix
     ./hardware.nix
     ./keycloak.nix
     ./money.nix
     ./nginx.nix
     ./secure-boot.nix
+    ./tasks.nix
   ];
 
   age.secrets = {

@@ -1,0 +1,54 @@
+{ config, inventory, ... }:
+
+let
+  publicIp = inventory.hosts.public.ipv4;
+in {
+  age.secrets.bm-backend-env = {
+    owner = "bm";
+    group = "bm";
+  };
+  age.secrets.restic-bm-rest-pass = {};
+  age.secrets.restic-bm-encryption-pass = {};
+
+  users.groups.bm = {};
+  users.users.bm = {
+    isSystemUser = true;
+    group = "bm";
+  };
+
+  virtualisation.oci-containers.containers.bm = {
+    image = "docker.io/veetik/bm_backend@sha256:769200adbb782292f44f9490040a59688bb2e28e06cd739871dd7c1d5565d42a";
+    user = "bm";
+    extraOptions = [ "--hostuser=bm" ];
+    ports = [ "127.0.0.1:8002:8000" ];
+    volumes = [
+      "/run/postgresql:/run/postgresql"
+      "${config.age.secrets.bm-backend-env.path}:/.env:ro"
+    ];
+    environment.DATABASE_URL = "postgresql://bm@127.0.0.1/bm?host=/run/postgresql";
+  };
+
+  homelab.postgresql.databases.bm = {
+    services = [ "podman-bm" ];
+    backup = {
+      repository = "rest:https://backup.internal.veetik.com:8000/bm";
+      restPasswordFile = config.age.secrets.restic-bm-rest-pass.path;
+      encryptionPasswordFile = config.age.secrets.restic-bm-encryption-pass.path;
+    };
+  };
+
+  services.nginx.virtualHosts."bm_back.veetik.com" = {
+    useACMEHost = "veetik.com";
+    forceSSL = true;
+    listen = [
+      { addr = publicIp; port = 80; }
+      { addr = publicIp; port = 443; ssl = true; }
+    ];
+    locations."/".proxyPass = "http://127.0.0.1:8002";
+  };
+
+  homelab.logs.units."podman-bm.service" = {
+    format = "auto";
+    serviceName = "bm";
+  };
+}
