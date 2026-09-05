@@ -7,10 +7,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
+    secrets-public.follows = "secrets-backup";
   };
 
-  outputs = { self, nixpkgs, disko, secrets-backup }:
+  outputs = { self, nixpkgs, disko, lanzaboote, secrets-backup, secrets-public }:
     let
       inventory = import ./inventory.nix;
 
@@ -34,14 +40,27 @@
         server = ./modules/profiles/server.nix;
       };
 
-      nixosConfigurations.backup = mkHost {
-        hostName = "backup";
-        specialArgs.adminKeys = (import secrets-backup).keys.admins;
-        modules = [
-          disko.nixosModules.disko
-          secrets-backup.nixosModules.backup
-          ./hosts/backup
-        ];
+      nixosConfigurations = {
+        backup = mkHost {
+          hostName = "backup";
+          specialArgs.adminKeys = (import secrets-backup).keys.admins;
+          modules = [
+            disko.nixosModules.disko
+            secrets-backup.nixosModules.backup
+            ./hosts/backup
+          ];
+        };
+
+        public = mkHost {
+          hostName = "public";
+          specialArgs.adminKeys = (import secrets-public).keys.admins;
+          modules = [
+            disko.nixosModules.disko
+            lanzaboote.nixosModules.lanzaboote
+            secrets-public.nixosModules.public
+            ./hosts/public
+          ];
+        };
       };
     };
 }
