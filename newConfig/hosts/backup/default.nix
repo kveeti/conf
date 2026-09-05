@@ -9,6 +9,7 @@ in {
     ../../modules/profiles/server.nix
     ./disk.nix
     ./hardware.nix
+    ./restic.nix
   ];
 
   homelab.admin = {
