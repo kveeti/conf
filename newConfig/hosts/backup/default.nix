@@ -9,6 +9,7 @@ in {
     ../../modules/profiles/server.nix
     ./disk.nix
     ./hardware.nix
+    ./monitoring
     ./restic.nix
   ];
 
