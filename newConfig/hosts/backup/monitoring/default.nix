@@ -3,9 +3,15 @@
 {
   imports = [
     ../../../modules/features/disk-health.nix
+    ../../../modules/telemetry/logs.nix
     ../../../modules/telemetry/metrics.nix
     ./storage.nix
   ];
+
+  homelab.logs = {
+    enable = true;
+    url = "http://127.0.0.1:19428";
+  };
 
   homelab.metrics = {
     enable = true;
