@@ -7,6 +7,7 @@ in {
     ../../modules/profiles/base.nix
     ../../modules/profiles/server.nix
     ../../modules/features/port-registry.nix
+    ./ddns.nix
     ./disk.nix
     ./dns.nix
     ./firewall.nix
@@ -14,6 +15,7 @@ in {
     ./hardening.nix
     ./network.nix
     ./secure-boot.nix
+    ./telemetry.nix
   ];
 
   age.secrets.password = {};

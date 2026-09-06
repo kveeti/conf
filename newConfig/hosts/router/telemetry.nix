@@ -1,0 +1,147 @@
+{ config, inventory, pkgs, ... }:
+
+let
+  backup = inventory.hosts.backup;
+  unifi = inventory.hosts.unifi;
+  ports = config.homelab.ports;
+
+  blackboxConfig = pkgs.writeText "router-blackbox.yml" (builtins.toJSON {
+    modules = {
+      icmp = {
+        prober = "icmp";
+        timeout = "5s";
+      };
+      dnsSoa = {
+        prober = "dns";
+        timeout = "5s";
+        dns = {
+          query_name = "veetik.com";
+          query_type = "SOA";
+        };
+      };
+      http = {
+        prober = "http";
+        timeout = "5s";
+        http.preferred_ip_protocol = "ip4";
+      };
+    };
+  });
+
+  blackboxJob = name: module: targets: {
+    job_name = "blackbox-${name}";
+    metrics_path = "/probe";
+    params.module = [ module ];
+    static_configs = [{ inherit targets; }];
+    relabel_configs = [
+      {
+        source_labels = [ "__address__" ];
+        target_label = "__param_target";
+      }
+      {
+        source_labels = [ "__param_target" ];
+        target_label = "instance";
+      }
+      {
+        target_label = "__address__";
+        replacement = "127.0.0.1:${toString ports.blackboxExporter}";
+      }
+    ];
+  };
+in {
+  imports = [
+    ../../modules/telemetry/logs.nix
+    ../../modules/telemetry/metrics.nix
+  ];
+
+  age.secrets = {
+    telemetry-pass = {};
+    unpoller-env = {};
+  };
+
+  networking.hosts.${backup.ipv4} = [ "backup.internal.veetik.com" ];
+
+  services.prometheus.exporters = {
+    wireguard = {
+      enable = true;
+      listenAddress = "127.0.0.1";
+      port = ports.wireguardExporter;
+      interfaces = [ "wg0" ];
+    };
+
+    unbound = {
+      enable = true;
+      listenAddress = "127.0.0.1";
+      port = ports.unboundExporter;
+      unbound.host = "unix:///run/unbound/unbound.ctl";
+      unbound.ca = null;
+      unbound.certificate = null;
+      unbound.key = null;
+    };
+
+    blackbox = {
+      enable = true;
+      listenAddress = "127.0.0.1";
+      port = ports.blackboxExporter;
+      configFile = blackboxConfig;
+    };
+
+    unpoller = {
+      enable = true;
+      listenAddress = "127.0.0.1";
+      port = ports.unifiExporter;
+      controllers = [{
+        url = "https://${unifi.ipv4}:${toString unifi.ports.web}";
+        user = "metrics";
+        verify_ssl = false;
+      }];
+    };
+  };
+
+  systemd.services.prometheus-unpoller-exporter.serviceConfig.EnvironmentFile =
+    config.age.secrets.unpoller-env.path;
+
+  homelab = {
+    metrics = {
+      enable = true;
+      listenAddress = "127.0.0.1:${toString ports.vmagent}";
+      nodeExporter = {
+        port = ports.nodeExporter;
+        collectors = [ "systemd" "ethtool" ];
+      };
+      remoteWriteUrl = "https://backup.internal.veetik.com:${toString backup.ports.metricsIngress}/api/v1/write";
+      username = "telemetry";
+      passwordFile = config.age.secrets.telemetry-pass.path;
+      scrapes = {
+        wireguard.targets = [ "127.0.0.1:${toString ports.wireguardExporter}" ];
+        unbound.targets = [ "127.0.0.1:${toString ports.unboundExporter}" ];
+        unifi.targets = [ "127.0.0.1:${toString ports.unifiExporter}" ];
+      };
+      extraScrapeConfigs = [
+        (blackboxJob "icmp" "icmp" [ "1.1.1.1" "8.8.8.8" "9.9.9.9" ])
+        (blackboxJob "dns" "dnsSoa" [ "1.1.1.1" "8.8.8.8" ])
+        (blackboxJob "http" "http" [ "https://www.google.com" "https://cloudflare.com" ])
+      ];
+    };
+
+    logs = {
+      enable = true;
+      url = "https://backup.internal.veetik.com:${toString backup.ports.logsIngress}";
+      username = "telemetry";
+      passwordFile = config.age.secrets.telemetry-pass.path;
+      units = {
+        "dnsmasq.service" = {
+          format = "plain";
+          serviceName = "dnsmasq";
+        };
+        "nftables.service" = {
+          format = "plain";
+          serviceName = "nftables";
+        };
+        "unbound.service" = {
+          format = "plain";
+          serviceName = "unbound";
+        };
+      };
+    };
+  };
+}
