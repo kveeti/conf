@@ -1,9 +1,11 @@
-{ config, adminKeys, inventory, pkgs, ... }:
+{ config, adminKeys, inventory, lib, pkgs, ... }:
 
 let
   host = inventory.hosts.public;
   network = inventory.networks.${host.network};
   backup = inventory.hosts.backup;
+  ports = host.ports;
+  portNumbers = builtins.attrValues ports;
 in {
   imports = [
     ../../modules/profiles/base.nix
@@ -22,6 +24,11 @@ in {
     ./secure-boot.nix
     ./tasks.nix
   ];
+
+  assertions = [{
+    assertion = builtins.length portNumbers == builtins.length (lib.unique portNumbers);
+    message = "inventory.hosts.public.ports contains duplicate ports";
+  }];
 
   age.secrets = {
     password = {};
@@ -47,7 +54,7 @@ in {
         flushBeforeStage2 = true;
         ssh = {
           enable = true;
-          port = 2222;
+          port = ports.initrdSsh;
           authorizedKeys = adminKeys;
           hostKeys = [ "/etc/secrets/initrd/ssh_host_ed25519_key" ];
         };
@@ -60,7 +67,7 @@ in {
     useDHCP = false;
     useNetworkd = true;
     hosts.${backup.ipv4} = [ "backup.internal.veetik.com" ];
-    firewall.allowedTCPPorts = [ 22 ];
+    firewall.allowedTCPPorts = [ ports.ssh ];
   };
 
   systemd.network = {
@@ -81,7 +88,11 @@ in {
   };
 
   services = {
-    openssh.listenAddresses = [{ addr = host.adminIpv4; port = 22; }];
+    openssh.listenAddresses = [{ addr = host.adminIpv4; port = ports.ssh; }];
+    prometheus.exporters = {
+      postgres.port = ports.postgresqlExporter;
+      smartctl.port = ports.smartctlExporter;
+    };
     zfs = {
       autoScrub.enable = true;
       trim.enable = true;
@@ -96,8 +107,15 @@ in {
   homelab = {
     backups.serverUrl = "https://backup.internal.veetik.com:8000";
 
+    nginxMetrics = {
+      statusPort = ports.nginxStatus;
+      exporterPort = ports.nginxExporter;
+    };
+
     metrics = {
       enable = true;
+      listenAddress = "127.0.0.1:${toString ports.vmagent}";
+      nodeExporter.port = ports.nodeExporter;
       remoteWriteUrl = "https://backup.internal.veetik.com:8428/api/v1/write";
       username = "telemetry";
       passwordFile = config.age.secrets.telemetry-pass.path;

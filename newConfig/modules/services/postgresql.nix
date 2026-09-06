@@ -85,7 +85,9 @@ in {
       runAsLocalSuperUser = true;
     };
 
-    homelab.metrics.scrapes.postgresql.targets = [ "127.0.0.1:9187" ];
+    homelab.metrics.scrapes.postgresql.targets = [
+      "127.0.0.1:${toString config.services.prometheus.exporters.postgres.port}"
+    ];
 
     homelab.backups.instances = lib.mapAttrs (name: database: {
       repository = database.backup.repository;

@@ -1,7 +1,9 @@
 { config, inventory, ... }:
 
 let
-  publicIp = inventory.hosts.public.ipv4;
+  publicHost = inventory.hosts.public;
+  publicIp = publicHost.ipv4;
+  ports = publicHost.ports;
 in {
   age.secrets.bm-backend-env = {
     owner = "bm";
@@ -20,7 +22,7 @@ in {
     image = "docker.io/veetik/bm_backend@sha256:769200adbb782292f44f9490040a59688bb2e28e06cd739871dd7c1d5565d42a";
     user = "bm";
     extraOptions = [ "--hostuser=bm" ];
-    ports = [ "127.0.0.1:8002:8000" ];
+    ports = [ "127.0.0.1:${toString ports.bm}:8000" ];
     volumes = [
       "/run/postgresql:/run/postgresql"
       "${config.age.secrets.bm-backend-env.path}:/.env:ro"
@@ -40,10 +42,10 @@ in {
     useACMEHost = "veetik.com";
     forceSSL = true;
     listen = [
-      { addr = publicIp; port = 80; }
-      { addr = publicIp; port = 443; ssl = true; }
+      { addr = publicIp; port = ports.http; }
+      { addr = publicIp; port = ports.https; ssl = true; }
     ];
-    locations."/".proxyPass = "http://127.0.0.1:8002";
+    locations."/".proxyPass = "http://127.0.0.1:${toString ports.bm}";
   };
 
   homelab.logs.units."podman-bm.service" = {

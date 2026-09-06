@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 {
   imports = [ ../telemetry/metrics.nix ];
@@ -8,5 +8,7 @@
     listenAddress = "127.0.0.1";
   };
 
-  homelab.metrics.scrapes.smartctl.targets = [ "127.0.0.1:9633" ];
+  homelab.metrics.scrapes.smartctl.targets = [
+    "127.0.0.1:${toString config.services.prometheus.exporters.smartctl.port}"
+  ];
 }

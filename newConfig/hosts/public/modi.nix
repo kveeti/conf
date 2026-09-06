@@ -1,11 +1,13 @@
-{ config, pkgs, ... }:
+{ config, inventory, pkgs, ... }:
 
 let
+  ports = inventory.hosts.public.ports;
+
   waitForMongo = pkgs.writeShellScript "wait-for-modi-mongo" ''
     ready=false
     for _ in $(seq 1 60); do
       if ${pkgs.podman}/bin/podman exec modi-mongo mongosh \
-        "mongodb://mongo:mongo@127.0.0.1:27017/admin?authSource=admin&serverSelectionTimeoutMS=1000" \
+        "mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/admin?authSource=admin&serverSelectionTimeoutMS=1000" \
         --quiet --eval 'db.adminCommand("ping").ok' >/dev/null 2>&1; then
         ready=true
         break
@@ -22,7 +24,7 @@ let
   mongoHasData = pkgs.writeShellScript "modi-mongo-has-data" ''
     ${waitForMongo}
     count=$(${pkgs.podman}/bin/podman exec modi-mongo mongosh \
-      "mongodb://mongo:mongo@127.0.0.1:27017/modi?authSource=admin" \
+      "mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin" \
       --quiet --eval 'db.getCollectionNames().length')
     [ "$count" != "0" ]
   '';
@@ -36,6 +38,7 @@ in {
   virtualisation.oci-containers.containers = {
     modi-mongo = {
       image = "docker.io/library/mongo@sha256:a2e96682a6d92742341db59a1956569bfd2b30704acef5da034cc17e18bb7ed4";
+      cmd = [ "mongod" "--port" (toString ports.mongo) ];
       extraOptions = [ "--network=host" ];
       volumes = [ "/var/lib/mongo:/data/db" ];
       environment = {
@@ -49,7 +52,7 @@ in {
       dependsOn = [ "modi-mongo" ];
       extraOptions = [ "--network=host" ];
       volumes = [ "${config.age.secrets.modi-env.path}:/app/.env:ro" ];
-      environment.MONGO_URI = "mongodb://mongo:mongo@127.0.0.1:27017/modi?authSource=admin";
+      environment.MONGO_URI = "mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin";
     };
   };
 
@@ -77,7 +80,7 @@ in {
     prepare = ''
       ${waitForMongo}
       mongodump \
-        --uri="mongodb://mongo:mongo@127.0.0.1:27017/modi?authSource=admin" \
+        --uri="mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin" \
         --archive=/tmp/modi.archive
     '';
     cleanup = "rm -f /tmp/modi.archive";
@@ -85,7 +88,7 @@ in {
     restore = ''
       restic dump latest /tmp/modi.archive > /tmp/modi.archive.restore
       mongorestore \
-        --uri="mongodb://mongo:mongo@127.0.0.1:27017/modi?authSource=admin" \
+        --uri="mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin" \
         --archive=/tmp/modi.archive.restore
       rm -f /tmp/modi.archive.restore
     '';

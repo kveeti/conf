@@ -1,7 +1,9 @@
 { config, inventory, money, ... }:
 
 let
-  publicIp = inventory.hosts.public.ipv4;
+  publicHost = inventory.hosts.public;
+  publicIp = publicHost.ipv4;
+  ports = publicHost.ports;
   environmentFile = "/run/money-config/environment";
 in {
   imports = [ money.nixosModules.default ];
@@ -43,7 +45,7 @@ in {
     environment = {
       IS_PROD = "1";
       DEMO_MODE = "1";
-      PORT = "8003";
+      PORT = toString ports.money;
       BACKEND_URL = "https://money.veetik.com";
       DB_URL = "postgresql://money@127.0.0.1/money?host=/run/postgresql";
       OIDC_ISSUER = "https://auth.veetik.com/realms/main";
@@ -70,10 +72,10 @@ in {
     useACMEHost = "veetik.com";
     forceSSL = true;
     listen = [
-      { addr = publicIp; port = 80; }
-      { addr = publicIp; port = 443; ssl = true; }
+      { addr = publicIp; port = ports.http; }
+      { addr = publicIp; port = ports.https; ssl = true; }
     ];
-    locations."/".proxyPass = "http://127.0.0.1:8003";
+    locations."/".proxyPass = "http://127.0.0.1:${toString ports.money}";
   };
 
   homelab.logs.units."money.service" = {

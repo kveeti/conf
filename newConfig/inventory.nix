@@ -110,6 +110,24 @@
       network = "dmz";
       ipv4 = "192.168.66.2";
       adminIpv4 = "192.168.66.3";
+      ports = {
+        ssh = 22;
+        http = 80;
+        https = 443;
+        initrdSsh = 2222;
+        tasks = 8001;
+        bm = 8002;
+        money = 8003;
+        nginxStatus = 8050;
+        keycloak = 8080;
+        vmagent = 8429;
+        keycloakManagement = 9000;
+        nodeExporter = 9100;
+        nginxExporter = 9113;
+        postgresqlExporter = 9187;
+        smartctlExporter = 9633;
+        mongo = 27017;
+      };
     };
 
     home-assistant = {

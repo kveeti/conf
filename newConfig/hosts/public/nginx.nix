@@ -1,7 +1,9 @@
 { config, lib, inventory, ... }:
 
 let
-  publicIp = inventory.hosts.public.ipv4;
+  publicHost = inventory.hosts.public;
+  publicIp = publicHost.ipv4;
+  ports = publicHost.ports;
 
   cloudflareCidrs = [
     "173.245.48.0/20"
@@ -95,8 +97,8 @@ in {
       useACMEHost = "veetik.com";
       forceSSL = true;
       listen = [
-        { addr = publicIp; port = 80; }
-        { addr = publicIp; port = 443; ssl = true; }
+        { addr = publicIp; port = ports.http; }
+        { addr = publicIp; port = ports.https; ssl = true; }
       ];
       locations."/".return = "404";
     };
@@ -107,5 +109,5 @@ in {
     serviceName = "nginx";
   };
 
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  networking.firewall.allowedTCPPorts = [ ports.http ports.https ];
 }

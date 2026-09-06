@@ -1,7 +1,9 @@
 { config, inventory, ... }:
 
 let
-  publicIp = inventory.hosts.public.ipv4;
+  publicHost = inventory.hosts.public;
+  publicIp = publicHost.ipv4;
+  ports = publicHost.ports;
 in {
   age.secrets.tasks-backend-env = {
     owner = "tasks";
@@ -20,7 +22,7 @@ in {
     image = "docker.io/veetik/tasks-backend@sha256:902c63258c27a60bd911ab4d6360bba7f96714e4076a7800bd9d92b7fbeb3d4c";
     user = "tasks";
     extraOptions = [ "--hostuser=tasks" ];
-    ports = [ "127.0.0.1:8001:8000" ];
+    ports = [ "127.0.0.1:${toString ports.tasks}:8000" ];
     volumes = [
       "/run/postgresql:/run/postgresql"
       "${config.age.secrets.tasks-backend-env.path}:/.env:ro"
@@ -40,10 +42,10 @@ in {
     useACMEHost = "veetik.com";
     forceSSL = true;
     listen = [
-      { addr = publicIp; port = 80; }
-      { addr = publicIp; port = 443; ssl = true; }
+      { addr = publicIp; port = ports.http; }
+      { addr = publicIp; port = ports.https; ssl = true; }
     ];
-    locations."/".proxyPass = "http://127.0.0.1:8001";
+    locations."/".proxyPass = "http://127.0.0.1:${toString ports.tasks}";
   };
 
   homelab.logs.units."podman-tasks.service" = {

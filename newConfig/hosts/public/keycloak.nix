@@ -1,8 +1,10 @@
 { config, inventory, pkgs, ... }:
 
 let
-  publicIp = inventory.hosts.public.ipv4;
-  adminIp = inventory.hosts.public.adminIpv4;
+  publicHost = inventory.hosts.public;
+  publicIp = publicHost.ipv4;
+  adminIp = publicHost.adminIpv4;
+  ports = publicHost.ports;
   publicDomain = "auth.veetik.com";
   adminDomain = "authadmin.veetik.com";
 
@@ -154,8 +156,9 @@ in {
     settings = {
       http-enabled = true;
       http-host = "127.0.0.1";
-      http-port = 8080;
+      http-port = ports.keycloak;
       http-management-host = "127.0.0.1";
+      http-management-port = ports.keycloakManagement;
       hostname = "https://${publicDomain}";
       hostname-admin = "https://${adminDomain}";
       hostname-strict = true;
@@ -219,16 +222,16 @@ in {
       useACMEHost = "veetik.com";
       forceSSL = true;
       listen = [
-        { addr = publicIp; port = 80; }
-        { addr = publicIp; port = 443; ssl = true; }
+        { addr = publicIp; port = ports.http; }
+        { addr = publicIp; port = ports.https; ssl = true; }
       ];
       locations = {
         "= /admin".return = "404";
         "^~ /admin/".return = "404";
-        "= /realms/main".proxyPass = "http://127.0.0.1:8080";
-        "^~ /realms/main/".proxyPass = "http://127.0.0.1:8080";
+        "= /realms/main".proxyPass = "http://127.0.0.1:${toString ports.keycloak}";
+        "^~ /realms/main/".proxyPass = "http://127.0.0.1:${toString ports.keycloak}";
         "= /realms/master" = {
-          proxyPass = "http://127.0.0.1:8080";
+          proxyPass = "http://127.0.0.1:${toString ports.keycloak}";
           extraConfig = ''
             allow 192.168.10.0/24;
             allow 10.255.255.0/24;
@@ -236,14 +239,14 @@ in {
           '';
         };
         "^~ /realms/master/" = {
-          proxyPass = "http://127.0.0.1:8080";
+          proxyPass = "http://127.0.0.1:${toString ports.keycloak}";
           extraConfig = ''
             allow 192.168.10.0/24;
             allow 10.255.255.0/24;
             deny all;
           '';
         };
-        "^~ /resources/".proxyPass = "http://127.0.0.1:8080";
+        "^~ /resources/".proxyPass = "http://127.0.0.1:${toString ports.keycloak}";
         "/".return = "404";
       };
     };
@@ -251,7 +254,7 @@ in {
     ${adminDomain} = {
       useACMEHost = "veetik.com";
       onlySSL = true;
-      listen = [{ addr = adminIp; port = 443; ssl = true; }];
+      listen = [{ addr = adminIp; port = ports.https; ssl = true; }];
       extraConfig = ''
         allow 127.0.0.1;
         allow 192.168.10.0/24;
@@ -260,7 +263,7 @@ in {
         allow 10.255.255.0/24;
         deny all;
       '';
-      locations."/".proxyPass = "http://127.0.0.1:8080";
+      locations."/".proxyPass = "http://127.0.0.1:${toString ports.keycloak}";
     };
   };
 
@@ -271,7 +274,7 @@ in {
 
   homelab.metrics.scrapes.keycloak = {
     path = "/metrics";
-    targets = [ "127.0.0.1:9000" ];
+    targets = [ "127.0.0.1:${toString ports.keycloakManagement}" ];
   };
 
   homelab.logs.units = {
