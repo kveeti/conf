@@ -13,6 +13,7 @@ in {
     ../../modules/features/port-registry.nix
     ../../modules/services/postgresql.nix
     ../../modules/telemetry/logs.nix
+    ./authentik.nix
     ./bm.nix
     ./containers.nix
     ./disk.nix

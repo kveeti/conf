@@ -3,6 +3,7 @@
 let
   ports = config.homelab.ports;
   repositories = [
+    "authentik"
     "bm"
     "ha"
     "internal"

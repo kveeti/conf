@@ -80,6 +80,7 @@ in {
     (job "public" "public" (map (probe: "https://${probe.host}${probe.path}") publicProbes))
     (job "internal" "http" [
       "https://auth.veetik.com/realms/main/.well-known/openid-configuration"
+      "https://auth2.veetik.com/application/o/money/.well-known/openid-configuration"
       "https://dav.internal.veetik.com"
       "https://food.internal.veetik.com"
       "https://weather.internal.veetik.com"
@@ -98,6 +99,6 @@ in {
       "p.internal.veetik.com"
       "rss.internal.veetik.com"
     ];
-    ${publicIp} = [ "auth.veetik.com" ];
+    ${publicIp} = [ "auth.veetik.com" "auth2.veetik.com" ];
   };
 }

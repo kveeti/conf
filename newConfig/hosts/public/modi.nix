@@ -39,7 +39,7 @@ in {
     modi-mongo = {
       image = "docker.io/library/mongo@sha256:a2e96682a6d92742341db59a1956569bfd2b30704acef5da034cc17e18bb7ed4";
       cmd = [ "mongod" "--port" (toString ports.mongo) ];
-      extraOptions = [ "--network=host" ];
+      ports = [ "127.0.0.1:${toString ports.mongo}:${toString ports.mongo}" ];
       volumes = [ "/var/lib/mongo:/data/db" ];
       environment = {
         MONGO_INITDB_ROOT_USERNAME = "mongo";
