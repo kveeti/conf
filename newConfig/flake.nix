@@ -51,7 +51,7 @@
         server = ./modules/profiles/server.nix;
       };
 
-      nixosConfigurations = {
+      nixosConfigurations = rec {
         router = mkHost {
           hostName = "router";
           specialArgs = {
@@ -65,6 +65,16 @@
             secrets-router.nixosModules.router
             ./hosts/router
           ];
+        };
+
+        router-recovery = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {
+            adminKeys = (import secrets-router).keys.admins;
+            routerSystem = router.config.system.build.toplevel;
+            diskoPackage = disko.packages.x86_64-linux.disko;
+          };
+          modules = [ ./hosts/router/recovery.nix ];
         };
 
         backup = mkHost {
