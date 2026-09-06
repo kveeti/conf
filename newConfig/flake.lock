@@ -252,6 +252,9 @@
         "secrets-backup": "secrets-backup",
         "secrets-public": [
           "secrets-backup"
+        ],
+        "secrets-router": [
+          "secrets-backup"
         ]
       }
     },

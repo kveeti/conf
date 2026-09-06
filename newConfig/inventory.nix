@@ -80,8 +80,26 @@
 
   hosts = {
     router = {
+      hostname = "router";
       network = "management";
       ipv4 = "192.168.5.1";
+      wan = {
+        uploadMbit = 95;
+        downloadMbit = 95;
+      };
+      ports = {
+        ssh = 22;
+        dns = 53;
+        dhcp = 67;
+        wireguard = 49002;
+        mdns = 5353;
+        vmagent = 8429;
+        nodeExporter = 9100;
+        blackboxExporter = 9115;
+        unifiExporter = 9130;
+        unboundExporter = 9167;
+        wireguardExporter = 9586;
+      };
     };
 
     atx = {

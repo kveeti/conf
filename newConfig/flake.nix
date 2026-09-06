@@ -19,9 +19,10 @@
 
     secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
     secrets-public.follows = "secrets-backup";
+    secrets-router.follows = "secrets-backup";
   };
 
-  outputs = { self, nixpkgs, disko, lanzaboote, money, secrets-backup, secrets-public }:
+  outputs = { self, nixpkgs, disko, lanzaboote, money, secrets-backup, secrets-public, secrets-router }:
     let
       inventory = import ./inventory.nix;
 
@@ -46,6 +47,17 @@
       };
 
       nixosConfigurations = {
+        router = mkHost {
+          hostName = "router";
+          specialArgs.adminKeys = (import secrets-router).keys.admins;
+          modules = [
+            disko.nixosModules.disko
+            lanzaboote.nixosModules.lanzaboote
+            secrets-router.nixosModules.router
+            ./hosts/router
+          ];
+        };
+
         backup = mkHost {
           hostName = "backup";
           specialArgs.adminKeys = (import secrets-backup).keys.admins;
