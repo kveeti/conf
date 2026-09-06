@@ -17,12 +17,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    microvm = {
+      url = "github:astro/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
     secrets-public.follows = "secrets-backup";
     secrets-router.follows = "secrets-backup";
   };
 
-  outputs = { self, nixpkgs, disko, lanzaboote, money, secrets-backup, secrets-public, secrets-router }:
+  outputs = { self, nixpkgs, disko, lanzaboote, money, microvm, secrets-backup, secrets-public, secrets-router }:
     let
       inventory = import ./inventory.nix;
 
@@ -56,6 +61,7 @@
           modules = [
             disko.nixosModules.disko
             lanzaboote.nixosModules.lanzaboote
+            microvm.nixosModules.host
             secrets-router.nixosModules.router
             ./hosts/router
           ];

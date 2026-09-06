@@ -99,6 +99,7 @@
         unifiExporter = 9130;
         unboundExporter = 9167;
         wireguardExporter = 9586;
+        smartctlExporter = 9633;
       };
     };
 

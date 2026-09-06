@@ -6,6 +6,7 @@ in {
   imports = [
     ../../modules/profiles/base.nix
     ../../modules/profiles/server.nix
+    ../../modules/features/disk-health.nix
     ../../modules/features/port-registry.nix
     ./ddns.nix
     ./disk.nix
@@ -16,6 +17,7 @@ in {
     ./network.nix
     ./secure-boot.nix
     ./telemetry.nix
+    ./unifi.nix
   ];
 
   age.secrets.password = {};
@@ -25,7 +27,10 @@ in {
     passwordFile = config.age.secrets.password.path;
   };
 
-  services.openssh.ports = [ ports.ssh ];
+  services = {
+    openssh.ports = [ ports.ssh ];
+    prometheus.exporters.smartctl.port = ports.smartctlExporter;
+  };
 
   networking = {
     useDHCP = false;

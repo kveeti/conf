@@ -78,12 +78,7 @@ in {
             "${networks.servers.interface}"
           } udp dport ${toString ports.mdns} accept comment "mDNS reflection"
 
-          iifname "${networks.unifi.interface}" meta l4proto { tcp, udp } th dport {
-            ${toString unifiPorts.inform},
-            ${toString unifiPorts.web},
-            ${toString unifiPorts.discovery},
-            ${toString unifiPorts.stun}
-          } accept
+          iifname "${networks.unifi.interface}" meta l4proto { tcp, udp } th dport ${toString ports.dns} accept comment "UniFi -> DNS"
 
           icmp type echo-request accept
         }
@@ -106,7 +101,8 @@ in {
             "${networks.servers.interface}",
             "${networks.dmz.interface}",
             "${networks.minecraft.interface}",
-            "${networks.dev.interface}"
+            "${networks.dev.interface}",
+            "${networks.unifi.interface}"
           } oifname "${wan}" accept comment "internet access except media"
 
           tcp flags syn tcp option maxseg size set rt mtu
