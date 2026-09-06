@@ -2,6 +2,7 @@
 
 let
   domain = "grafana.internal.veetik.com";
+  ports = config.homelab.ports;
 in {
   imports = [ ../tls.nix ];
 
@@ -15,7 +16,7 @@ in {
 
       server = {
         http_addr = "127.0.0.1";
-        http_port = 3000;
+        http_port = ports.grafana;
         inherit domain;
         root_url = "https://${domain}/";
       };
@@ -49,14 +50,14 @@ in {
           name = "VictoriaMetrics";
           type = "prometheus";
           uid = "victoriametrics";
-          url = "http://127.0.0.1:18428";
+          url = "http://127.0.0.1:${toString ports.victoriametrics}";
           isDefault = true;
         }
         {
           name = "VictoriaLogs";
           type = "victoriametrics-logs-datasource";
           uid = "victorialogs";
-          url = "http://127.0.0.1:19428";
+          url = "http://127.0.0.1:${toString ports.victorialogs}";
         }
       ];
       dashboards.settings.providers = [{
@@ -69,15 +70,15 @@ in {
   services.nginx.virtualHosts.${domain} = {
     onlySSL = true;
     useACMEHost = "internal.veetik.com";
-    listen = [{ addr = "0.0.0.0"; port = 443; ssl = true; }];
+    listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
     locations."/" = {
-      proxyPass = "http://127.0.0.1:3000";
+      proxyPass = "http://127.0.0.1:${toString ports.grafana}";
       proxyWebsockets = true;
     };
   };
 
   networking = {
-    firewall.allowedTCPPorts = [ 443 ];
+    firewall.allowedTCPPorts = [ ports.https ];
     hosts."127.0.0.1" = [ domain ];
   };
 }

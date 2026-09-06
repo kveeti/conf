@@ -3,7 +3,7 @@
 let
   publicHost = inventory.hosts.public;
   publicIp = publicHost.ipv4;
-  ports = publicHost.ports;
+  ports = config.homelab.ports;
   environmentFile = "/run/money-config/environment";
 in {
   imports = [ money.nixosModules.default ];

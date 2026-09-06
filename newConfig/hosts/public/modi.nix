@@ -1,7 +1,7 @@
-{ config, inventory, pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
-  ports = inventory.hosts.public.ports;
+  ports = config.homelab.ports;
 
   waitForMongo = pkgs.writeShellScript "wait-for-modi-mongo" ''
     ready=false

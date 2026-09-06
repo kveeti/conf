@@ -3,10 +3,12 @@
 let
   host = inventory.hosts.backup;
   network = inventory.networks.${host.network};
+  ports = config.homelab.ports;
 in {
   imports = [
     ../../modules/profiles/base.nix
     ../../modules/profiles/server.nix
+    ../../modules/features/port-registry.nix
     ./disk.nix
     ./hardware.nix
     ./monitoring
@@ -35,7 +37,7 @@ in {
         enable = true;
         ssh = {
           enable = true;
-          port = 2222;
+          port = ports.initrdSsh;
           authorizedKeys = adminKeys;
           hostKeys = [ "/etc/secrets/initrd/ssh_host_ed25519_key" ];
         };
@@ -47,7 +49,7 @@ in {
     hostId = "ba61c0d5";
     useDHCP = false;
     useNetworkd = true;
-    firewall.allowedTCPPorts = [ 22 ];
+    firewall.allowedTCPPorts = [ ports.ssh ];
   };
 
   systemd.network = {
@@ -60,9 +62,13 @@ in {
     };
   };
 
-  services.zfs = {
-    autoScrub.enable = true;
-    trim.enable = true;
+  services = {
+    openssh.ports = [ ports.ssh ];
+    prometheus.exporters.smartctl.port = ports.smartctlExporter;
+    zfs = {
+      autoScrub.enable = true;
+      trim.enable = true;
+    };
   };
 
   system.stateVersion = "25.11";

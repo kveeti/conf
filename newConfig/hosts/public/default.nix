@@ -1,16 +1,16 @@
-{ config, adminKeys, inventory, lib, pkgs, ... }:
+{ config, adminKeys, inventory, pkgs, ... }:
 
 let
   host = inventory.hosts.public;
   network = inventory.networks.${host.network};
   backup = inventory.hosts.backup;
-  ports = host.ports;
-  portNumbers = builtins.attrValues ports;
+  ports = config.homelab.ports;
 in {
   imports = [
     ../../modules/profiles/base.nix
     ../../modules/profiles/server.nix
     ../../modules/features/disk-health.nix
+    ../../modules/features/port-registry.nix
     ../../modules/services/postgresql.nix
     ../../modules/telemetry/logs.nix
     ./bm.nix
@@ -24,11 +24,6 @@ in {
     ./secure-boot.nix
     ./tasks.nix
   ];
-
-  assertions = [{
-    assertion = builtins.length portNumbers == builtins.length (lib.unique portNumbers);
-    message = "inventory.hosts.public.ports contains duplicate ports";
-  }];
 
   age.secrets = {
     password = {};

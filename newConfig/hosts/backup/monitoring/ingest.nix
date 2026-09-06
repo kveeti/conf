@@ -2,6 +2,7 @@
 
 let
   htpasswdFile = "/var/lib/nginx/telemetry.htpasswd";
+  ports = config.homelab.ports;
 in {
   imports = [ ../tls.nix ];
 
@@ -23,10 +24,10 @@ in {
       serverName = "backup.internal.veetik.com";
       onlySSL = true;
       useACMEHost = "internal.veetik.com";
-      listen = [{ addr = "0.0.0.0"; port = 8428; ssl = true; }];
+      listen = [{ addr = "0.0.0.0"; port = ports.metricsIngress; ssl = true; }];
       locations = {
         "= /api/v1/write" = {
-          proxyPass = "http://127.0.0.1:18428";
+          proxyPass = "http://127.0.0.1:${toString ports.victoriametrics}";
           basicAuthFile = htpasswdFile;
           extraConfig = ''
             limit_except POST { deny all; }
@@ -43,10 +44,10 @@ in {
       serverName = "backup.internal.veetik.com";
       onlySSL = true;
       useACMEHost = "internal.veetik.com";
-      listen = [{ addr = "0.0.0.0"; port = 9428; ssl = true; }];
+      listen = [{ addr = "0.0.0.0"; port = ports.logsIngress; ssl = true; }];
       locations = {
         "= /insert/elasticsearch/_bulk" = {
-          proxyPass = "http://127.0.0.1:19428";
+          proxyPass = "http://127.0.0.1:${toString ports.victorialogs}";
           basicAuthFile = htpasswdFile;
           extraConfig = ''
             limit_except POST { deny all; }
@@ -61,7 +62,7 @@ in {
   };
 
   networking = {
-    firewall.allowedTCPPorts = [ 8428 9428 ];
+    firewall.allowedTCPPorts = [ ports.metricsIngress ports.logsIngress ];
     hosts."127.0.0.1" = [ "backup.internal.veetik.com" ];
   };
 }

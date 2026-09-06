@@ -4,7 +4,7 @@ let
   publicHost = inventory.hosts.public;
   publicIp = publicHost.ipv4;
   adminIp = publicHost.adminIpv4;
-  ports = publicHost.ports;
+  ports = config.homelab.ports;
   publicDomain = "auth.veetik.com";
   adminDomain = "authadmin.veetik.com";
 

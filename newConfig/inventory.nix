@@ -102,6 +102,22 @@
       mac = "e8:6a:64:e5:e5:56";
       network = "servers";
       ipv4 = "192.168.40.9";
+      ports = {
+        ssh = 22;
+        https = 443;
+        initrdSsh = 2222;
+        grafana = 3000;
+        restic = 8000;
+        restServer = 8001;
+        metricsIngress = 8428;
+        vmagent = 8429;
+        nodeExporter = 9100;
+        blackboxExporter = 9115;
+        logsIngress = 9428;
+        smartctlExporter = 9633;
+        victoriametrics = 18428;
+        victorialogs = 19428;
+      };
     };
 
     public = {

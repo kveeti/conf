@@ -3,6 +3,7 @@
 let
   internalIp = inventory.hosts.atx-internal.ipv4;
   publicIp = inventory.hosts.public.ipv4;
+  ports = config.homelab.ports;
 
   publicProbes = [
     { host = "tasks-api.veetik.com"; path = "/api/v1/auth/me"; }
@@ -50,7 +51,7 @@ let
     relabel_configs = [
       { source_labels = [ "__address__" ]; target_label = "__param_target"; }
       { source_labels = [ "__param_target" ]; target_label = "instance"; }
-      { target_label = "__address__"; replacement = "127.0.0.1:9115"; }
+      { target_label = "__address__"; replacement = "127.0.0.1:${toString ports.blackboxExporter}"; }
     ];
   };
 
@@ -62,13 +63,14 @@ let
     relabel_configs = [
       { source_labels = [ "__address__" ]; target_label = "__param_target"; }
       { target_label = "instance"; replacement = "https://${probe.host}${probe.path}"; }
-      { target_label = "__address__"; replacement = "127.0.0.1:9115"; }
+      { target_label = "__address__"; replacement = "127.0.0.1:${toString ports.blackboxExporter}"; }
     ];
   };
 in {
   services.prometheus.exporters.blackbox = {
     enable = true;
     listenAddress = "127.0.0.1";
+    port = ports.blackboxExporter;
     configFile = blackboxConfig;
   };
 
@@ -84,7 +86,7 @@ in {
       "https://p.internal.veetik.com"
       "https://rss.internal.veetik.com"
       "https://grafana.internal.veetik.com"
-      "https://backup.internal.veetik.com:8000"
+      "https://backup.internal.veetik.com:${toString ports.restic}"
     ])
   ] ++ map lanJob publicProbes;
 
