@@ -49,7 +49,10 @@
       nixosConfigurations = {
         router = mkHost {
           hostName = "router";
-          specialArgs.adminKeys = (import secrets-router).keys.admins;
+          specialArgs = {
+            adminKeys = (import secrets-router).keys.admins;
+            vlan111OutboundAllowedIP = (import secrets-router).vlan111OutboundAllowedIP;
+          };
           modules = [
             disko.nixosModules.disko
             lanzaboote.nixosModules.lanzaboote

@@ -8,8 +8,11 @@ in {
     ../../modules/profiles/server.nix
     ../../modules/features/port-registry.nix
     ./disk.nix
+    ./dns.nix
+    ./firewall.nix
     ./hardware.nix
     ./hardening.nix
+    ./network.nix
     ./secure-boot.nix
   ];
 

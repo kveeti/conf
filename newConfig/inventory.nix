@@ -221,8 +221,17 @@
     };
 
     unifi = {
+      hostname = "unifi";
       network = "unifi";
       ipv4 = "192.168.100.2";
+      ports = {
+        ssdp = 1900;
+        stun = 3478;
+        inform = 8080;
+        web = 8443;
+        discovery = 10001;
+        mongo = 27117;
+      };
     };
   };
 }
