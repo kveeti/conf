@@ -31,7 +31,6 @@ in {
   homelab.postgresql.databases.bm = {
     services = [ "podman-bm" ];
     backup = {
-      repository = "rest:https://backup.internal.veetik.com:8000/bm";
       restPasswordFile = config.age.secrets.restic-bm-rest-pass.path;
       encryptionPasswordFile = config.age.secrets.restic-bm-encryption-pass.path;
     };

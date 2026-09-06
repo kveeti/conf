@@ -94,6 +94,8 @@ in {
   };
 
   homelab = {
+    backups.serverUrl = "https://backup.internal.veetik.com:8000";
+
     metrics = {
       enable = true;
       remoteWriteUrl = "https://backup.internal.veetik.com:8428/api/v1/write";

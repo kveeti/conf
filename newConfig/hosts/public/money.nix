@@ -61,7 +61,6 @@ in {
   homelab.postgresql.databases.money = {
     services = [ "money" ];
     backup = {
-      repository = "rest:https://backup.internal.veetik.com:8000/money";
       restPasswordFile = config.age.secrets.restic-money-rest-pass.path;
       encryptionPasswordFile = config.age.secrets.restic-money-encryption-pass.path;
     };

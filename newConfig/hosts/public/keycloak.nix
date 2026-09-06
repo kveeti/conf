@@ -170,8 +170,6 @@ in {
   homelab.postgresql.databases.keycloak = {
     services = [ "keycloak" ];
     backup = {
-      repository = "rest:https://backup.internal.veetik.com:8000/auth";
-      username = "auth";
       restPasswordFile = config.age.secrets.restic-auth-rest-pass.path;
       encryptionPasswordFile = config.age.secrets.restic-auth-encryption-pass.path;
     };

@@ -31,7 +31,6 @@ in {
   homelab.postgresql.databases.tasks = {
     services = [ "podman-tasks" ];
     backup = {
-      repository = "rest:https://backup.internal.veetik.com:8000/tasks";
       restPasswordFile = config.age.secrets.restic-tasks-rest-pass.path;
       encryptionPasswordFile = config.age.secrets.restic-tasks-encryption-pass.path;
     };

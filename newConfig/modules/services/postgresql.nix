@@ -28,13 +28,8 @@ in {
           backup = {
             repository = lib.mkOption {
               type = lib.types.str;
-              description = "Restic repository URL.";
-            };
-
-            username = lib.mkOption {
-              type = lib.types.str;
               default = name;
-              description = "REST server user.";
+              description = "Repository name on the REST server.";
             };
 
             restPasswordFile = lib.mkOption {
@@ -94,7 +89,6 @@ in {
 
     homelab.backups.instances = lib.mapAttrs (name: database: {
       repository = database.backup.repository;
-      username = database.backup.username;
       restPasswordFile = database.backup.restPasswordFile;
       encryptionPasswordFile = database.backup.encryptionPasswordFile;
       paths = [ (dumpPath name) ];

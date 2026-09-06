@@ -67,7 +67,6 @@ in {
   };
 
   homelab.backups.instances.modi = {
-    repository = "rest:https://backup.internal.veetik.com:8000/modi";
     restPasswordFile = config.age.secrets.restic-modi-rest-pass.path;
     encryptionPasswordFile = config.age.secrets.restic-modi-encryption-pass.path;
     paths = [ "/tmp/modi.archive" ];

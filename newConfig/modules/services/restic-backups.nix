@@ -4,7 +4,7 @@ let
   cfg = config.homelab.backups;
 
   resticEnvironment = instance: ''
-    export RESTIC_REPOSITORY=${lib.escapeShellArg instance.repository}
+    export RESTIC_REPOSITORY=${lib.escapeShellArg "rest:${cfg.serverUrl}/${instance.repository}"}
     export RESTIC_REST_USERNAME=${lib.escapeShellArg instance.username}
     export RESTIC_REST_PASSWORD="$(cat "$CREDENTIALS_DIRECTORY/rest-password")"
     export RESTIC_PASSWORD_FILE="$CREDENTIALS_DIRECTORY/encryption-password"
@@ -89,102 +89,110 @@ let
     }
   ) cfg.instances;
 in {
-  options.homelab.backups.instances = lib.mkOption {
-    default = {};
-    description = "Restic backups keyed by service name.";
-    type = lib.types.attrsOf (lib.types.submodule ({ name, ... }: {
-      options = {
-        repository = lib.mkOption {
-          type = lib.types.str;
-          description = "Restic repository URL.";
-        };
+  options.homelab.backups = {
+    serverUrl = lib.mkOption {
+      type = lib.types.str;
+      description = "Base URL of the homelab REST server.";
+    };
 
-        username = lib.mkOption {
-          type = lib.types.str;
-          default = name;
-          description = "REST server user.";
-        };
+    instances = lib.mkOption {
+      default = {};
+      description = "Restic backups keyed by service name.";
+      type = lib.types.attrsOf (lib.types.submodule ({ name, config, ... }: {
+        options = {
+          repository = lib.mkOption {
+            type = lib.types.str;
+            default = name;
+            description = "Repository name on the REST server.";
+          };
 
-        restPasswordFile = lib.mkOption {
-          type = lib.types.str;
-          description = "File containing the REST server password.";
-        };
+          username = lib.mkOption {
+            type = lib.types.str;
+            default = config.repository;
+            description = "REST server user.";
+          };
 
-        encryptionPasswordFile = lib.mkOption {
-          type = lib.types.str;
-          description = "File containing the repository encryption password.";
-        };
+          restPasswordFile = lib.mkOption {
+            type = lib.types.str;
+            description = "File containing the REST server password.";
+          };
 
-        paths = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          description = "Paths included in each snapshot.";
-        };
+          encryptionPasswordFile = lib.mkOption {
+            type = lib.types.str;
+            description = "File containing the repository encryption password.";
+          };
 
-        excludes = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [];
-          description = "Paths excluded from snapshots.";
-        };
+          paths = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            description = "Paths included in each snapshot.";
+          };
 
-        prepare = lib.mkOption {
-          type = lib.types.nullOr lib.types.lines;
-          default = null;
-          description = "Commands run before a snapshot.";
-        };
+          excludes = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [];
+            description = "Paths excluded from snapshots.";
+          };
 
-        cleanup = lib.mkOption {
-          type = lib.types.nullOr lib.types.lines;
-          default = null;
-          description = "Commands run after a snapshot attempt.";
-        };
+          prepare = lib.mkOption {
+            type = lib.types.nullOr lib.types.lines;
+            default = null;
+            description = "Commands run before a snapshot.";
+          };
 
-        hasData = lib.mkOption {
-          type = lib.types.lines;
-          description = "Shell test which succeeds when state already exists.";
-        };
+          cleanup = lib.mkOption {
+            type = lib.types.nullOr lib.types.lines;
+            default = null;
+            description = "Commands run after a snapshot attempt.";
+          };
 
-        restore = lib.mkOption {
-          type = lib.types.lines;
-          description = "Commands which restore the latest snapshot.";
-        };
+          hasData = lib.mkOption {
+            type = lib.types.lines;
+            description = "Shell test which succeeds when state already exists.";
+          };
 
-        before = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ "${name}.service" ];
-          description = "Units which start after restore.";
-        };
+          restore = lib.mkOption {
+            type = lib.types.lines;
+            description = "Commands which restore the latest snapshot.";
+          };
 
-        requiredBy = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ "${name}.service" ];
-          description = "Units which require restore.";
-        };
+          before = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [ "${name}.service" ];
+            description = "Units which start after restore.";
+          };
 
-        after = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [];
-          description = "Units which must start before restore.";
-        };
+          requiredBy = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [ "${name}.service" ];
+            description = "Units which require restore.";
+          };
 
-        extraPackages = lib.mkOption {
-          type = lib.types.listOf lib.types.package;
-          default = [];
-          description = "Extra commands available during backup and restore.";
-        };
+          after = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [];
+            description = "Units which must start before restore.";
+          };
 
-        schedule = lib.mkOption {
-          type = lib.types.str;
-          default = "daily";
-          description = "Backup schedule.";
-        };
+          extraPackages = lib.mkOption {
+            type = lib.types.listOf lib.types.package;
+            default = [];
+            description = "Extra commands available during backup and restore.";
+          };
 
-        randomDelay = lib.mkOption {
-          type = lib.types.str;
-          default = "30m";
-          description = "Maximum random delay before backup.";
+          schedule = lib.mkOption {
+            type = lib.types.str;
+            default = "daily";
+            description = "Backup schedule.";
+          };
+
+          randomDelay = lib.mkOption {
+            type = lib.types.str;
+            default = "30m";
+            description = "Maximum random delay before backup.";
+          };
         };
-      };
-    }));
+      }));
+    };
   };
 
   config = lib.mkIf (cfg.instances != {}) {
