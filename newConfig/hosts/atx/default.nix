@@ -15,6 +15,7 @@ in {
     ./disk.nix
     ./hardware.nix
     ./media-certificate.nix
+    ./minecraft.nix
     ./network.nix
     ./storage.nix
   ];

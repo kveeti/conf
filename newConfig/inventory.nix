@@ -270,6 +270,12 @@
       hostname = "minecraft";
       network = "minecraft";
       ipv4 = "192.168.76.2";
+      ports = {
+        ssh = 22;
+        vmagent = 8429;
+        nodeExporter = 9100;
+        game = 25565;
+      };
     };
 
     media = {
