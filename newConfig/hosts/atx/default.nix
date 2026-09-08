@@ -11,8 +11,10 @@ in {
     ../../modules/services/microvms.nix
     ../../modules/telemetry/logs.nix
     ../../modules/telemetry/metrics.nix
+    ./certificates.nix
     ./disk.nix
     ./hardware.nix
+    ./media-certificate.nix
     ./network.nix
     ./storage.nix
   ];
