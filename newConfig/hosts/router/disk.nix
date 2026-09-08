@@ -22,7 +22,7 @@
           size = "100%";
           content = {
             type = "luks";
-            name = "cryptroot";
+            name = "crypted";
             settings.crypttabExtraOpts = [
               "tpm2-device=auto"
               "timeout=0"

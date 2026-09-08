@@ -3,6 +3,41 @@
 let
   network = inventory.networks.unifi;
   stateRoot = "/var/lib/microvms/unifi";
+  unifiPackage = pkgs.stdenvNoCC.mkDerivation rec {
+    pname = "unifi-controller-bleeding-edge";
+    version = "10.2.105";
+
+    src = pkgs.fetchurl {
+      url = "https://dl.ui.com/unifi/${version}/unifi_sysvinit_all.deb";
+      hash = "sha256-MBTFxNwrIbx6UKZYCcZ+BjYjSlfdxL60Ogei/ba4O+U=";
+    };
+
+    nativeBuildInputs = with pkgs; [
+      dpkg
+      autoPatchelfHook
+    ];
+
+    buildInputs = with pkgs; [
+      systemd
+    ];
+
+    installPhase = ''
+      runHook preInstall
+
+      mkdir -p $out
+      cp -ar usr/lib/unifi/{dl,lib,webapps} $out
+
+      runHook postInstall
+    '';
+
+    meta = with pkgs.lib; {
+      homepage = "https://www.ui.com";
+      description = "Controller for Ubiquiti UniFi access points (bleeding edge)";
+      sourceProvenance = with sourceTypes; [ binaryBytecode ];
+      license = licenses.unfree;
+      platforms = [ "x86_64-linux" "aarch64-linux" ];
+    };
+  };
   mongodb = pkgs.mongodb-ce.overrideAttrs (old: {
     version = "7.0.30";
     src = pkgs.fetchurl {
@@ -15,11 +50,11 @@ let
   });
 in {
   nixpkgs.config.allowUnfreePredicate = package:
-    builtins.elem (lib.getName package) [ "mongodb-ce" "unifi-controller" ];
+    builtins.elem (lib.getName package) [ "mongodb-ce" "unifi-controller" "unifi-controller-bleeding-edge" ];
 
   systemd.network.networks."50-unifi" = {
     matchConfig.Name = network.interface;
-    address = [ "${network.router4}/24" ];
+    address = [ "${network.router4}/${lib.last (lib.splitString "/" network.cidr4)}" ];
     networkConfig = {
       DHCP = "no";
       IPv4Forwarding = true;
@@ -30,11 +65,11 @@ in {
   microvm.vms.unifi = {
     specialArgs = {
       inherit inventory;
-      hostPkgs = pkgs;
+      inherit unifiPackage;
       mongodbPackage = mongodb;
     };
 
-    config = { config, hostPkgs, inventory, mongodbPackage, ... }:
+    config = { config, unifiPackage, inventory, mongodbPackage, ... }:
       let
         guest = inventory.hosts.unifi;
         guestNetwork = inventory.networks.${guest.network};
@@ -88,11 +123,10 @@ in {
           enable = true;
           networks."10-ethernet" = {
             matchConfig.Type = "ether";
-            address = [ "${guest.ipv4}/24" ];
+            address = [ "${guest.ipv4}/${lib.last (lib.splitString "/" guestNetwork.cidr4)}" ];
             routes = [{ Gateway = guestNetwork.router4; }];
             networkConfig = {
               DHCP = "no";
-              DNS = [ guestNetwork.router4 ];
             };
           };
         };
@@ -103,7 +137,7 @@ in {
         services.unifi = {
           enable = true;
           openFirewall = false;
-          unifiPackage = hostPkgs.unifi;
+          inherit unifiPackage;
           inherit mongodbPackage;
           initialJavaHeapSize = 512;
           maximumJavaHeapSize = 1024;

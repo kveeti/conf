@@ -1,4 +1,4 @@
-{ diskoPackage, lib, modulesPath, pkgs, routerSystem, adminKeys, ... }:
+{ diskoPackage, lib, modulesPath, pkgs, routerSystem, inventory, adminKeys, ... }:
 
 let
   installRouter = pkgs.writeShellApplication {
@@ -13,6 +13,7 @@ let
       pkgs.util-linux
     ];
     text = ''
+      export NIX_CONFIG='substituters ='
       key="''${1:-/root/router-ssh-host-key}"
 
       if [[ ! -f "$key" ]]; then
@@ -125,14 +126,14 @@ let
       MACAddress=$wan_mac
 
       [Link]
-      Name=wan0
+      Name=${inventory.router.wanInterface}
       EOF
       cat > /mnt/etc/systemd/network/05-router-lan.link <<EOF
       [Match]
       MACAddress=$lan_mac
 
       [Link]
-      Name=lan0
+      Name=${inventory.router.lanInterface}
       EOF
 
       nixos-install --root /mnt --system ${routerSystem} --no-root-password

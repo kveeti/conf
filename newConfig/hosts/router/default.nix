@@ -6,8 +6,8 @@ in {
   imports = [
     ../../modules/profiles/base.nix
     ../../modules/profiles/server.nix
-    ../../modules/features/disk-health.nix
     ../../modules/features/port-registry.nix
+    ../../modules/features/disk-health.nix
     ./ddns.nix
     ./disk.nix
     ./dns.nix
@@ -16,8 +16,10 @@ in {
     ./hardening.nix
     ./network.nix
     ./secure-boot.nix
+    ./sqm.nix
     ./telemetry.nix
     ./unifi.nix
+    ./wireguard.nix
   ];
 
   age.secrets.password = {};
@@ -35,12 +37,10 @@ in {
   networking = {
     useDHCP = false;
     useNetworkd = true;
-    firewall.allowedTCPPorts = [ ports.ssh ];
   };
 
   environment.systemPackages = with pkgs; [
     bridge-utils
-    dnsutils
     ethtool
     iproute2
     speedtest-cli
@@ -54,5 +54,5 @@ in {
     options = "--delete-older-than 30d";
   };
 
-  system.stateVersion = "25.11";
+  system.stateVersion = "25.05";
 }

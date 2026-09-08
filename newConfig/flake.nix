@@ -71,6 +71,7 @@
           system = "x86_64-linux";
           specialArgs = {
             adminKeys = (import secrets-router).keys.admins;
+            inherit inventory;
             routerSystem = router.config.system.build.toplevel;
             diskoPackage = disko.packages.x86_64-linux.disko;
           };

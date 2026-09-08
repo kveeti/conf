@@ -11,7 +11,7 @@ let
         prober = "icmp";
         timeout = "5s";
       };
-      dnsSoa = {
+      dns_soa = {
         prober = "dns";
         timeout = "5s";
         dns = {
@@ -19,7 +19,7 @@ let
           query_type = "SOA";
         };
       };
-      http = {
+      http_2xx = {
         prober = "http";
         timeout = "5s";
         http.preferred_ip_protocol = "ip4";
@@ -65,7 +65,7 @@ in {
       enable = true;
       listenAddress = "127.0.0.1";
       port = ports.wireguardExporter;
-      interfaces = [ "wg0" ];
+      interfaces = [ inventory.networks.wireguard.interface ];
     };
 
     unbound = {
@@ -97,6 +97,13 @@ in {
     };
   };
 
+  services.prometheus.exporters.node.extraFlags = [
+    "--collector.textfile.directory=/var/lib/node-exporter-textfile"
+  ];
+  systemd.tmpfiles.rules = [
+    "d /var/lib/node-exporter-textfile 0755 root root -"
+  ];
+
   systemd.services.prometheus-unpoller-exporter.serviceConfig.EnvironmentFile =
     config.age.secrets.unpoller-env.path;
 
@@ -118,8 +125,8 @@ in {
       };
       extraScrapeConfigs = [
         (blackboxJob "icmp" "icmp" [ "1.1.1.1" "8.8.8.8" "9.9.9.9" ])
-        (blackboxJob "dns" "dnsSoa" [ "1.1.1.1" "8.8.8.8" ])
-        (blackboxJob "http" "http" [ "https://www.google.com" "https://cloudflare.com" ])
+        (blackboxJob "dns" "dns_soa" [ "1.1.1.1" "8.8.8.8" ])
+        (blackboxJob "http" "http_2xx" [ "https://www.google.com" "https://cloudflare.com" ])
       ];
     };
 
@@ -128,20 +135,6 @@ in {
       url = "https://backup.internal.veetik.com:${toString backup.ports.logsIngress}";
       username = "telemetry";
       passwordFile = config.age.secrets.telemetry-pass.path;
-      units = {
-        "dnsmasq.service" = {
-          format = "plain";
-          serviceName = "dnsmasq";
-        };
-        "nftables.service" = {
-          format = "plain";
-          serviceName = "nftables";
-        };
-        "unbound.service" = {
-          format = "plain";
-          serviceName = "unbound";
-        };
-      };
     };
   };
 }

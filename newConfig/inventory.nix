@@ -1,6 +1,11 @@
 {
   networks = {
     management = {
+      dhcp = {
+        start = "192.168.5.2";
+        end = "192.168.5.254";
+        lease = "24h";
+      };
       interface = "vlan5";
       vlan = 5;
       cidr4 = "192.168.5.0/24";
@@ -8,6 +13,11 @@
     };
 
     trusted = {
+      dhcp = {
+        start = "192.168.10.200";
+        end = "192.168.10.254";
+        lease = "24h";
+      };
       interface = "vlan10";
       vlan = 10;
       cidr4 = "192.168.10.0/24";
@@ -17,6 +27,11 @@
     };
 
     iot = {
+      dhcp = {
+        start = "192.168.20.10";
+        end = "192.168.20.254";
+        lease = "24h";
+      };
       interface = "vlan20";
       vlan = 20;
       cidr4 = "192.168.20.0/24";
@@ -24,6 +39,11 @@
     };
 
     untrusted = {
+      dhcp = {
+        start = "192.168.30.2";
+        end = "192.168.30.254";
+        lease = "24h";
+      };
       interface = "vlan30";
       vlan = 30;
       cidr4 = "192.168.30.0/24";
@@ -31,6 +51,11 @@
     };
 
     servers = {
+      dhcp = {
+        start = "192.168.40.200";
+        end = "192.168.40.254";
+        lease = "24h";
+      };
       interface = "vlan40";
       vlan = 40;
       cidr4 = "192.168.40.0/24";
@@ -38,6 +63,13 @@
     };
 
     dmz = {
+      dhcp = {
+        start = "192.168.66.3";
+        end = "192.168.66.3";
+        lease = "24h";
+        netmask = "255.255.255.248";
+        dns = [ "1.1.1.1" "1.0.0.1" ];
+      };
       interface = "vlan66";
       vlan = 66;
       cidr4 = "192.168.66.0/29";
@@ -52,6 +84,12 @@
     };
 
     media = {
+      dhcp = {
+        start = "192.168.111.8";
+        end = "192.168.111.8";
+        lease = "24h";
+        dns = [ "1.1.1.1" "1.0.0.1" "9.9.9.9" "149.112.112.112" ];
+      };
       interface = "vlan111";
       vlan = 111;
       cidr4 = "192.168.111.0/24";
@@ -78,19 +116,28 @@
     };
   };
 
+  # Router policy groups are explicit: adding a VLAN does not grant it access.
+  router = {
+    wanInterface = "wan0";
+    lanInterface = "lan0";
+    ifbInterface = "ifb-wan";
+    sixRdInterface = "6rd-*";
+    dnsNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dev" ];
+    internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dmz" "minecraft" "dev" ];
+    mdnsNetworks = [ "trusted" "iot" "untrusted" "servers" ];
+    dnsRedirectNetworks = [ "trusted" "iot" "untrusted" "dev" ];
+  };
+
   hosts = {
     router = {
       hostname = "router";
       network = "management";
       ipv4 = "192.168.5.1";
-      wan = {
-        uploadMbit = 95;
-        downloadMbit = 95;
-      };
       ports = {
         ssh = 22;
         dns = 53;
         dhcp = 67;
+        unifiHttps = 443;
         wireguard = 49002;
         mdns = 5353;
         vmagent = 8429;
@@ -104,6 +151,7 @@
     };
 
     atx = {
+      dhcpReservation = true;
       hostname = "atx";
       mac = "c8:7f:54:65:d1:b8";
       network = "servers";
@@ -117,6 +165,7 @@
     };
 
     backup = {
+      dhcpReservation = true;
       hostname = "backup";
       mac = "e8:6a:64:e5:e5:56";
       network = "servers";
@@ -145,6 +194,8 @@
       network = "dmz";
       ipv4 = "192.168.66.2";
       adminIpv4 = "192.168.66.3";
+      dhcpReservation = true;
+      dhcpAddress = "adminIpv4";
       ports = {
         ssh = 22;
         http = 80;
@@ -180,6 +231,7 @@
     };
 
     slzb-06 = {
+      dhcpReservation = true;
       hostname = "slzb";
       mac = "68:25:DD:49:0D:13";
       network = "iot";
@@ -187,6 +239,7 @@
     };
 
     apple-tv = {
+      dhcpReservation = true;
       hostname = "appletv";
       mac = "c0:95:6d:51:fb:32";
       network = "iot";
@@ -219,6 +272,7 @@
     jellyfin = {
       network = "media";
       ipv4 = "192.168.111.11";
+      ports.https = 443;
     };
 
     unifi = {
