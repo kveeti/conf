@@ -153,9 +153,17 @@
     atx = {
       dhcpReservation = true;
       hostname = "atx";
+      interface = "enxc87f5465d1b8";
       mac = "c8:7f:54:65:d1:b8";
       network = "servers";
       ipv4 = "192.168.40.10";
+      ports = {
+        ssh = 22;
+        initrdSsh = 2222;
+        vmagent = 8429;
+        nodeExporter = 9100;
+        smartctlExporter = 9633;
+      };
     };
 
     atx-internal = {

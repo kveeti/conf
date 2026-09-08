@@ -23,11 +23,12 @@
     };
 
     secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
+    secrets-atx.follows = "secrets-backup";
     secrets-public.follows = "secrets-backup";
     secrets-router.follows = "secrets-backup";
   };
 
-  outputs = { self, nixpkgs, disko, lanzaboote, money, microvm, secrets-backup, secrets-public, secrets-router }:
+  outputs = { self, nixpkgs, disko, lanzaboote, money, microvm, secrets-atx, secrets-backup, secrets-public, secrets-router }:
     let
       inventory = import ./inventory.nix;
 
@@ -76,6 +77,17 @@
             diskoPackage = disko.packages.x86_64-linux.disko;
           };
           modules = [ ./hosts/router/recovery.nix ];
+        };
+
+        atx = mkHost {
+          hostName = "atx";
+          specialArgs.adminKeys = (import secrets-atx).keys.admins;
+          modules = [
+            disko.nixosModules.disko
+            microvm.nixosModules.host
+            secrets-atx.nixosModules.atx
+            ./hosts/atx
+          ];
         };
 
         backup = mkHost {

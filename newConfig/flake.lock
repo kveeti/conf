@@ -271,6 +271,9 @@
         "microvm": "microvm",
         "money": "money",
         "nixpkgs": "nixpkgs",
+        "secrets-atx": [
+          "secrets-backup"
+        ],
         "secrets-backup": "secrets-backup",
         "secrets-public": [
           "secrets-backup"
