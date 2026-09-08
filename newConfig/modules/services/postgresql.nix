@@ -32,6 +32,12 @@ in {
               description = "Repository name on the REST server.";
             };
 
+            tag = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "Optional snapshot tag for a shared repository.";
+            };
+
             restPasswordFile = lib.mkOption {
               type = lib.types.str;
               description = "File containing the REST server password.";
@@ -91,6 +97,7 @@ in {
 
     homelab.backups.instances = lib.mapAttrs (name: database: {
       repository = database.backup.repository;
+      tag = database.backup.tag;
       restPasswordFile = database.backup.restPasswordFile;
       encryptionPasswordFile = database.backup.encryptionPasswordFile;
       paths = [ (dumpPath name) ];
@@ -107,7 +114,7 @@ in {
         [ "$(psql -U root -d ${name} -tAc "select count(*) from information_schema.tables where table_schema='public'")" -ne 0 ]
       '';
       restore = ''
-        restic dump latest ${dumpPath name} > ${dumpPath name}
+        restic dump ${lib.optionalString (database.backup.tag != null) "--tag ${lib.escapeShellArg database.backup.tag}"} latest ${dumpPath name} > ${dumpPath name}
         pg_restore --no-owner --role=${name} --clean --if-exists \
           -U root -d ${name} ${dumpPath name}
         rm -f ${dumpPath name}

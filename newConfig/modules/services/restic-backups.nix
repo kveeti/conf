@@ -13,9 +13,12 @@ let
 
   ensureRepository = instance: ''
     ${resticEnvironment instance}
-    if ! restic cat config >/dev/null 2>&1; then
-      restic init
-    fi
+    (
+      flock 9
+      if ! restic cat config >/dev/null 2>&1; then
+        restic init
+      fi
+    ) 9>/run/restic-init-${instance.repository}.lock
   '';
 
   credentials = instance: [
@@ -23,10 +26,13 @@ let
     "encryption-password:${instance.encryptionPasswordFile}"
   ];
 
+  tagArgs = instance:
+    lib.optionalString (instance.tag != null) "--tag ${lib.escapeShellArg instance.tag}";
+
   backupServices = lib.mapAttrs' (name: instance:
     lib.nameValuePair "backup-${name}" {
       description = "Back up ${name}";
-      path = [ pkgs.restic pkgs.coreutils ] ++ instance.extraPackages;
+      path = [ pkgs.restic pkgs.coreutils pkgs.util-linux ] ++ instance.extraPackages;
       serviceConfig = {
         Type = "oneshot";
         CacheDirectory = "restic-${name}";
@@ -37,7 +43,7 @@ let
         ${ensureRepository instance}
         ${lib.optionalString (instance.cleanup != null) "trap ${lib.escapeShellArg instance.cleanup} EXIT"}
         ${lib.optionalString (instance.prepare != null) instance.prepare}
-        restic backup ${lib.escapeShellArgs instance.paths} ${lib.concatMapStringsSep " " (exclude: "--exclude ${lib.escapeShellArg exclude}") instance.excludes}
+        restic backup ${tagArgs instance} ${lib.escapeShellArgs instance.paths} ${lib.concatMapStringsSep " " (exclude: "--exclude ${lib.escapeShellArg exclude}") instance.excludes}
 
         metric=/var/lib/node-exporter-textfile/restic_${name}.prom
         printf 'restic_backup_last_success_timestamp_seconds{instance="%s"} %s\n' \
@@ -63,7 +69,7 @@ let
       description = "Restore ${name} when its state is empty";
       inherit (instance) before requiredBy after;
       requires = instance.after;
-      path = [ pkgs.restic pkgs.jq pkgs.coreutils ] ++ instance.extraPackages;
+      path = [ pkgs.restic pkgs.jq pkgs.coreutils pkgs.util-linux ] ++ instance.extraPackages;
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
@@ -79,7 +85,7 @@ let
         fi
 
         ${ensureRepository instance}
-        if [ "$(restic snapshots --json | jq 'length')" -eq 0 ]; then
+        if [ "$(restic snapshots ${tagArgs instance} --json | jq 'length')" -eq 0 ]; then
           echo "No ${name} snapshots found; skipping restore"
           exit 0
         fi
@@ -131,6 +137,12 @@ in {
             type = lib.types.listOf lib.types.str;
             default = [];
             description = "Paths excluded from snapshots.";
+          };
+
+          tag = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "Optional snapshot tag for a shared repository.";
           };
 
           prepare = lib.mkOption {
