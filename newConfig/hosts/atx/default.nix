@@ -16,6 +16,7 @@ in {
     ./hardware.nix
     ./internal.nix
     ./media-certificate.nix
+    ./media/default.nix
     ./minecraft/default.nix
     ./network.nix
     ./storage.nix

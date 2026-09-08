@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/9ae611a455b90cf061d8f332b977e387bda8e1ca";
 
     disko = {
       url = "github:nix-community/disko/a4cb7bf73f264d40560ba527f9280469f1f081c6";
@@ -32,7 +33,7 @@
     secrets-router.follows = "secrets-backup";
   };
 
-  outputs = { self, nixpkgs, disko, lanzaboote, money, food, rss, weather, microvm, secrets-atx, secrets-backup, secrets-public, secrets-router }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, disko, lanzaboote, money, food, rss, weather, microvm, secrets-atx, secrets-backup, secrets-public, secrets-router }:
     let
       inventory = import ./inventory.nix;
 
@@ -88,6 +89,7 @@
           specialArgs = {
             adminKeys = (import secrets-atx).keys.admins;
             inherit food rss weather;
+            pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };
           };
           modules = [
             disko.nixosModules.disko

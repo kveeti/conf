@@ -303,14 +303,26 @@
     };
 
     media = {
+      hostname = "media";
       network = "media";
       ipv4 = "192.168.111.10";
+      ports = {
+        ssh = 22;
+        dns = 53;
+        http = 80;
+        https = 443;
+        jellyfin = 18096;
+      };
     };
 
     jellyfin = {
+      hostname = "jellyfin";
       network = "media";
       ipv4 = "192.168.111.11";
-      ports.https = 443;
+      ports = {
+        http = 80;
+        https = 443;
+      };
     };
 
     unifi = {
