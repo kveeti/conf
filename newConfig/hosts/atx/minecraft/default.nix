@@ -26,8 +26,8 @@ in {
     specialArgs = { inherit adminKeys inventory; };
     config = { config, ... }: {
       imports = [
-        ../../modules/profiles/microvm.nix
-        ./minecraft-backup
+        ../../../modules/profiles/microvm.nix
+        ./backup
       ];
 
       networking.hostName = host.hostname;
