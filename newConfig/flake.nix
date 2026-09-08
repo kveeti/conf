@@ -17,6 +17,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    food.url = "github:kveeti/food/cc61e77586c3f016ea61515ce6133f4d17f99b92";
+    rss.url = "github:kveeti/rss/375850566401198f7736ef0a4a75998c731cd784";
+    weather.url = "github:kveeti/weather/6af9846820941a85aba04ea9a040308a2c23b358";
+
     microvm = {
       url = "github:astro/microvm.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -28,7 +32,7 @@
     secrets-router.follows = "secrets-backup";
   };
 
-  outputs = { self, nixpkgs, disko, lanzaboote, money, microvm, secrets-atx, secrets-backup, secrets-public, secrets-router }:
+  outputs = { self, nixpkgs, disko, lanzaboote, money, food, rss, weather, microvm, secrets-atx, secrets-backup, secrets-public, secrets-router }:
     let
       inventory = import ./inventory.nix;
 
@@ -81,7 +85,10 @@
 
         atx = mkHost {
           hostName = "atx";
-          specialArgs.adminKeys = (import secrets-atx).keys.admins;
+          specialArgs = {
+            adminKeys = (import secrets-atx).keys.admins;
+            inherit food rss weather;
+          };
           modules = [
             disko.nixosModules.disko
             microvm.nixosModules.host

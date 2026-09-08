@@ -14,6 +14,7 @@ in {
     ./certificates.nix
     ./disk.nix
     ./hardware.nix
+    ./internal.nix
     ./media-certificate.nix
     ./minecraft.nix
     ./network.nix
