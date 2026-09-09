@@ -257,9 +257,22 @@
     };
 
     home-assistant = {
-      hostname = "ha";
+      hostname = "homeassistant";
       network = "iot";
       ipv4 = "192.168.20.4";
+      ports = {
+        ssh = 22;
+        http = 80;
+        https = 443;
+        mqtt = 1883;
+        ssdp = 1900;
+        z2m = 8080;
+        homeAssistant = 8123;
+        vmagent = 8429;
+        nodeExporter = 9100;
+        wireguard = 51820;
+        mdns = 5353;
+      };
     };
 
     slzb-06 = {
