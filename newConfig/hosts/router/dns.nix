@@ -94,7 +94,6 @@ in {
 
         local-zone = [
           ''"internal.veetik.com." static''
-          ''"dev-internal.veetik.com." redirect''
           ''"media.lan." redirect''
           ''"jellyfin.media.lan." static''
           ''"veetik.com." typetransparent''
@@ -108,8 +107,6 @@ in {
           ''"ha.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"grafana.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
-          ''"dev.internal.veetik.com. IN A ${hosts.dev.ipv4}"''
-          ''"dev-internal.veetik.com. IN A ${hosts.dev.ipv4}"''
           ''"media.lan. IN A ${hosts.media.ipv4}"''
           ''"jellyfin.media.lan. IN A ${hosts.jellyfin.ipv4}"''
           ''"dav.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''

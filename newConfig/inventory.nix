@@ -96,13 +96,6 @@
       router4 = "192.168.111.1";
     };
 
-    dev = {
-      interface = "vlan999";
-      vlan = 999;
-      cidr4 = "192.168.99.0/24";
-      router4 = "192.168.99.1";
-    };
-
     wireguard = {
       interface = "wg0";
       cidr4 = "10.255.255.0/24";
@@ -122,10 +115,10 @@
     lanInterface = "lan0";
     ifbInterface = "ifb-wan";
     sixRdInterface = "6rd-*";
-    dnsNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dev" ];
-    internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dmz" "minecraft" "dev" ];
+    dnsNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" ];
+    internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dmz" "minecraft" ];
     mdnsNetworks = [ "trusted" "iot" "untrusted" "servers" ];
-    dnsRedirectNetworks = [ "trusted" "iot" "untrusted" "dev" ];
+    dnsRedirectNetworks = [ "trusted" "iot" "untrusted" ];
   };
 
   hosts = {
@@ -289,12 +282,6 @@
       mac = "c0:95:6d:51:fb:32";
       network = "iot";
       ipv4 = "192.168.20.2";
-    };
-
-    dev = {
-      hostname = "dev";
-      network = "dev";
-      ipv4 = "192.168.99.10";
     };
 
     minecraft = {

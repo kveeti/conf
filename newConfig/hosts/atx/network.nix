@@ -4,7 +4,7 @@ let
   host = inventory.hosts.atx;
   networks = inventory.networks;
   hostNetwork = networks.${host.network};
-  guestNetworkNames = [ "minecraft" "iot" "media" "dev" ];
+  guestNetworkNames = [ "minecraft" "iot" "media" ];
   guestNetworks = map (name: networks.${name}) guestNetworkNames;
 
   bridgeName = network: "br-${network.interface}";

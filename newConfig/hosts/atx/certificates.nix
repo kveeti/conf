@@ -18,10 +18,6 @@
         domain = "internal.veetik.com";
         extraDomainNames = [ "*.internal.veetik.com" ];
       };
-      "dev-internal.veetik.com" = {
-        domain = "dev-internal.veetik.com";
-        extraDomainNames = [ "*.dev-internal.veetik.com" ];
-      };
     };
   };
 }
