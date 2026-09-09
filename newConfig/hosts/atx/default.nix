@@ -96,10 +96,6 @@ in {
     };
   };
 
-  services.udev.extraRules = ''
-    SUBSYSTEM=="usb", ATTR{idVendor}=="03f0", ATTR{idProduct}=="0272", GROUP="kvm"
-  '';
-
   users.groups.cert-readers.gid = 6500;
   systemd.tmpfiles.rules = [ "d /var/lib/microvms 0755 root root -" ];
 

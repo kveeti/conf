@@ -40,7 +40,7 @@ in {
 
   services.openssh = {
     ports = [ ports.ssh ];
-    hostKeys = [{
+    hostKeys = lib.mkForce [{
       path = "/run/ssh-host/ssh_host_ed25519_key";
       type = "ed25519";
     }];

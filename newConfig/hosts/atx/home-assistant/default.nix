@@ -12,12 +12,12 @@ let
   privateModules = config.homelab.microvms.${name}.guestModules or [];
 
   copiedSecrets = {
-    mqtt-password = { source = "ha-mqtt-password"; mode = "0444"; };
-    z2m-env = { source = "ha-z2m-env"; mode = "0444"; };
-    prometheus-token = { source = "ha-prometheus-token"; mode = "0444"; };
+    mqtt-password = { source = "ha-mqtt-password"; mode = "0400"; };
+    z2m-env = { source = "ha-z2m-env"; mode = "0400"; };
+    prometheus-token = { source = "ha-prometheus-token"; mode = "0400"; };
     telemetry-pass = { source = "telemetry-pass"; mode = "0400"; };
-    wg-iot-priv = { source = "wg-iot-priv"; mode = "0444"; };
-    wg-iot-psk = { source = "wg-iot-psk"; mode = "0444"; };
+    wg-iot-priv = { source = "wg-iot-priv"; mode = "0400"; };
+    wg-iot-psk = { source = "wg-iot-psk"; mode = "0400"; };
     restic-ha-rest-pass = { source = "restic-ha-rest-pass"; mode = "0400"; };
     restic-ha-encryption-pass = { source = "restic-ha-encryption-pass"; mode = "0400"; };
   };
@@ -41,8 +41,9 @@ in {
     deps = [ "agenix" ];
     text = ''
       install -d -m 0755 ${stateRoot}/ssh
-      install -d -m 0711 ${secretDir}
+      install -d -m 0700 ${secretDir}
       install -d -m 0755 -o root -g cert-readers ${certDir}
+      rm -f ${secretDir}/restic-ha-repo
       ${lib.concatStringsSep "\n" (lib.mapAttrsToList copySecret copiedSecrets)}
       ${copyCertificate}
     '';
@@ -140,9 +141,9 @@ in {
             };
           };
         };
-        metrics.scrapes.home-assistant = {
+        metrics.scrapes.hass = {
           path = "/api/prometheus";
-          authorizationFile = "/run/secrets/prometheus-token";
+          authorizationFile = "/run/credentials/vmagent.service/prometheus-token";
           targets = [ "127.0.0.1:${toString config.homelab.ports.homeAssistant}" ];
         };
       };
@@ -223,9 +224,14 @@ in {
         };
       };
 
-      systemd.services.systemd-networkd = {
-        after = [ "run-secrets.mount" ];
-        wants = [ "run-secrets.mount" ];
+      systemd.services = {
+        systemd-networkd = {
+          after = [ "run-secrets.mount" ];
+          wants = [ "run-secrets.mount" ];
+        };
+        vmagent.serviceConfig.LoadCredential = [
+          "prometheus-token:/run/secrets/prometheus-token"
+        ];
       };
 
       environment.systemPackages = [ pkgs.wireguard-tools ];

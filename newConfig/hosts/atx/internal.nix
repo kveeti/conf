@@ -47,6 +47,7 @@ in {
       install -d -m 0755 ${stateRoot}/ssh
       install -d -m 0711 ${secretDir}
       install -d -m 0755 -o root -g cert-readers ${certDir}
+      rm -f ${secretDir}/restic-internal-repo
       ${lib.concatMapStringsSep "\n" copySecret directSecrets}
       chown 700:700 ${secretDir}/radicale-users
       printf 'PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"SCOPE":["openid","profile","email"],"APPS":[{"provider_id":"keycloak","name":"Keycloak","client_id":"paperless","secret":"%s","settings":{"server_url":"https://auth.veetik.com/realms/main/.well-known/openid-configuration","oauth_pkce_enabled":true}}]}}\n' \
@@ -100,6 +101,10 @@ in {
         hostKey = inventoryKey;
         stateRoot = stateRoot;
         volumeSize = 8192;
+        volumes.postgresql = {
+          owner = "postgres";
+          mode = "0750";
+        };
         backups.serverUrl = "https://backup.internal.veetik.com:${toString inventory.hosts.backup.ports.restic}";
         nginxMetrics = {
           statusPort = config.homelab.ports.nginxStatus;

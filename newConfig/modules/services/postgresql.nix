@@ -3,7 +3,7 @@
 let
   cfg = config.homelab.postgresql;
   databaseNames = lib.attrNames cfg.databases;
-  dumpPath = database: "/tmp/postgresql-${database}.dump";
+  dumpPath = database: "/tmp/pg-${database}.dump";
 in {
   imports = [ ./restic-backups.nix ];
 
@@ -91,7 +91,7 @@ in {
       runAsLocalSuperUser = true;
     };
 
-    homelab.metrics.scrapes.postgresql.targets = [
+    homelab.metrics.scrapes.postgres.targets = [
       "127.0.0.1:${toString config.services.prometheus.exporters.postgres.port}"
     ];
 
