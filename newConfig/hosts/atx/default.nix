@@ -41,8 +41,6 @@ in {
       "intel_iommu=on"
       "iommu=pt"
     ];
-    blacklistedKernelModules = [ "usblp" ];
-
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;

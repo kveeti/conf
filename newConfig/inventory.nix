@@ -297,12 +297,6 @@
       ipv4 = "192.168.99.10";
     };
 
-    printer = {
-      hostname = "printer";
-      network = "servers";
-      ipv4 = "192.168.40.12";
-    };
-
     minecraft = {
       hostname = "minecraft";
       network = "minecraft";

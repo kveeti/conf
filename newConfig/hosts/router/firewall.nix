@@ -159,11 +159,6 @@ in {
           iifname "${sixRd}" ct state { new, untracked } counter drop
 
           iifname "${networks.servers.interface}" oifname "${networks.servers.interface}" accept
-          iifname "${networks.untrusted.interface}" \
-            oifname "${networks.servers.interface}" \
-            ip daddr ${hosts.printer.ipv4} tcp dport 631 \
-            accept comment "guest AirPrint -> printer"
-
           iifname "${networks.dmz.interface}" \
             oifname "${networks.servers.interface}" \
             ip saddr ${hosts.public.ipv4} ip daddr ${hosts.backup.ipv4} \

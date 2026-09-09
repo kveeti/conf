@@ -107,7 +107,6 @@ in {
           ''"mc.veetik.com. IN CNAME oul-1.veetik.com."''
           ''"ha.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
-          ''"printer.internal.veetik.com. IN A ${hosts.printer.ipv4}"''
           ''"grafana.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
           ''"dev.internal.veetik.com. IN A ${hosts.dev.ipv4}"''
           ''"dev-internal.veetik.com. IN A ${hosts.dev.ipv4}"''
@@ -152,7 +151,7 @@ in {
     reflector = true;
     allowInterfaces = mdnsInterfaces;
     extraConfig = ''
-      reflect-filters=_airplay._tcp.local,_raop._tcp.local,_ipp._tcp.local,_ipps._tcp.local,_printer._tcp.local
+      reflect-filters=_airplay._tcp.local,_raop._tcp.local
     '';
     ipv4 = true;
     ipv6 = false;
