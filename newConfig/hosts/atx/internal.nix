@@ -22,7 +22,6 @@ let
     "telemetry-pass"
     "oidc-rss-client-secret"
     "oidc-paperless-client-secret"
-    "oauth2-rss-cookie-secret"
     "oauth2-paperless-cookie-secret"
   ];
 
