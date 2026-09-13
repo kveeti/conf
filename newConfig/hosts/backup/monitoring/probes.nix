@@ -1,7 +1,6 @@
 { config, inventory, lib, pkgs, ... }:
 
 let
-  internalIp = inventory.hosts.atx-internal.ipv4;
   publicIp = inventory.hosts.public.ipv4;
   ports = config.homelab.ports;
 
@@ -78,27 +77,10 @@ in {
 
   homelab.metrics.extraScrapeConfigs = [
     (job "public" "public" (map (probe: "https://${probe.host}${probe.path}") publicProbes))
-    (job "internal" "http" [
+    (job "auth" "http" [
       "https://auth.veetik.com/realms/main/.well-known/openid-configuration"
-      "https://auth2.veetik.com/application/o/money/.well-known/openid-configuration"
-      "https://dav.internal.veetik.com"
-      "https://food.internal.veetik.com"
-      "https://weather.internal.veetik.com"
-      "https://p.internal.veetik.com"
-      "https://rss.internal.veetik.com"
-      "https://grafana.internal.veetik.com"
-      "https://backup.internal.veetik.com:${toString ports.restic}"
     ])
   ] ++ map lanJob publicProbes;
 
-  networking.hosts = {
-    ${internalIp} = [
-      "dav.internal.veetik.com"
-      "food.internal.veetik.com"
-      "weather.internal.veetik.com"
-      "p.internal.veetik.com"
-      "rss.internal.veetik.com"
-    ];
-    ${publicIp} = [ "auth.veetik.com" "auth2.veetik.com" ];
-  };
+  networking.hosts.${publicIp} = [ "auth.veetik.com" ];
 }
