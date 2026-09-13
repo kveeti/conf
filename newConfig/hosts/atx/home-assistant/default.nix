@@ -196,12 +196,12 @@ in {
             Name = "wg-iot";
           };
           wireguardConfig = {
-            PrivateKeyFile = "/run/secrets/wg-iot-priv";
+            PrivateKeyFile = "/run/credentials/systemd-networkd.service/wg-iot-priv";
             ListenPort = config.homelab.ports.wireguard;
           };
           wireguardPeers = [{
             PublicKey = "1KioECK3czkVCkQP1l7C0EfHrVCjQvvrM/uTf2KG1SM=";
-            PresharedKeyFile = "/run/secrets/wg-iot-psk";
+            PresharedKeyFile = "/run/credentials/systemd-networkd.service/wg-iot-psk";
             AllowedIPs = [ "10.255.20.2/32" ];
           }];
         };
@@ -228,6 +228,10 @@ in {
         systemd-networkd = {
           after = [ "run-secrets.mount" ];
           wants = [ "run-secrets.mount" ];
+          serviceConfig.LoadCredential = [
+            "wg-iot-priv:/run/secrets/wg-iot-priv"
+            "wg-iot-psk:/run/secrets/wg-iot-psk"
+          ];
         };
         vmagent.serviceConfig.LoadCredential = [
           "prometheus-token:/run/secrets/prometheus-token"
