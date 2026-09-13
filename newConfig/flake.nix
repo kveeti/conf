@@ -104,6 +104,7 @@
           specialArgs.adminKeys = (import secrets-backup).keys.admins;
           modules = [
             disko.nixosModules.disko
+            lanzaboote.nixosModules.lanzaboote
             secrets-backup.nixosModules.backup
             ./hosts/backup
           ];

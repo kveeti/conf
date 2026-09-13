@@ -1,4 +1,9 @@
 {
+  boot.initrd.systemd.services."zfs-import-rpool" = {
+    requires = [ "systemd-cryptsetup@cryptroot.service" ];
+    after = [ "systemd-cryptsetup@cryptroot.service" ];
+  };
+
   disko.devices = {
     disk.main = {
       device = "/dev/disk/by-id/nvme-Samsung_SSD_990_EVO_Plus_1TB_S7U4NJ0Y409260B";
@@ -68,40 +73,6 @@
           mountpoint = "/var/lib/restic";
           options."com.sun:auto-snapshot" = "false";
         };
-      };
-    };
-
-    disk.usb = {
-      device = "/dev/disk/by-id/usb-WD_Elements_2621_575837324442345238464636-0:0";
-      type = "disk";
-      content = {
-        type = "luks";
-        name = "cryptapool";
-        settings = {
-          allowDiscards = true;
-          crypttabExtraOpts = [ "timeout=0" "tries=3" ];
-        };
-        content = {
-          type = "zfs";
-          pool = "apool";
-        };
-      };
-    };
-
-    zpool.apool = {
-      type = "zpool";
-      options.ashift = "12";
-      rootFsOptions = {
-        compression = "zstd";
-        acltype = "posixacl";
-        xattr = "sa";
-        mountpoint = "none";
-        "com.sun:auto-snapshot" = "false";
-      };
-      datasets.restic = {
-        type = "zfs_fs";
-        mountpoint = "/var/lib/restic-archive";
-        options."com.sun:auto-snapshot" = "false";
       };
     };
   };

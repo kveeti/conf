@@ -216,10 +216,5 @@ in {
       lib.mapAttrs' (name: value: lib.nameValuePair "restic-${name}-prune" value) pruneTimers
       // lib.optionalAttrs cfg.archive.enable
         (lib.mapAttrs' (name: value: lib.nameValuePair "restic-${name}-archive" value) archiveTimers);
-
-    fileSystems.${cfg.archive.dataDir}.options = lib.mkIf cfg.archive.enable [
-      "nofail"
-      "x-systemd.device-timeout=15s"
-    ];
   };
 }

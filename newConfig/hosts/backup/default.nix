@@ -1,4 +1,4 @@
-{ config, adminKeys, inventory, ... }:
+{ config, lib, adminKeys, inventory, ... }:
 
 let
   host = inventory.hosts.backup;
@@ -9,6 +9,8 @@ in {
     ../../modules/profiles/base.nix
     ../../modules/profiles/server.nix
     ../../modules/features/port-registry.nix
+    ../../modules/features/secure-boot.nix
+    ./archive-disk.nix
     ./disk.nix
     ./hardware.nix
     ./monitoring
@@ -21,6 +23,7 @@ in {
   };
 
   boot = {
+    lanzaboote.autoEnrollKeys.enable = lib.mkForce false;
     supportedFilesystems = [ "zfs" ];
     zfs.forceImportRoot = false;
     kernelParams = [ "ip=dhcp" ];
