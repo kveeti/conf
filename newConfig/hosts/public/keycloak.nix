@@ -173,6 +173,7 @@ in {
   homelab.postgresql.databases.keycloak = {
     services = [ "keycloak" ];
     backup = {
+      repository = "auth";
       restPasswordFile = config.age.secrets.restic-auth-rest-pass.path;
       encryptionPasswordFile = config.age.secrets.restic-auth-encryption-pass.path;
     };

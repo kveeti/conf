@@ -3,6 +3,7 @@
 let
   ports = config.homelab.ports;
   repositories = [
+    "auth"
     "authentik"
     "bm"
     "ha"
@@ -24,12 +25,7 @@ in {
     repositories = lib.genAttrs repositories (name: {
       clientPasswordFile = config.age.secrets."restic-${name}-rest-pass".path;
       encryptionPasswordFile = config.age.secrets."restic-${name}-encryption-pass".path;
-    }) // {
-      keycloak = {
-        clientPasswordFile = config.age.secrets.restic-auth-rest-pass.path;
-        encryptionPasswordFile = config.age.secrets.restic-auth-encryption-pass.path;
-      };
-    };
+    });
   };
 
   services.nginx.virtualHosts."backup.internal.veetik.com" = {
