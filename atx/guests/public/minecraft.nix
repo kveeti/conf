@@ -17,7 +17,7 @@ in {
     vm = {
       specialArgs = { inherit (config._module.args) keys guestIps publicGateways; };
       config = { pkgs, lib, keys, guestIps, publicGateways, ... }: {
-        imports = [ ../_common.nix ];
+        imports = [ ../_common.nix ./minecraft-backup ];
 
         networking.hostName = "minecraft";
 
