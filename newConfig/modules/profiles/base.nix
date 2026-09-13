@@ -9,6 +9,7 @@
 
   environment.systemPackages = with pkgs; [
     btop
+    ghostty.terminfo
     git
     restic
     tmux
