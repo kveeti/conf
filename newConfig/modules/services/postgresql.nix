@@ -108,7 +108,7 @@ in {
       cleanup = "rm -f ${dumpPath name}";
       before = map (service: "${service}.service") database.services;
       requiredBy = map (service: "${service}.service") database.services;
-      after = [ "postgresql.service" ];
+      after = [ "postgresql-setup.service" ];
       extraPackages = [ cfg.package ];
       hasData = ''
         [ "$(psql -U root -d ${name} -tAc "select count(*) from information_schema.tables where table_schema='public'")" -ne 0 ]

@@ -5,51 +5,52 @@ let
   publicIp = inventory.hosts.public.ipv4;
   ports = config.homelab.ports;
   environmentFile = "/run/authentik-config/environment";
+  image = "ghcr.io/goauthentik/server@sha256:c0ab98c3d26d4fe66a513b0ac96ab97abc47cec9d4255abb0ba61e7f2dba1ce0";
+
+  blueprintSecrets = [
+    "authentik-google-client-id"
+    "authentik-google-client-secret"
+    "oidc-rss-client-secret"
+    "oidc-paperless-client-secret"
+    "oidc-grafana-client-secret"
+    "oidc-money-client-secret"
+  ];
+
+  volumes = [
+    "/run/postgresql:/run/postgresql:ro"
+    "/var/lib/authentik:/data"
+    "/var/lib/authentik/media:/media"
+    "/var/lib/authentik/certs:/certs"
+    "${./authentik-blueprint.yaml}:/blueprints/homelab.yaml:ro"
+  ] ++ map (name: "${config.age.secrets.${name}.path}:/run/agenix/${name}:ro") blueprintSecrets;
 
   environment = {
-    HOME = "/var/lib/authentik";
+    HOME = "/data";
     AUTHENTIK_POSTGRESQL__HOST = "/run/postgresql";
     AUTHENTIK_POSTGRESQL__NAME = "authentik";
     AUTHENTIK_POSTGRESQL__USER = "authentik";
     AUTHENTIK_POSTGRESQL__SSLMODE = "disable";
-    AUTHENTIK_LISTEN__HTTP = "127.0.0.1:${toString ports.authentik}";
+    AUTHENTIK_LISTEN__HTTP = "0.0.0.0:9000";
     AUTHENTIK_LISTEN__HTTPS = "127.0.0.1:${toString ports.authentikHttps}";
     AUTHENTIK_LISTEN__LDAP = "127.0.0.1:${toString ports.authentikLdap}";
     AUTHENTIK_LISTEN__LDAPS = "127.0.0.1:${toString ports.authentikLdaps}";
     AUTHENTIK_LISTEN__RADIUS = "127.0.0.1:${toString ports.authentikRadius}";
-    AUTHENTIK_LISTEN__METRICS = "127.0.0.1:${toString ports.authentikMetrics}";
+    AUTHENTIK_LISTEN__METRICS = "0.0.0.0:${toString ports.authentikMetrics}";
     AUTHENTIK_LISTEN__DEBUG = "127.0.0.1:${toString ports.authentikDebug}";
     AUTHENTIK_LISTEN__DEBUG_PY = "127.0.0.1:${toString ports.authentikDebugPython}";
-    AUTHENTIK_STORAGE__FILE__PATH = "/var/lib/authentik/media";
+    AUTHENTIK_STORAGE__FILE__PATH = "/media";
+    AUTHENTIK_BLUEPRINTS_DIR = "/blueprints";
     AUTHENTIK_ERROR_REPORTING__ENABLED = "false";
     AUTHENTIK_DISABLE_UPDATE_CHECK = "true";
     AUTHENTIK_DISABLE_STARTUP_ANALYTICS = "true";
     AUTHENTIK_OUTPOSTS__DISABLE_EMBEDDED_OUTPOST = "true";
   };
 
-  service = command: {
-    wantedBy = [ "multi-user.target" ];
-    wants = [ "network-online.target" ];
-    after = [ "network-online.target" "authentik-environment.service" ];
-    requires = [ "authentik-environment.service" ];
-    inherit environment;
-    serviceConfig = {
-      ExecStart = "${pkgs.authentik}/bin/ak ${command}";
-      User = "authentik";
-      Group = "authentik";
-      StateDirectory = "authentik";
-      WorkingDirectory = "/var/lib/authentik";
-      EnvironmentFile = environmentFile;
-      Restart = "on-failure";
-      RestartSec = 5;
-      UMask = "0077";
-      PrivateTmp = true;
-      TemporaryFileSystem = [ "/dev/shm:rw,nodev,nosuid,mode=1777" ];
-      NoNewPrivileges = true;
-      ProtectHome = true;
-      ProtectSystem = "strict";
-      ReadWritePaths = [ "/var/lib/authentik" ];
-    };
+  container = {
+    inherit image volumes environment;
+    environmentFiles = [ environmentFile ];
+    user = "990:988";
+    extraOptions = [ "--hostuser=authentik" ];
   };
 in {
   age.secrets = {
@@ -82,18 +83,36 @@ in {
     };
   };
 
-  users.groups.authentik = {};
+  users.groups.authentik.gid = 988;
   users.users.authentik = {
     isSystemUser = true;
     group = "authentik";
     home = "/var/lib/authentik";
+    uid = 990;
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /var/lib/authentik 0750 authentik authentik -"
+    "d /var/lib/authentik/media 0750 authentik authentik -"
+    "d /var/lib/authentik/certs 0750 authentik authentik -"
+  ];
+
+  virtualisation.oci-containers.containers = {
+    authentik-server = container // {
+      cmd = [ "server" ];
+      ports = [
+        "127.0.0.1:${toString ports.authentik}:9000"
+        "127.0.0.1:${toString ports.authentikMetrics}:${toString ports.authentikMetrics}"
+      ];
+    };
+    authentik-worker = container // { cmd = [ "worker" ]; };
   };
 
   systemd.services = {
     authentik-environment = {
       description = "Prepare Authentik secrets";
-      requiredBy = [ "authentik-server.service" "authentik-worker.service" ];
-      before = [ "authentik-server.service" "authentik-worker.service" ];
+      requiredBy = [ "podman-authentik-server.service" "podman-authentik-worker.service" ];
+      before = [ "podman-authentik-server.service" "podman-authentik-worker.service" ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
@@ -113,25 +132,18 @@ in {
       '';
     };
 
-    authentik-server = service "server";
-    authentik-worker = service "worker";
+    podman-authentik-server.unitConfig.RequiresMountsFor = [ "/var/lib/authentik" "/var/lib/containers" ];
+    podman-authentik-worker.unitConfig.RequiresMountsFor = [ "/var/lib/authentik" "/var/lib/containers" ];
 
     authentik-config = {
       description = "Apply the homelab Authentik blueprint";
       wantedBy = [ "multi-user.target" ];
-      after = [ "authentik-server.service" "authentik-worker.service" ];
-      requires = [ "authentik-server.service" "authentik-worker.service" ];
-      path = [ pkgs.authentik pkgs.curl ];
-      inherit environment;
+      after = [ "podman-authentik-server.service" "podman-authentik-worker.service" ];
+      requires = [ "podman-authentik-server.service" "podman-authentik-worker.service" ];
+      path = [ pkgs.podman pkgs.curl pkgs.coreutils ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        User = "authentik";
-        Group = "authentik";
-        WorkingDirectory = "/var/lib/authentik";
-        EnvironmentFile = environmentFile;
-        PrivateTmp = true;
-        TemporaryFileSystem = [ "/dev/shm:rw,nodev,nosuid,mode=1777" ];
       };
       script = ''
         ready=false
@@ -148,13 +160,22 @@ in {
           exit 1
         fi
 
-        exec ak apply_blueprint ${./authentik-blueprint.yaml}
+        for attempt in 1 2 3; do
+          if podman exec authentik-server ak apply_blueprint homelab.yaml; then
+            exit 0
+          fi
+          if [ "$attempt" -lt 3 ]; then
+            sleep 5
+          fi
+        done
+
+        exit 1
       '';
     };
   };
 
   homelab.postgresql.databases.authentik = {
-    services = [ "authentik-server" "authentik-worker" ];
+    services = [ "podman-authentik-server" "podman-authentik-worker" ];
     backup = {
       restPasswordFile = config.age.secrets.restic-authentik-rest-pass.path;
       encryptionPasswordFile = config.age.secrets.restic-authentik-encryption-pass.path;
@@ -171,6 +192,15 @@ in {
     locations."/" = {
       proxyPass = "http://127.0.0.1:${toString ports.authentik}";
       proxyWebsockets = true;
+      extraConfig = ''
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $hostname;
+        proxy_set_header X-Request-ID $request_id;
+      '';
     };
   };
 
@@ -181,11 +211,11 @@ in {
   ];
 
   homelab.logs.units = {
-    "authentik-server.service" = {
+    "podman-authentik-server.service" = {
       format = "json";
       serviceName = "authentik";
     };
-    "authentik-worker.service" = {
+    "podman-authentik-worker.service" = {
       format = "json";
       serviceName = "authentik-worker";
     };

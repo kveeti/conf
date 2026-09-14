@@ -54,8 +54,6 @@ in {
     recommendedOptimisation = true;
     recommendedTlsSettings = true;
     commonHttpConfig = ''
-      server_tokens off;
-
       ${lib.concatMapStringsSep "\n" (cidr: "set_real_ip_from ${cidr};") cloudflareCidrs}
       real_ip_header CF-Connecting-IP;
       real_ip_recursive on;
