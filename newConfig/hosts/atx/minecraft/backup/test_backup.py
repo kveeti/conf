@@ -119,8 +119,9 @@ class BackupTests(unittest.TestCase):
         repository = Path(args[args.index('--repo') + 1])
         command = args[3]
         self.restic_commands.append((repository.parent.name, args[3:]))
-        if command in self.restic_fail:
-            return subprocess.CompletedProcess(args, self.restic_fail[command], '', f'{command} failed')
+        exit_code = self.restic_fail.get(command, 0)
+        if exit_code and not (command == 'backup' and exit_code == 3):
+            return subprocess.CompletedProcess(args, exit_code, '', f'{command} failed')
         state = self.fake_repos.setdefault(repository, {'snapshots': [], 'counter': 0})
         if command == 'init':
             repository.mkdir()
@@ -164,7 +165,8 @@ class BackupTests(unittest.TestCase):
                 stdout = json.dumps({'message_type': 'status'}) + '\n' + json.dumps({
                     'message_type': 'summary', 'snapshot_id': snapshot_id,
                 }) + '\n'
-            return subprocess.CompletedProcess(args, 0, stdout, '')
+            stderr = 'some source files could not be read' if exit_code == 3 else ''
+            return subprocess.CompletedProcess(args, exit_code, stdout, stderr)
         if command == 'snapshots':
             public = [{key: value for key, value in item.items() if not key.startswith('_')}
                       for item in state['snapshots']]
@@ -249,6 +251,42 @@ class BackupTests(unittest.TestCase):
         with self.assertRaisesRegex(backup.BackupError, 'backup failed'):
             backup.backup_once(self.job)
         self.assertEqual(self.snapshots(), [])
+        self.assert_clean()
+
+    def test_partial_online_backup_discards_only_the_incomplete_snapshot(self):
+        complete_id, _ = backup.restic_backup(self.job, 'online')
+        self.restic_fail['backup'] = 3
+
+        with self.assertRaisesRegex(backup.BackupError, 'some source files could not be read'):
+            backup.backup_once(self.job)
+
+        self.assertEqual([snapshot['id'] for snapshot in self.snapshots()], [complete_id])
+        self.assertFalse(any('Backup completed' in message for _, message, _ in self.messages))
+        self.assert_clean()
+
+    def test_partial_offline_backup_discards_snapshot(self):
+        self.set_running('servu', False)
+        self.restic_fail['backup'] = 3
+
+        with self.assertRaisesRegex(backup.BackupError, 'some source files could not be read'):
+            backup.backup_once(self.job)
+
+        self.assertEqual(self.snapshots(), [])
+        self.assertEqual(self.probe_world_lock(), 0)
+        self.assert_clean()
+
+    def test_partial_backup_cleanup_failure_reports_snapshot_and_restores_saving(self):
+        self.restic_fail['backup'] = 3
+        self.restic_fail['forget'] = 1
+
+        with self.assertRaises(backup.BackupError) as failure:
+            backup.backup_once(self.job)
+
+        snapshots = self.snapshots()
+        self.assertEqual(len(snapshots), 1)
+        self.assertIn('some source files could not be read', str(failure.exception))
+        self.assertIn(snapshots[0]['id'], str(failure.exception))
+        self.assertIn('forget failed', str(failure.exception))
         self.assert_clean()
 
     def test_logout_during_backup_forgets_snapshot(self):

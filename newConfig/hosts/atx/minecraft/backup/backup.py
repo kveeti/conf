@@ -31,6 +31,12 @@ class BackupError(Exception):
     pass
 
 
+class IncompleteBackup(BackupError):
+    def __init__(self, message, snapshot_id):
+        super().__init__(message)
+        self.snapshot_id = snapshot_id
+
+
 class RetryBackup(BackupError):
     pass
 
@@ -210,7 +216,10 @@ def restic(server, arguments, timeout=600, json_output=False):
     )
     if result.returncode:
         detail = result.stderr.strip() or result.stdout.strip() or f'exit status {result.returncode}'
-        raise BackupError(f'Restic {arguments[0]} failed: {detail[-2000:]}')
+        message = f'Restic {arguments[0]} failed: {detail[-2000:]}'
+        if arguments[0] == 'backup' and result.returncode == 3:
+            raise IncompleteBackup(message, backup_snapshot_id(result.stdout))
+        raise BackupError(message)
     if not json_output:
         return result.stdout
     try:
@@ -247,15 +256,7 @@ def repository_bytes(repository):
     return total
 
 
-def restic_backup(server, mode):
-    before = repository_bytes(server.repository)
-    output = restic(server, [
-        'backup', '--json', '--tag', mode,
-        '--exclude', str(server.path / 'logs'),
-        '--exclude', str(server.path / 'cache'),
-        '--exclude', '**/session.lock',
-        str(server.path),
-    ])
+def backup_snapshot_id(output):
     summary = None
     for line in output.splitlines():
         try:
@@ -266,8 +267,21 @@ def restic_backup(server, mode):
             summary = message
     if not summary or not summary.get('snapshot_id'):
         raise BackupError('Restic backup did not report a snapshot ID')
+    return summary['snapshot_id']
+
+
+def restic_backup(server, mode):
+    before = repository_bytes(server.repository)
+    output = restic(server, [
+        'backup', '--json', '--tag', mode,
+        '--exclude', str(server.path / 'logs'),
+        '--exclude', str(server.path / 'cache'),
+        '--exclude', '**/session.lock',
+        str(server.path),
+    ])
+    snapshot_id = backup_snapshot_id(output)
     added_bytes = max(0, repository_bytes(server.repository) - before)
-    return summary['snapshot_id'], added_bytes
+    return snapshot_id, added_bytes
 
 
 def restic_snapshots(server):
@@ -379,6 +393,8 @@ def backup_once(server):
                 validate()
     except Exception as caught:
         error = caught
+        if isinstance(caught, IncompleteBackup):
+            snapshot_id = caught.snapshot_id
     finally:
         if console:
             console.close()
