@@ -1,4 +1,9 @@
 {
+  boot.initrd.systemd.services."zfs-import-rpool" = {
+    requires = [ "systemd-cryptsetup@cryptroot.service" ];
+    after = [ "systemd-cryptsetup@cryptroot.service" ];
+  };
+
   disko.devices = {
     disk.main = {
       device = "/dev/disk/by-id/nvme-KINGSTON_SFYRD2000G_50026B7686181CD6";
