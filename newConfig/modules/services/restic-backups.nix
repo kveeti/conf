@@ -15,9 +15,17 @@ let
     ${resticEnvironment instance}
     (
       flock 9
-      if ! restic cat config >/dev/null 2>&1; then
-        restic init
-      fi
+      for attempt in $(seq 1 12); do
+        if restic cat config >/dev/null 2>&1 || restic init; then
+          exit 0
+        fi
+        if [ "$attempt" -lt 12 ]; then
+          echo "Repository ${instance.repository} unavailable; retrying in 10 seconds" >&2
+          sleep 10
+        fi
+      done
+      echo "Could not open repository ${instance.repository} after 12 attempts" >&2
+      exit 1
     ) 9>/run/restic-init-${instance.repository}.lock
   '';
 
@@ -81,7 +89,9 @@ let
   restoreServices = lib.mapAttrs' (name: instance:
     lib.nameValuePair "restore-${name}" {
       description = "Restore ${name} when its state is empty";
-      inherit (instance) before requiredBy after;
+      inherit (instance) before requiredBy;
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ] ++ instance.after;
       requires = instance.after;
       unitConfig.RequiresMountsFor = lib.optional
         (instance.restoreMarker != null)
