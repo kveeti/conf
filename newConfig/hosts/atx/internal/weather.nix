@@ -2,11 +2,16 @@
 
 let
   domain = "weather.internal.veetik.com";
-  database = "/var/lib/weather/data.db";
+  state = "/var/lib/weather";
+  database = "${state}/data.db";
   dump = "/tmp/weather.db";
+  restoredDatabase = "${state}/.data.db.restore";
 in {
   age.secrets.weather-secrets = {};
-  homelab.volumes.weather.owner = "weather";
+  homelab.volumes.weather = {
+    path = state;
+    owner = "weather";
+  };
 
   homelab.backups.instances.weather = {
     repository = "internal";
@@ -20,8 +25,9 @@ in {
     after = [ "var-lib-weather.mount" ];
     hasData = "[ -f ${database} ]";
     restore = ''
-      restic dump --tag weather latest ${dump} > ${database}
-      chown weather:weather ${database}
+      restic dump --tag weather latest ${dump} > ${restoredDatabase}
+      chown weather:weather ${restoredDatabase}
+      mv ${restoredDatabase} ${database}
     '';
   };
 

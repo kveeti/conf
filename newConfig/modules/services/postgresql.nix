@@ -115,7 +115,7 @@ in {
       '';
       restore = ''
         restic dump ${lib.optionalString (database.backup.tag != null) "--tag ${lib.escapeShellArg database.backup.tag}"} latest ${dumpPath name} > ${dumpPath name}
-        pg_restore --no-owner --role=${name} --clean --if-exists \
+        pg_restore --single-transaction --no-owner --role=${name} --clean --if-exists \
           -U root -d ${name} ${dumpPath name}
         rm -f ${dumpPath name}
       '';

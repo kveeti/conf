@@ -45,6 +45,7 @@ in {
     after = [ "var-lib-radicale.mount" ];
     before = [ "radicale.service" "radicale-init-git.service" ];
     requiredBy = [ "radicale.service" "radicale-init-git.service" ];
+    restoreMarker = "${state}/.restore-in-progress";
     hasData = ''[ -n "$(ls -A ${state} 2>/dev/null)" ]'';
     restore = ''
       restic restore --tag radicale latest --target / --include ${state}

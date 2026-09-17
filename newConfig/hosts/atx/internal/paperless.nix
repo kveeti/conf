@@ -2,6 +2,7 @@
 
 let
   domain = "p.internal.veetik.com";
+  state = "/var/lib/paperless";
   ports = config.homelab.ports;
   units = [
     "paperless-web"
@@ -18,7 +19,10 @@ in {
     oauth2-paperless-cookie-secret = {};
   };
 
-  homelab.volumes.paperless.owner = "paperless";
+  homelab.volumes.paperless = {
+    path = state;
+    owner = "paperless";
+  };
 
   homelab.postgresql.databases.paperless = {
     services = units;
@@ -36,14 +40,15 @@ in {
     tag = "paperless-data";
     restPasswordFile = "/run/secrets/restic-internal-rest-pass";
     encryptionPasswordFile = "/run/secrets/restic-internal-encryption-pass";
-    paths = [ "/var/lib/paperless" ];
+    paths = [ state ];
     after = [ "var-lib-paperless.mount" ];
     before = systemdUnits;
     requiredBy = systemdUnits;
-    hasData = ''[ -n "$(find /var/lib/paperless/media/documents -type f -print -quit 2>/dev/null)" ]'';
+    restoreMarker = "${state}/.restore-in-progress";
+    hasData = ''[ -n "$(find ${state}/media/documents -type f -print -quit 2>/dev/null)" ]'';
     restore = ''
-      restic restore --tag paperless-data latest --target / --include /var/lib/paperless
-      chown -R paperless:paperless /var/lib/paperless
+      restic restore --tag paperless-data latest --target / --include ${state}
+      chown -R paperless:paperless ${state}
     '';
   };
 

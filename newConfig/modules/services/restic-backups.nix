@@ -29,25 +29,39 @@ let
   tagArgs = instance:
     lib.optionalString (instance.tag != null) "--tag ${lib.escapeShellArg instance.tag}";
 
+  excludes = instance:
+    instance.excludes ++ lib.optional (instance.restoreMarker != null) instance.restoreMarker;
+
+  hasCompleteState = instance:
+    lib.optionalString
+      (instance.restoreMarker != null)
+      "[ ! -e ${lib.escapeShellArg instance.restoreMarker} ] && "
+    + instance.hasData;
+
   backupServices = lib.mapAttrs' (name: instance:
     lib.nameValuePair "backup-${name}" {
       description = "Back up ${name}";
+      after = [ "restore-${name}.service" ];
+      requires = [ "restore-${name}.service" ];
       path = [ pkgs.restic pkgs.coreutils pkgs.util-linux ] ++ instance.extraPackages;
       serviceConfig = {
         Type = "oneshot";
         CacheDirectory = "restic-${name}";
         LoadCredential = credentials instance;
+        PrivateTmp = true;
+        UMask = "0077";
       };
       script = ''
         set -euo pipefail
         ${ensureRepository instance}
         ${lib.optionalString (instance.cleanup != null) "trap ${lib.escapeShellArg instance.cleanup} EXIT"}
         ${lib.optionalString (instance.prepare != null) instance.prepare}
-        restic backup ${tagArgs instance} ${lib.escapeShellArgs instance.paths} ${lib.concatMapStringsSep " " (exclude: "--exclude ${lib.escapeShellArg exclude}") instance.excludes}
+        restic backup ${tagArgs instance} ${lib.escapeShellArgs instance.paths} ${lib.concatMapStringsSep " " (exclude: "--exclude ${lib.escapeShellArg exclude}") (excludes instance)}
 
         metric=/var/lib/node-exporter-textfile/restic_${name}.prom
         printf 'restic_backup_last_success_timestamp_seconds{instance="%s"} %s\n' \
           ${lib.escapeShellArg name} "$(date +%s)" > "$metric.tmp"
+        chmod 0644 "$metric.tmp"
         mv "$metric.tmp" "$metric"
       '';
     }
@@ -69,16 +83,21 @@ let
       description = "Restore ${name} when its state is empty";
       inherit (instance) before requiredBy after;
       requires = instance.after;
+      unitConfig.RequiresMountsFor = lib.optional
+        (instance.restoreMarker != null)
+        instance.restoreMarker;
       path = [ pkgs.restic pkgs.jq pkgs.coreutils pkgs.util-linux ] ++ instance.extraPackages;
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
         CacheDirectory = "restic-${name}";
         LoadCredential = credentials instance;
+        PrivateTmp = true;
+        UMask = "0077";
       };
       script = ''
         set -euo pipefail
-        if ${instance.hasData}
+        if ${hasCompleteState instance}
         then
           echo "${name} already has state; skipping restore"
           exit 0
@@ -90,7 +109,9 @@ let
           exit 0
         fi
 
+        ${lib.optionalString (instance.restoreMarker != null) "touch ${lib.escapeShellArg instance.restoreMarker}"}
         ${instance.restore}
+        ${lib.optionalString (instance.restoreMarker != null) "rm -f ${lib.escapeShellArg instance.restoreMarker}"}
       '';
     }
   ) cfg.instances;
@@ -165,6 +186,12 @@ in {
           restore = lib.mkOption {
             type = lib.types.lines;
             description = "Commands which restore the latest snapshot.";
+          };
+
+          restoreMarker = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "Persistent marker left behind when a restore fails.";
           };
 
           before = lib.mkOption {

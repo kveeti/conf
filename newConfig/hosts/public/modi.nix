@@ -2,6 +2,7 @@
 
 let
   ports = config.homelab.ports;
+  state = "/var/lib/mongo";
 
   waitForMongo = pkgs.writeShellScript "wait-for-modi-mongo" ''
     ready=false
@@ -33,14 +34,14 @@ in {
   age.secrets.restic-modi-rest-pass = {};
   age.secrets.restic-modi-encryption-pass = {};
 
-  systemd.tmpfiles.rules = [ "d /var/lib/mongo 0755 root root -" ];
+  systemd.tmpfiles.rules = [ "d ${state} 0755 root root -" ];
 
   virtualisation.oci-containers.containers = {
     modi-mongo = {
       image = "docker.io/library/mongo@sha256:a2e96682a6d92742341db59a1956569bfd2b30704acef5da034cc17e18bb7ed4";
       cmd = [ "mongod" "--port" (toString ports.mongo) ];
       ports = [ "127.0.0.1:${toString ports.mongo}:${toString ports.mongo}" ];
-      volumes = [ "/var/lib/mongo:/data/db" ];
+      volumes = [ "${state}:/data/db" ];
       environment = {
         MONGO_INITDB_ROOT_USERNAME = "mongo";
         MONGO_INITDB_ROOT_PASSWORD = "mongo";
@@ -58,7 +59,7 @@ in {
 
   systemd.services = {
     podman-modi-mongo.unitConfig.RequiresMountsFor = [
-      "/var/lib/mongo"
+      state
       "/var/lib/containers"
     ];
     podman-modi.unitConfig.RequiresMountsFor = [ "/var/lib/containers" ];
@@ -84,11 +85,13 @@ in {
         --archive=/tmp/modi.archive
     '';
     cleanup = "rm -f /tmp/modi.archive";
+    restoreMarker = "${state}/.restore-in-progress";
     hasData = "${mongoHasData}";
     restore = ''
       restic dump latest /tmp/modi.archive > /tmp/modi.archive.restore
       mongorestore \
         --uri="mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin" \
+        --drop \
         --archive=/tmp/modi.archive.restore
       rm -f /tmp/modi.archive.restore
     '';

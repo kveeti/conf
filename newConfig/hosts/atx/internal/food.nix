@@ -2,11 +2,16 @@
 
 let
   domain = "food.internal.veetik.com";
-  database = "/var/lib/food/food.db";
+  state = "/var/lib/food";
+  database = "${state}/food.db";
   dump = "/tmp/food.db";
+  restoredDatabase = "${state}/.food.db.restore";
 in {
   age.secrets.food-secrets = {};
-  homelab.volumes.food.owner = "food";
+  homelab.volumes.food = {
+    path = state;
+    owner = "food";
+  };
 
   homelab.backups.instances.food = {
     repository = "internal";
@@ -20,8 +25,9 @@ in {
     after = [ "var-lib-food.mount" ];
     hasData = "[ -f ${database} ]";
     restore = ''
-      restic dump --tag food latest ${dump} > ${database}
-      chown food:food ${database}
+      restic dump --tag food latest ${dump} > ${restoredDatabase}
+      chown food:food ${restoredDatabase}
+      mv ${restoredDatabase} ${database}
     '';
   };
 

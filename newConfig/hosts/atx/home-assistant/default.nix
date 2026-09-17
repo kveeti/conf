@@ -10,6 +10,8 @@ let
   network = inventory.networks.${host.network};
   bridge = "br-${network.interface}";
   privateModules = config.homelab.microvms.${name}.guestModules or [];
+  hassState = "/var/lib/hass";
+  zigbee2mqttState = "/var/lib/zigbee2mqtt";
 
   copiedSecrets = {
     mqtt-password = { source = "ha-mqtt-password"; mode = "0400"; };
@@ -93,10 +95,12 @@ in {
             mode = "0755";
           };
           zigbee2mqtt = {
+            path = zigbee2mqttState;
             owner = "zigbee2mqtt";
             mode = "0700";
           };
           hass = {
+            path = hassState;
             owner = "hass";
             mode = "0700";
           };
@@ -110,19 +114,20 @@ in {
               tag = "hass";
               restPasswordFile = "/run/secrets/restic-ha-rest-pass";
               encryptionPasswordFile = "/run/secrets/restic-ha-encryption-pass";
-              paths = [ "/var/lib/hass" ];
+              paths = [ hassState ];
               excludes = [
-                "/var/lib/hass/home-assistant_v2.db"
-                "/var/lib/hass/home-assistant_v2.db-shm"
-                "/var/lib/hass/home-assistant_v2.db-wal"
+                "${hassState}/home-assistant_v2.db"
+                "${hassState}/home-assistant_v2.db-shm"
+                "${hassState}/home-assistant_v2.db-wal"
               ];
               after = [ "var-lib-hass.mount" ];
               before = [ "home-assistant.service" ];
               requiredBy = [ "home-assistant.service" ];
-              hasData = ''[ -n "$(ls -A /var/lib/hass 2>/dev/null)" ]'';
+              restoreMarker = "${hassState}/.restore-in-progress";
+              hasData = ''[ -n "$(ls -A ${hassState} 2>/dev/null)" ]'';
               restore = ''
-                restic restore --tag hass latest --target / --include /var/lib/hass
-                chown -R hass:hass /var/lib/hass
+                restic restore --tag hass latest --target / --include ${hassState}
+                chown -R hass:hass ${hassState}
               '';
             };
             zigbee2mqtt = {
@@ -131,12 +136,13 @@ in {
               tag = "zigbee2mqtt";
               restPasswordFile = "/run/secrets/restic-ha-rest-pass";
               encryptionPasswordFile = "/run/secrets/restic-ha-encryption-pass";
-              paths = [ "/var/lib/zigbee2mqtt" ];
+              paths = [ zigbee2mqttState ];
               after = [ "var-lib-zigbee2mqtt.mount" ];
-              hasData = ''[ -n "$(ls -A /var/lib/zigbee2mqtt 2>/dev/null)" ]'';
+              restoreMarker = "${zigbee2mqttState}/.restore-in-progress";
+              hasData = ''[ -n "$(ls -A ${zigbee2mqttState} 2>/dev/null)" ]'';
               restore = ''
-                restic restore --tag zigbee2mqtt latest --target / --include /var/lib/zigbee2mqtt
-                chown -R zigbee2mqtt:zigbee2mqtt /var/lib/zigbee2mqtt
+                restic restore --tag zigbee2mqtt latest --target / --include ${zigbee2mqttState}
+                chown -R zigbee2mqtt:zigbee2mqtt ${zigbee2mqttState}
               '';
             };
           };
