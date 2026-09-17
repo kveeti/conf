@@ -93,11 +93,10 @@ in {
         --redirect-url=https://${domain}/oauth2/callback \
         --scope="openid profile email" \
         --email-domain='*' \
-        --upstream=static://202 \
+        --upstream=http://127.0.0.1:${toString ports.paperless} \
         --http-address=http://127.0.0.1:${toString ports.oauth2Paperless} \
         --reverse-proxy=true \
         --trusted-proxy-ip=127.0.0.1/32 \
-        --set-xauthrequest=true \
         --pass-basic-auth=false \
         --cookie-name=_oauth2_proxy_paperless \
         --cookie-secret-file="$RUNTIME_DIRECTORY/cookie-secret" \
@@ -128,35 +127,10 @@ in {
   services.nginx.virtualHosts.${domain} = withSharedVhost {
     extraConfig = ''
       client_max_body_size 100M;
-      auth_request /oauth2/auth;
-      error_page 401 = @paperless_oauth2_start;
+      proxy_buffer_size 32k;
+      proxy_buffers 4 32k;
+      proxy_busy_buffers_size 64k;
     '';
-    locations = {
-      "/oauth2/" = {
-        proxyPass = "http://127.0.0.1:${toString ports.oauth2Paperless}";
-        extraConfig = ''
-          auth_request off;
-          proxy_buffer_size 32k;
-          proxy_buffers 4 32k;
-          proxy_busy_buffers_size 64k;
-          proxy_set_header X-Scheme $scheme;
-          proxy_set_header X-Auth-Request-Redirect $scheme://$host$request_uri;
-        '';
-      };
-      "= /oauth2/auth" = {
-        proxyPass = "http://127.0.0.1:${toString ports.oauth2Paperless}";
-        extraConfig = ''
-          auth_request off;
-          proxy_pass_request_body off;
-          proxy_set_header Content-Length "";
-          proxy_set_header X-Scheme $scheme;
-        '';
-      };
-      "@paperless_oauth2_start" = {
-        return = "307 https://${domain}/oauth2/start?rd=$scheme://$host$request_uri";
-        extraConfig = "auth_request off;";
-      };
-      "/".proxyPass = "http://127.0.0.1:${toString ports.paperless}";
-    };
+    locations."/".proxyPass = "http://127.0.0.1:${toString ports.oauth2Paperless}";
   };
 }
