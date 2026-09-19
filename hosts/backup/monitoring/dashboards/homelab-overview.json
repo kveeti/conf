@@ -1,0 +1,321 @@
+{
+  "annotations": { "list": [] },
+  "description": "Correlate load, heat, I/O, and logs across the homelab.",
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "tags": ["homelab", "overview"],
+  "timezone": "browser",
+  "title": "Homelab Overview",
+  "uid": "homelab-overview",
+  "time": { "from": "now-24h", "to": "now" },
+  "refresh": "1m",
+  "templating": {
+    "list": [
+      {
+        "name": "host",
+        "label": "Host",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+        "query": {
+          "query": "label_values(node_uname_info{job=\"node\"}, host)",
+          "refId": "host"
+        },
+        "definition": "label_values(node_uname_info{job=\"node\"}, host)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": ["All"], "value": ["$__all"] },
+        "options": []
+      },
+      {
+        "name": "search",
+        "label": "Log filter",
+        "type": "textbox",
+        "query": "*",
+        "current": { "text": "*", "value": "*" },
+        "options": [{ "text": "*", "value": "*", "selected": true }]
+      },
+      {
+        "name": "hide_monitoring_logs",
+        "label": "Hide Grafana and VictoriaLogs logs",
+        "type": "custom",
+        "query": "Yes : -service:~\"^(grafana|victorialogs)$\",No : *",
+        "current": { "text": "Yes", "value": "-service:~\"^(grafana|victorialogs)$\"" },
+        "options": [
+          { "text": "Yes", "value": "-service:~\"^(grafana|victorialogs)$\"", "selected": true },
+          { "text": "No", "value": "*", "selected": false }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU busy",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "100 * (1 - avg by (host) (rate(node_cpu_seconds_total{job=\"node\", mode=\"idle\", host=~\"$host\"}[$__rate_interval])))",
+          "legendFormat": "{{host}}",
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "CPU package temperature",
+      "description": "Physical hosts only. Guests do not expose package sensors.",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "celsius", "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "node_hwmon_temp_celsius{job=\"node\", chip=\"platform_coretemp_0\", sensor=\"temp1\", host=~\"$host\"}",
+          "legendFormat": "{{host}}",
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "RAM used",
+      "description": "Uses available memory, so reclaimable cache does not look like a leak.",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 7 },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"node\", host=~\"$host\"} / node_memory_MemTotal_bytes{job=\"node\", host=~\"$host\"})",
+          "legendFormat": "{{host}}",
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Memory pressure",
+      "description": "Share of time tasks waited for memory.",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 7 },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "100 * rate(node_pressure_memory_waiting_seconds_total{job=\"node\", host=~\"$host\"}[$__rate_interval])",
+          "legendFormat": "{{host}}",
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Disk throughput",
+      "description": "Physical disks and guest virtual disks; mapper devices are excluded to avoid double counts within a host.",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 14 },
+      "fieldConfig": {
+        "defaults": { "unit": "Bps", "min": 0, "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum by (host) (rate(node_disk_read_bytes_total{job=\"node\", host=~\"$host\", device=~\"sd[a-z]+|nvme[0-9]+n[0-9]+|vd[a-z]+\"}[$__rate_interval]))",
+          "legendFormat": "{{host}} read",
+          "range": true
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "sum by (host) (rate(node_disk_written_bytes_total{job=\"node\", host=~\"$host\", device=~\"sd[a-z]+|nvme[0-9]+n[0-9]+|vd[a-z]+\"}[$__rate_interval]))",
+          "legendFormat": "{{host}} write",
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "I/O pressure",
+      "description": "Share of time tasks waited for storage I/O.",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 14 },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "100 * rate(node_pressure_io_waiting_seconds_total{job=\"node\", host=~\"$host\"}[$__rate_interval])",
+          "legendFormat": "{{host}}",
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Network throughput",
+      "description": "Per interface. Shows physical NICs and the router's named WAN/LAN ports, not bridges or VLANs.",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 },
+      "fieldConfig": {
+        "defaults": { "unit": "Bps", "min": 0, "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true, "calcs": ["last", "max"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "rate(node_network_receive_bytes_total{job=\"node\", host=~\"$host\", device=~\"en.*|wan0|lan0\"}[$__rate_interval])",
+          "legendFormat": "{{host}} {{device}} receive",
+          "range": true
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "rate(node_network_transmit_bytes_total{job=\"node\", host=~\"$host\", device=~\"en.*|wan0|lan0\"}[$__rate_interval])",
+          "legendFormat": "{{host}} {{device}} send",
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Warnings and errors",
+      "type": "timeseries",
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 29 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "drawStyle": "bars", "fillOpacity": 60, "lineWidth": 0 },
+          "color": { "mode": "fixed", "fixedColor": "orange" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "showLegend": false },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+          "expr": "host:~\"${host:pipe}\" level:~\"warning|error|critical\" ${hide_monitoring_logs:raw} ${search:raw}",
+          "queryType": "hits"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Backup, SnapRAID, and VM logs",
+      "type": "logs",
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 29 },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+          "expr": "host:~\"${host:pipe}\" (service:~\"^(backup-|minecraft-backup|restic-|snapraid-|microvm@)\" OR _SYSTEMD_UNIT:~\"^(backup-|minecraft-backup|restic-|snapraid-|microvm@)\") ${hide_monitoring_logs:raw} ${search:raw}",
+          "queryType": "instant",
+          "maxLines": 200
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "All logs",
+      "type": "logs",
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 36 },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+          "expr": "host:~\"${host:pipe}\" ${hide_monitoring_logs:raw} ${search:raw}",
+          "queryType": "instant",
+          "maxLines": 500
+        }
+      ]
+    }
+  ]
+}

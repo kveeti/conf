@@ -1,181 +1,158 @@
 {
-  description = "Veeti's NixOS and nix-darwin configurations";
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-    nixpkgs-router.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/9ae611a455b90cf061d8f332b977e387bda8e1ca";
 
-    disko.url = "github:nix-community/disko/a4cb7bf73f264d40560ba527f9280469f1f081c6";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
+    disko = {
+      url = "github:nix-community/disko/a4cb7bf73f264d40560ba527f9280469f1f081c6";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    home-manager.url = "github:nix-community/home-manager/release-26.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    lanzaboote.url = "github:nix-community/lanzaboote/v1.1.0";
-    lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
+    money = {
+      url = "github:kveeti/money/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    disko-router.url = "github:nix-community/disko/00395d188e3594a1507f214a2f15d4ce5c07cb28";
-    disko-router.inputs.nixpkgs.follows = "nixpkgs-router";
-
-    microvm.url = "github:astro/microvm.nix";
-    microvm.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixvim.url = "github:nix-community/nixvim/nixos-26.05";
-    nixvim.inputs.nixpkgs.follows = "nixpkgs";
-
-    secrets-router.url = "git+file:///Users/veeti/code/personal/secrets?rev=4f3e6e167d17dabd608d22b80d5bde3f4ae44204";
-    secrets-atx.url = "git+file:///Users/veeti/code/personal/secrets";
-    secrets-public.follows = "secrets-atx";
-    secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
-    secrets-pc.url = "git+file:///Users/veeti/code/personal/secrets?rev=990f67cf535399bc448aa028d3f2d7e410bf5b30";
-
-    weather.url = "github:kveeti/weather/6af9846820941a85aba04ea9a040308a2c23b358";
-    rss.url = "github:kveeti/rss/375850566401198f7736ef0a4a75998c731cd784";
     food.url = "github:kveeti/food/cc61e77586c3f016ea61515ce6133f4d17f99b92";
-    money.url = "github:kveeti/money/main";
-    money.inputs.nixpkgs.follows = "nixpkgs";
+    rss.url = "github:kveeti/rss/375850566401198f7736ef0a4a75998c731cd784";
+    weather.url = "github:kveeti/weather/6af9846820941a85aba04ea9a040308a2c23b358";
 
+    microvm = {
+      url = "github:astro/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    secrets-pc.url = "git+file:///Users/veeti/code/personal/secrets?rev=990f67cf535399bc448aa028d3f2d7e410bf5b30";
     mac.url = "path:./mac";
+
+    secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
+    secrets-atx.follows = "secrets-backup";
+    secrets-public.follows = "secrets-backup";
+    secrets-router.follows = "secrets-backup";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      nixpkgs-router,
-      nixpkgs-unstable,
-      disko,
-      disko-router,
-      secrets-router,
-      secrets-atx,
-      secrets-public,
-      secrets-backup,
-      secrets-pc,
-      weather,
-      rss,
-      food,
-      money,
-      mac,
-      microvm,
-      nixvim,
-      home-manager,
-      lanzaboote,
-    }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, disko, lanzaboote, money, food, rss, weather, microvm, home-manager, secrets-atx, secrets-backup, secrets-public, secrets-router, secrets-pc, mac }:
     let
-      linuxSystem = "x86_64-linux";
-      inventory = import ./router/inventory.nix;
+      inventory = import ./inventory.nix;
 
-      mkDnsRecords = hostConfig:
-        let
-          targetHost = hostConfig.config.homelab.dns.defaultTargetHost;
-          targetAddress = inventory.hosts.${targetHost}.ipv4;
-        in
-          map (name: {
-            inherit name;
-            address = targetAddress;
-          }) hostConfig.config.homelab.dns.records;
-
-      atx = nixpkgs.lib.nixosSystem {
-        system = linuxSystem;
-        modules = [
-          disko.nixosModules.disko
-          ./atx/configuration.nix
-          ./atx/disk.nix
-          ./atx/hardware-config.nix
-          secrets-atx.nixosModules.atx
-        ];
-        specialArgs = {
-          inherit microvm rss food weather money nixvim;
-          keys = (import secrets-atx).keys;
-          pkgs-unstable = import nixpkgs-unstable { system = linuxSystem; };
-          mediaUser = import ./atx/media-ids.nix;
+      mkHost = {
+        hostName,
+        modules,
+        specialArgs ? {},
+      }:
+        nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit inventory; } // specialArgs;
+          modules = [ { networking.hostName = hostName; } ] ++ modules;
         };
+    in {
+      lib = {
+        inherit inventory mkHost;
       };
 
-      serviceDnsRecords = mkDnsRecords atx;
-    in {
+      nixosModules = {
+        base = ./modules/profiles/base.nix;
+        server = ./modules/profiles/server.nix;
+      };
+
       nixosConfigurations = rec {
-        router = nixpkgs-router.lib.nixosSystem {
-          system = linuxSystem;
+        router = mkHost {
+          hostName = "router";
+          specialArgs = {
+            adminKeys = (import secrets-router).keys.admins;
+            vlan111OutboundAllowedIP = (import secrets-router).vlan111OutboundAllowedIP;
+          };
           modules = [
-            disko-router.nixosModules.disko
+            disko.nixosModules.disko
+            lanzaboote.nixosModules.lanzaboote
             microvm.nixosModules.host
-            lanzaboote.nixosModules.lanzaboote
-            ./modules/nixos/dns-records.nix
-            ./router/config.nix
-            ./router/disk.nix
-            ./router/hardware-config.nix
             secrets-router.nixosModules.router
+            ./hosts/router
           ];
-          specialArgs = {
-            secrets = import secrets-router;
-            inherit serviceDnsRecords;
-          };
         };
 
-        router-recovery = nixpkgs-router.lib.nixosSystem {
-          system = linuxSystem;
-          modules = [ ./router/recovery.nix ];
+        router-recovery = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
           specialArgs = {
-            keys = (import secrets-router).keys.admins;
+            adminKeys = (import secrets-router).keys.admins;
+            inherit inventory;
             routerSystem = router.config.system.build.toplevel;
-            diskoPackage = disko-router.packages.${linuxSystem}.disko;
+            diskoPackage = disko.packages.x86_64-linux.disko;
           };
+          modules = [ ./hosts/router/recovery.nix ];
         };
 
-        inherit atx;
+        atx = mkHost {
+          hostName = "atx";
+          specialArgs = {
+            adminKeys = (import secrets-atx).keys.admins;
+            inherit food rss weather;
+            pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };
+          };
+          modules = [
+            disko.nixosModules.disko
+            microvm.nixosModules.host
+            secrets-atx.nixosModules.atx
+            ./hosts/atx
+          ];
+        };
 
-        public = nixpkgs.lib.nixosSystem {
-          system = linuxSystem;
+        backup = mkHost {
+          hostName = "backup";
+          specialArgs.adminKeys = (import secrets-backup).keys.admins;
           modules = [
             disko.nixosModules.disko
             lanzaboote.nixosModules.lanzaboote
-            ./public/config.nix
-            ./public/disk.nix
-            ./public/hardware-config.nix
-            secrets-public.nixosModules.public
-          ];
-          specialArgs = {
-            keys = (import secrets-public).keys;
-            inherit money;
-          };
-        };
-
-        backup = nixpkgs.lib.nixosSystem {
-          system = linuxSystem;
-          modules = [
-            disko.nixosModules.disko
-            ./backup/config.nix
-            ./backup/disk.nix
-            ./backup/hardware-config.nix
             secrets-backup.nixosModules.backup
+            ./hosts/backup
           ];
-          specialArgs = {
-            keys = (import secrets-backup).keys;
-          };
         };
 
         pc = nixpkgs.lib.nixosSystem {
-          system = linuxSystem;
+          system = "x86_64-linux";
           modules = [
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
-            ./pc/configuration.nix
-            ./pc/disk.nix
-            ./pc/hardware-config.nix
+            ./hosts/pc/configuration.nix
+            ./hosts/pc/disk.nix
+            ./hosts/pc/hardware-config.nix
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "bak";
-              home-manager.users.veeti = import ./pc/home.nix;
+              home-manager.users.veeti = import ./hosts/pc/home.nix;
             }
             secrets-pc.nixosModules.pc
           ];
           specialArgs = {
+            inherit inventory;
             inputs = { inherit lanzaboote; };
             keys = (import secrets-pc).keys;
           };
+        };
+
+        public = mkHost {
+          hostName = "public";
+          specialArgs = {
+            adminKeys = (import secrets-public).keys.admins;
+            inherit money;
+          };
+          modules = [
+            disko.nixosModules.disko
+            lanzaboote.nixosModules.lanzaboote
+            secrets-public.nixosModules.public
+            ./hosts/public
+          ];
         };
       };
 
