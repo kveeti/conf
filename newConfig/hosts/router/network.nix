@@ -133,10 +133,54 @@ in {
         done
       '';
     };
+
+    recover-6rd = {
+      description = "Restore missing 6rd default route";
+      after = [ "systemd-networkd.service" ];
+      path = [ pkgs.coreutils pkgs.gnugrep pkgs.iproute2 pkgs.systemd ];
+      serviceConfig.Type = "oneshot";
+      script = ''
+        has_ipv6_route() {
+          ip -6 route show default | grep -q ' dev 6rd-'
+        }
+
+        has_ipv4_route() {
+          ip -4 route show default dev ${wan} | grep -q .
+        }
+
+        if has_ipv6_route || ! has_ipv4_route; then
+          exit 0
+        fi
+
+        sleep 5
+
+        if has_ipv6_route || ! has_ipv4_route; then
+          exit 0
+        fi
+
+        for path in /sys/class/net/6rd-*; do
+          if [[ -e "$path" ]]; then
+            ip link delete dev "''${path##*/}"
+          fi
+        done
+
+        networkctl renew ${wan}
+      '';
+    };
+  };
+
+  systemd.timers.recover-6rd = {
+    description = "Check the 6rd default route every five seconds";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "30s";
+      OnUnitInactiveSec = "5s";
+    };
   };
 
   systemd.network = {
     enable = true;
+    wait-online.ignoredInterfaces = [ "6rd-*" ];
 
     networks = {
       "10-wan" = {
@@ -144,6 +188,15 @@ in {
         linkConfig.RequiredForOnline = "routable";
         networkConfig.DHCP = "ipv4";
         dhcpV4Config.Use6RD = true;
+      };
+
+      "80-6rd-tunnel" = {
+        matchConfig = {
+          Kind = "sit";
+          Name = "6rd-*";
+        };
+        networkConfig.DHCPPrefixDelegation = true;
+        dhcpPrefixDelegationConfig.SubnetId = 1;
       };
 
       "10-lan" = {
