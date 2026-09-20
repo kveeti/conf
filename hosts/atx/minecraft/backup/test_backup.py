@@ -364,7 +364,7 @@ class BackupTests(unittest.TestCase):
         self.assertTrue(console.activity)
         self.logfile.rename(self.logfile.with_suffix('.old'))
         self.logfile.touch()
-        with self.assertRaisesRegex(backup.BackupError, 'changed or was truncated'):
+        with self.assertRaisesRegex(backup.RetryBackup, 'changed or was truncated'):
             console.read()
 
     def test_notification_failure_or_offline_player_does_not_fail_backup(self):

@@ -133,7 +133,7 @@ class Console:
     def read(self):
         info = self.path.stat()
         if (info.st_dev, info.st_ino) != self.identity or info.st_size < self.file.tell():
-            raise BackupError('Server log changed or was truncated; refusing the backup')
+            raise RetryBackup('Server log changed or was truncated; retrying the backup')
         messages = []
         while data := self.file.read(65536):
             self.buffer += data
