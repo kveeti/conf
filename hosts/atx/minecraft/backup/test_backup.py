@@ -34,7 +34,6 @@ class BackupTests(unittest.TestCase):
         self.pending = {}
         self.sent = []
         self.messages = []
-        self.player_online = True
         self.tmux_error = None
         self.on_command = lambda name, command: None
         self.fake_repos = {}
@@ -44,6 +43,7 @@ class BackupTests(unittest.TestCase):
         self.real_run = subprocess.run
         patch.object(backup.subprocess, 'check_output', side_effect=self.pane_state).start()
         patch.object(backup.subprocess, 'run', side_effect=self.run_command).start()
+        self.sleep = patch.object(backup.time, 'sleep').start()
         self.job = self.add_server('servu')
         self.server = self.job.path
         self.logfile = self.server / 'logs/latest.log'
@@ -92,10 +92,12 @@ class BackupTests(unittest.TestCase):
             self.pending[target] = args[-1]
         elif args[-1] == 'Enter':
             command = self.pending[target]
-            prefix = 'execute if entity @a[name=81133] run tell 81133 '
-            if command.startswith(prefix):
-                if self.player_online:
-                    self.messages.append((name, command[len(prefix):], self.saving[name]))
+            message_prefix = 'tellraw @a '
+            if command.startswith(message_prefix):
+                component = json.loads(command[len(message_prefix):])
+                self.assertEqual(component['color'], 'gray')
+                self.assertTrue(component['italic'])
+                self.messages.append((name, component['text'], self.saving[name]))
                 return subprocess.CompletedProcess(args, 0)
             self.sent.append((name, command))
             self.on_command(name, command)
@@ -199,8 +201,9 @@ class BackupTests(unittest.TestCase):
     def test_online_backup_uses_restic_and_restores_saving(self):
         snapshot_id = backup.backup_once(self.job)
         self.assertEqual(self.commands(), ['save-off', 'save-all flush', 'list', 'save-on'])
-        self.assertEqual(self.messages[0], ('servu', 'Backup starting.', True))
-        self.assertRegex(self.messages[-1][1], r'^Backup completed in \d+\.\d+s \(\+\d+\.\d+ MB\)\.$')
+        self.assertEqual(self.messages[0], ('servu', 'Backup in 5 seconds.', True))
+        self.sleep.assert_called_once_with(5)
+        self.assertRegex(self.messages[-1][1], r'^Backup completed \(\d+s, \+\d+MB\)$')
         self.assertTrue(self.messages[-1][2])
         self.assertEqual(self.snapshots()[0]['id'], snapshot_id)
         self.assertEqual(self.snapshots()[0]['tags'], ['online'])
@@ -234,7 +237,7 @@ class BackupTests(unittest.TestCase):
         with patch.object(backup, 'log') as logged:
             backup.backup_once(self.job)
         message = self.messages[-1][1]
-        self.assertIn('(+', message)
+        self.assertIn(', +', message)
         self.assertTrue(any(message in call.args[0] for call in logged.call_args_list))
 
     def test_bad_restic_backup_json_fails_without_snapshot_acceptance(self):
@@ -367,19 +370,16 @@ class BackupTests(unittest.TestCase):
         with self.assertRaisesRegex(backup.RetryBackup, 'changed or was truncated'):
             console.read()
 
-    def test_notification_failure_or_offline_player_does_not_fail_backup(self):
-        self.player_online = False
-        backup.backup_once(self.job)
-        self.assertEqual(self.messages, [])
-        self.clock.now.return_value += timedelta(seconds=10)
+    def test_notification_failure_does_not_fail_backup(self):
         original_send = backup.Console.send
         def send(console, command):
-            if command.startswith('execute if entity'):
+            if command.startswith('tellraw @a '):
                 raise backup.BackupError('notification failed')
             return original_send(console, command)
         with patch.object(backup.Console, 'send', send):
             backup.backup_once(self.job)
-        self.assertEqual(len(self.snapshots()), 2)
+        self.assertEqual(len(self.snapshots()), 1)
+        self.assertEqual(self.messages, [])
         self.assert_clean()
 
     def test_discovery_includes_directories_not_files_or_symlinks(self):

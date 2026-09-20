@@ -178,7 +178,6 @@ class Console:
 
 
 def notify(server, message):
-    """Best-effort PM; an offline server/player must not block a backup."""
     try:
         pane = find_pane(server)
         if pane is None:
@@ -186,7 +185,8 @@ def notify(server, message):
         console = Console(server, pane)
         try:
             text = ' '.join(message.splitlines())
-            console.send(f'execute if entity @a[name=81133] run tell 81133 {text}')
+            component = json.dumps({'text': text, 'color': 'gray', 'italic': True}, separators=(',', ':'))
+            console.send(f'tellraw @a {component}')
         finally:
             console.close()
     except Interrupted:
@@ -371,14 +371,17 @@ def backup_once(server):
     console = None
     snapshot_id = None
     error = None
-    started_at = time.monotonic()
+    started_at = None
     try:
         pane = find_pane(server)
         if pane is not None:
             console = Console(server, pane)  # Watch before the first save command.
         mode = 'online' if console else 'offline'
+        if console:
+            notify(server, 'Backing up in 5 seconds...')
+            time.sleep(5)
+        started_at = time.monotonic()
         server.log(f'Backup starting ({mode})')
-        notify(server, 'Backup starting.')
         if console:
             # ExecStopPost uses this marker even after SIGKILL/OOM.
             server.marker.touch(mode=0o600)
@@ -422,7 +425,7 @@ def backup_once(server):
                 ) from error
         raise error
 
-    completed = f'Backup completed in {time.monotonic() - started_at:.1f}s (+{added_bytes / 1_000_000:.1f} MB).'
+    completed = f'Backed up in {time.monotonic() - started_at:.1f}s (+{added_bytes / 1_000_000:.0f} MB)'
     server.log(f'{completed} Restic snapshot: {snapshot_id[:12]}')
     notify(server, completed)
     expire_snapshots(server, datetime.now(timezone.utc))
@@ -445,9 +448,9 @@ def attempt(server):
 def report_failure(server, error):
     server.log(f'BACKUP FAILED: {error}')
     if server.marker.exists():
-        notify(server, 'Backup failed. Could not confirm saving is enabled; check the server log.')
+        notify(server, 'Backup failed. Could not confirm saving is enabled; check the server log')
     else:
-        notify(server, 'Backup failed. Check the server log.')
+        notify(server, 'Backup failed. Check the server log')
 
 
 def recover_all():
@@ -484,8 +487,8 @@ def back_up_all():
             raise
         except RetryBackup as error:
             delay = random.randint(60, 180)
-            server.log(f'{error}; discarded the snapshot. Retrying in {delay}s.')
-            notify(server, f'Backup discarded: {error}. Retrying in {delay}s.')
+            server.log(f'{error}; discarded the snapshot. Retrying in {delay}s')
+            notify(server, f'Backup discarded: {error}. Retrying in {delay}s')
             heapq.heappush(pending, (time.monotonic() + delay, name))
         except (BackupError, OSError, subprocess.SubprocessError) as error:
             report_failure(server, error)
