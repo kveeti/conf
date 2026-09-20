@@ -555,15 +555,19 @@ class BackupTests(unittest.TestCase):
         snapshot_id, _ = backup.restic_backup(self.job, 'offline')
         return snapshot_id
 
-    def test_retention_keeps_recent_and_latest_daily_for_seven_days(self):
-        recent = [self.add_fake_snapshot(timedelta(hours=hours)) for hours in (1, 3, 23)]
+    def test_retention_keeps_recent_hourly_and_latest_daily_snapshots(self):
+        recent = [self.add_fake_snapshot(timedelta(hours=hours)) for hours in (1, 2)]
+        hourly = self.add_fake_snapshot(timedelta(hours=3, minutes=10))
+        same_hour = self.add_fake_snapshot(timedelta(hours=3, minutes=20))
+        other_hour = self.add_fake_snapshot(timedelta(hours=4, minutes=10))
         daily = self.add_fake_snapshot(timedelta(days=2, hours=1))
         earlier = self.add_fake_snapshot(timedelta(days=2, hours=2))
         old = self.add_fake_snapshot(timedelta(days=8))
         self.clock.now.return_value = self.now
         backup.expire_snapshots(self.job, self.now)
         kept = {item['id'] for item in self.snapshots()}
-        self.assertEqual(kept, set(recent + [daily]))
+        self.assertEqual(kept, set(recent + [hourly, other_hour, daily]))
+        self.assertNotIn(same_hour, kept)
         self.assertNotIn(earlier, kept)
         self.assertNotIn(old, kept)
 

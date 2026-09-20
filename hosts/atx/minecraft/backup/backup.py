@@ -296,17 +296,24 @@ def parse_restic_time(value):
 
 
 def expire_snapshots(server, now):
+    keep_hours = set()
     keep_days = set()
     remove = []
     ordered = sorted(restic_snapshots(server), key=lambda item: parse_restic_time(item['time']), reverse=True)
     for snapshot in ordered:
         timestamp = parse_restic_time(snapshot['time'])
-        if timestamp >= now - timedelta(hours=24):
+        if timestamp >= now - timedelta(hours=3):
             continue
-        day = timestamp.date()
-        if timestamp >= now - timedelta(days=7) and day not in keep_days:
-            keep_days.add(day)
-            continue
+        if timestamp >= now - timedelta(hours=48):
+            hour = timestamp.replace(minute=0, second=0, microsecond=0)
+            if hour not in keep_hours:
+                keep_hours.add(hour)
+                continue
+        elif timestamp >= now - timedelta(days=7):
+            day = timestamp.date()
+            if day not in keep_days:
+                keep_days.add(day)
+                continue
         remove.append(snapshot['id'])
     if remove:
         restic(server, ['forget', *remove], timeout=300)
