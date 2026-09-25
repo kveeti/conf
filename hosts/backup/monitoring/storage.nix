@@ -16,4 +16,15 @@ in {
     stateDir = "victorialogs";
     extraOptions = [ "-retentionPeriod=90d" ];
   };
+
+  services.victoriatraces = {
+    enable = true;
+    listenAddress = "127.0.0.1:${toString ports.victoriatraces}";
+    stateDir = "victoriatraces";
+    retentionPeriod = "30d";
+    extraOptions = [
+      "-otlpGRPCListenAddr=127.0.0.1:${toString ports.victoriatracesOtlp}"
+      "-otlpGRPC.tls=false"
+    ];
+  };
 }

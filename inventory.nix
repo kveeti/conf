@@ -68,7 +68,6 @@
         end = "192.168.66.3";
         lease = "24h";
         netmask = "255.255.255.248";
-        dns = [ "1.1.1.1" "1.0.0.1" ];
       };
       interface = "vlan66";
       vlan = 66;
@@ -115,10 +114,19 @@
     lanInterface = "lan0";
     ifbInterface = "ifb-wan";
     sixRdInterface = "6rd-*";
-    dnsNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" ];
+    dnsNetworks = [
+      "wireguard"
+      "management"
+      "trusted"
+      "iot"
+      "untrusted"
+      "servers"
+      "dmz"
+      "minecraft"
+      "unifi"
+    ];
     internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dmz" "minecraft" ];
     mdnsNetworks = [ "trusted" "iot" "untrusted" "servers" ];
-    dnsRedirectNetworks = [ "trusted" "iot" "untrusted" ];
   };
 
   hosts = {
@@ -202,14 +210,16 @@
         grafana = 3000;
         restic = 8000;
         restServer = 8001;
-        metricsIngress = 8428;
         vmagent = 8429;
         nodeExporter = 9100;
         blackboxExporter = 9115;
-        logsIngress = 9428;
         smartctlExporter = 9633;
         victoriametrics = 18428;
         victorialogs = 19428;
+        victoriatraces = 19429;
+        victoriatracesOtlp = 14317;
+        otelCollector = 14318;
+        otelCollectorMetrics = 18888;
       };
     };
 

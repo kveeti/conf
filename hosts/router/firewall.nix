@@ -20,7 +20,6 @@ let
   dnsInterfaces = interfaceSet (builtins.filter (name: name != "wireguard") policy.dnsNetworks);
   internetInterfaces = interfaceSet policy.internetNetworks;
   mdnsInterfaces = interfaceSet policy.mdnsNetworks;
-  dnsRedirectInterfaces = interfaceSet policy.dnsRedirectNetworks;
 
   routerAddressSet = lib.concatMapStringsSep ", " (network: network.router4)
     (builtins.attrValues (lib.filterAttrs (name: _: name != "unifi") networks));
@@ -163,26 +162,21 @@ in {
             oifname "${networks.servers.interface}" \
             ip saddr ${hosts.public.ipv4} ip daddr ${hosts.backup.ipv4} \
             tcp dport {
-              ${toString backupPorts.restic},
-              ${toString backupPorts.metricsIngress},
-              ${toString backupPorts.logsIngress}
+              ${toString backupPorts.https},
+              ${toString backupPorts.restic}
             } accept comment "public -> backup"
 
           iifname "${networks.minecraft.interface}" \
             oifname "${networks.servers.interface}" \
             ip saddr ${hosts.minecraft.ipv4} ip daddr ${hosts.backup.ipv4} \
-            tcp dport {
-              ${toString backupPorts.metricsIngress},
-              ${toString backupPorts.logsIngress}
-            } accept comment "minecraft -> backup"
+            tcp dport ${toString backupPorts.https} accept comment "minecraft -> backup"
 
           iifname "${networks.iot.interface}" \
             oifname "${networks.servers.interface}" \
             ip saddr ${hosts.home-assistant.ipv4} ip daddr ${hosts.backup.ipv4} \
             tcp dport {
-              ${toString backupPorts.restic},
-              ${toString backupPorts.metricsIngress},
-              ${toString backupPorts.logsIngress}
+              ${toString backupPorts.https},
+              ${toString backupPorts.restic}
             } accept comment "home assistant -> backup"
 
           iifname "${networks.servers.interface}" \
@@ -258,9 +252,6 @@ in {
 
           ${portForwardNatRules}
 
-          iifname { ${dnsRedirectInterfaces} } \
-            meta l4proto { tcp, udp } th dport ${toString ports.dns} \
-            counter redirect to ${toString ports.dns}
         }
 
         chain postrouting {

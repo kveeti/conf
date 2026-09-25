@@ -66,7 +66,6 @@ in {
     hostId = "7161ba6b";
     useDHCP = false;
     useNetworkd = true;
-    hosts.${inventory.hosts.backup.ipv4} = [ "backup.internal.veetik.com" ];
     firewall.allowedTCPPorts = [ ports.ssh ];
   };
 
@@ -83,14 +82,14 @@ in {
         port = ports.nodeExporter;
         collectors = [ "systemd" "zfs" ];
       };
-      remoteWriteUrl = "https://backup.internal.veetik.com:${toString inventory.hosts.backup.ports.metricsIngress}/api/v1/write";
+      remoteWriteUrl = "https://metrics.internal.veetik.com/api/v1/write";
       username = "telemetry";
       passwordFile = config.age.secrets.telemetry-pass.path;
     };
 
     logs = {
       enable = true;
-      url = "https://backup.internal.veetik.com:${toString inventory.hosts.backup.ports.logsIngress}";
+      url = "https://logs.internal.veetik.com";
       username = "telemetry";
       passwordFile = config.age.secrets.telemetry-pass.path;
     };

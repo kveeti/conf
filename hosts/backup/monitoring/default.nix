@@ -11,6 +11,7 @@ in {
     ./ingest.nix
     ./probes.nix
     ./storage.nix
+    ./tracing.nix
   ];
 
   homelab.logs = {
@@ -26,6 +27,8 @@ in {
     scrapes = {
       victoriametrics.targets = [ "127.0.0.1:${toString ports.victoriametrics}" ];
       vmagent.targets = [ "127.0.0.1:${toString ports.vmagent}" ];
+      opentelemetry.targets = [ "127.0.0.1:${toString ports.otelCollectorMetrics}" ];
+      victoriatraces.targets = [ "127.0.0.1:${toString ports.victoriatraces}" ];
     };
   };
 }

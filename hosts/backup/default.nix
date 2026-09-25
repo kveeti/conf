@@ -61,7 +61,10 @@ in {
       matchConfig.Name = "en*";
       address = [ "${host.ipv4}/24" ];
       routes = [{ Gateway = network.router4; }];
-      networkConfig.DHCP = "no";
+      networkConfig = {
+        DHCP = "no";
+        DNS = [ network.router4 ];
+      };
     };
   };
 

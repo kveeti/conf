@@ -65,7 +65,10 @@ in {
         matchConfig.Name = bridgeName hostNetwork;
         address = [ "${host.ipv4}/${lib.last (lib.splitString "/" hostNetwork.cidr4)}" ];
         routes = [{ Gateway = hostNetwork.router4; }];
-        networkConfig.DHCP = "no";
+        networkConfig = {
+          DHCP = "no";
+          DNS = [ hostNetwork.router4 ];
+        };
       };
     } // vlanAttachments // guestBridges;
   };

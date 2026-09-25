@@ -59,6 +59,12 @@ in {
           uid = "victorialogs";
           url = "http://127.0.0.1:${toString ports.victorialogs}";
         }
+        {
+          name = "VictoriaTraces";
+          type = "jaeger";
+          uid = "victoriatraces";
+          url = "http://127.0.0.1:${toString ports.victoriatraces}/select/jaeger";
+        }
       ];
       dashboards.settings.providers = [{
         name = "homelab";

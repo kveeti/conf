@@ -62,7 +62,6 @@ in {
     hostId = "6f1e923a";
     useDHCP = false;
     useNetworkd = true;
-    hosts.${backup.ipv4} = [ "backup.internal.veetik.com" ];
     firewall.allowedTCPPorts = [ ports.ssh ];
   };
 
@@ -78,7 +77,7 @@ in {
       }];
       networkConfig = {
         DHCP = "no";
-        DNS = [ "1.1.1.1" "1.0.0.1" ];
+        DNS = [ network.router4 ];
       };
     };
   };
@@ -112,14 +111,14 @@ in {
       enable = true;
       listenAddress = "127.0.0.1:${toString ports.vmagent}";
       nodeExporter.port = ports.nodeExporter;
-      remoteWriteUrl = "https://backup.internal.veetik.com:8428/api/v1/write";
+      remoteWriteUrl = "https://metrics.internal.veetik.com/api/v1/write";
       username = "telemetry";
       passwordFile = config.age.secrets.telemetry-pass.path;
     };
 
     logs = {
       enable = true;
-      url = "https://backup.internal.veetik.com:9428";
+      url = "https://logs.internal.veetik.com";
       username = "telemetry";
       passwordFile = config.age.secrets.telemetry-pass.path;
     };

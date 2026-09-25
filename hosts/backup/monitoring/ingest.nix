@@ -2,6 +2,9 @@
 
 let
   htpasswdFile = "/var/lib/nginx/telemetry.htpasswd";
+  traceHtpasswdFile = pkgs.writeText "otel-traces.htpasswd" ''
+    food:$2y$12$qNF47IlE0zgk/St601xSe.PFXZE6LI4EyslpBEnaGVIkyS32bS2V.
+  '';
   ports = config.homelab.ports;
 in {
   imports = [ ../tls.nix ];
@@ -21,10 +24,10 @@ in {
 
   services.nginx.virtualHosts = {
     "backup-metrics" = {
-      serverName = "backup.internal.veetik.com";
+      serverName = "metrics.internal.veetik.com";
       onlySSL = true;
       useACMEHost = "internal.veetik.com";
-      listen = [{ addr = "0.0.0.0"; port = ports.metricsIngress; ssl = true; }];
+      listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
       locations = {
         "= /api/v1/write" = {
           proxyPass = "http://127.0.0.1:${toString ports.victoriametrics}";
@@ -40,11 +43,28 @@ in {
       };
     };
 
-    "backup-logs" = {
-      serverName = "backup.internal.veetik.com";
+    "backup-traces" = {
+      serverName = "traces.internal.veetik.com";
       onlySSL = true;
       useACMEHost = "internal.veetik.com";
-      listen = [{ addr = "0.0.0.0"; port = ports.logsIngress; ssl = true; }];
+      listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
+      locations."/" = {
+        basicAuthFile = traceHtpasswdFile;
+        extraConfig = ''
+          grpc_set_header Authorization "";
+          grpc_set_header X-Telemetry-Client $remote_user;
+          grpc_read_timeout 60s;
+          grpc_send_timeout 60s;
+          grpc_pass grpc://127.0.0.1:${toString ports.otelCollector};
+        '';
+      };
+    };
+
+    "backup-logs" = {
+      serverName = "logs.internal.veetik.com";
+      onlySSL = true;
+      useACMEHost = "internal.veetik.com";
+      listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
       locations = {
         "= /insert/elasticsearch/_bulk" = {
           proxyPass = "http://127.0.0.1:${toString ports.victorialogs}";
@@ -61,8 +81,5 @@ in {
     };
   };
 
-  networking = {
-    firewall.allowedTCPPorts = [ ports.metricsIngress ports.logsIngress ];
-    hosts."127.0.0.1" = [ "backup.internal.veetik.com" ];
-  };
+  networking.firewall.allowedTCPPorts = [ ports.https ];
 }

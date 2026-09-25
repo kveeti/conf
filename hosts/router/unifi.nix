@@ -127,6 +127,7 @@ in {
             routes = [{ Gateway = guestNetwork.router4; }];
             networkConfig = {
               DHCP = "no";
+              DNS = [ guestNetwork.router4 ];
             };
           };
         };

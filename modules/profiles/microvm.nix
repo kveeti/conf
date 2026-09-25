@@ -1,7 +1,6 @@
-{ config, adminKeys, inventory, lib, pkgs, ... }:
+{ config, adminKeys, lib, pkgs, ... }:
 
 let
-  backup = inventory.hosts.backup;
   ports = config.homelab.ports;
 in {
   imports = [
@@ -34,7 +33,6 @@ in {
   networking = {
     useDHCP = false;
     useNetworkd = true;
-    hosts.${backup.ipv4} = [ "backup.internal.veetik.com" ];
     firewall.allowedTCPPorts = [ ports.ssh ];
   };
 
@@ -52,14 +50,14 @@ in {
       enable = true;
       listenAddress = "127.0.0.1:${toString ports.vmagent}";
       nodeExporter.port = ports.nodeExporter;
-      remoteWriteUrl = "https://backup.internal.veetik.com:${toString backup.ports.metricsIngress}/api/v1/write";
+      remoteWriteUrl = "https://metrics.internal.veetik.com/api/v1/write";
       username = "telemetry";
       passwordFile = "/run/secrets/telemetry-pass";
     };
 
     logs = {
       enable = true;
-      url = "https://backup.internal.veetik.com:${toString backup.ports.logsIngress}";
+      url = "https://logs.internal.veetik.com";
       username = "telemetry";
       passwordFile = "/run/secrets/telemetry-pass";
     };

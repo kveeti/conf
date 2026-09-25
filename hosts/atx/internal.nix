@@ -157,7 +157,10 @@ in {
           matchConfig.Type = "ether";
           address = [ "${host.ipv4}/${lib.last (lib.splitString "/" network.cidr4)}" ];
           routes = [{ Gateway = network.router4; }];
-          networkConfig.DHCP = "no";
+          networkConfig = {
+            DHCP = "no";
+            DNS = [ network.router4 ];
+          };
         };
       };
 
