@@ -70,7 +70,7 @@ in {
     networks."10-dmz" = {
       matchConfig.Name = "en*";
       linkConfig.RequiredForOnline = "routable";
-      address = [ "${host.ipv4}/29" "${host.adminIpv4}/29" ];
+      address = [ "${host.ipv4}/29" ];
       routes = [{
         Gateway = network.router4;
         PreferredSource = host.ipv4;
@@ -82,8 +82,13 @@ in {
     };
   };
 
+  networking.firewall.extraCommands = ''
+    iptables -w -A nixos-fw -s ${inventory.networks.trusted.cidr4} -p tcp --dport ${toString ports.keycloakAdminHttps} -j nixos-fw-accept
+    iptables -w -A nixos-fw -s ${inventory.networks.wireguard.cidr4} -p tcp --dport ${toString ports.keycloakAdminHttps} -j nixos-fw-accept
+  '';
+
   services = {
-    openssh.listenAddresses = [{ addr = host.adminIpv4; port = ports.ssh; }];
+    openssh.listenAddresses = [{ addr = host.ipv4; port = ports.ssh; }];
     prometheus.exporters = {
       postgres.port = ports.postgresqlExporter;
       smartctl.port = ports.smartctlExporter;

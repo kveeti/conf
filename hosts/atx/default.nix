@@ -14,7 +14,6 @@ in {
     ./certificates.nix
     ./disk.nix
     ./hardware.nix
-    ./home-assistant/default.nix
     ./internal.nix
     ./media-certificate.nix
     ./media/default.nix

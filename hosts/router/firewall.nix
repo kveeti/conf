@@ -10,12 +10,13 @@ let
   backupPorts = hosts.backup.ports;
   unifiPorts = hosts.unifi.ports;
   policy = inventory.router;
+  iotInterface = networks.iot.interface;
   wireguardPeers = import ./wireguard-peers.nix;
 
   interfaceSet = names:
     lib.concatMapStringsSep ", " (name: ''"${networks.${name}.interface}"'') names;
 
-  dhcpNetworkNames = builtins.attrNames (lib.filterAttrs (_: network: network ? dhcp) networks);
+  dhcpNetworkNames = builtins.attrNames policy.dhcpNetworks;
   dhcpInterfaces = interfaceSet dhcpNetworkNames;
   dnsInterfaces = interfaceSet (builtins.filter (name: name != "wireguard") policy.dnsNetworks);
   internetInterfaces = interfaceSet policy.internetNetworks;
@@ -114,7 +115,7 @@ in {
             meta l4proto { tcp, udp } th dport ${toString ports.dns} \
             accept comment "DNS"
 
-          iifname { "${networks.trusted.interface}", "${networks.iot.interface}" } \
+          iifname { "${networks.trusted.interface}", "${iotInterface}" } \
             udp dport { 319, 320 } \
             accept comment "AirPlay PTP sync"
 
@@ -137,7 +138,7 @@ in {
           type filter hook forward priority filter; policy drop;
 
           iifname "${networks.dmz.interface}" \
-            ip saddr != { ${hosts.public.ipv4}, ${hosts.public.adminIpv4} } \
+            ip saddr != ${hosts.public.ipv4} \
             counter drop comment "public host anti-spoof"
 
           iifname "${networks.minecraft.interface}" \
@@ -171,7 +172,7 @@ in {
             ip saddr ${hosts.minecraft.ipv4} ip daddr ${hosts.backup.ipv4} \
             tcp dport ${toString backupPorts.https} accept comment "minecraft -> backup"
 
-          iifname "${networks.iot.interface}" \
+          iifname "${iotInterface}" \
             oifname "${networks.servers.interface}" \
             ip saddr ${hosts.home-assistant.ipv4} ip daddr ${hosts.backup.ipv4} \
             tcp dport {
@@ -191,7 +192,7 @@ in {
             tcp dport ${toString hosts.public.ports.https} \
             accept comment "backup -> public probes"
 
-          iifname "${networks.iot.interface}" \
+          iifname "${iotInterface}" \
             oifname "${networks.media.interface}" \
             ether saddr ${hosts.apple-tv.mac} \
             ip saddr ${hosts.apple-tv.ipv4} ip daddr ${hosts.jellyfin.ipv4} \
@@ -205,7 +206,7 @@ in {
 
           ${portForwardFilterRules}
 
-          iifname { "${networks.trusted.interface}", "${networks.iot.interface}" } \
+          iifname { "${networks.trusted.interface}", "${iotInterface}" } \
             udp dport { ${toString ports.mdns}, 319, 320 } \
             accept comment "reflected multicast"
 

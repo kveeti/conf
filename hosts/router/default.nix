@@ -8,12 +8,15 @@ in {
     ../../modules/profiles/server.nix
     ../../modules/features/port-registry.nix
     ../../modules/features/disk-health.nix
+    ../../modules/services/microvms.nix
+    ./certificates.nix
     ./ddns.nix
     ./disk.nix
     ./dns.nix
     ./firewall.nix
     ./hardware.nix
     ./hardening.nix
+    ./home-assistant/default.nix
     ./network.nix
     ./secure-boot.nix
     ./sqm.nix
@@ -23,6 +26,7 @@ in {
   ];
 
   age.secrets.password = {};
+  users.groups.cert-readers.gid = 6500;
 
   homelab.admin = {
     authorizedKeys = adminKeys;

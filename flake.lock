@@ -32,7 +32,7 @@
         "darwin": "darwin",
         "home-manager": "home-manager_4",
         "nixpkgs": [
-          "secrets-backup",
+          "secrets",
           "nixpkgs"
         ],
         "systems": "systems_3"
@@ -93,7 +93,7 @@
     "darwin": {
       "inputs": {
         "nixpkgs": [
-          "secrets-backup",
+          "secrets",
           "agenix",
           "nixpkgs"
         ]
@@ -304,7 +304,7 @@
     "home-manager_4": {
       "inputs": {
         "nixpkgs": [
-          "secrets-backup",
+          "secrets",
           "agenix",
           "nixpkgs"
         ]
@@ -638,16 +638,19 @@
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "rss": "rss",
+        "secrets": "secrets",
         "secrets-atx": [
-          "secrets-backup"
+          "secrets"
         ],
-        "secrets-backup": "secrets-backup",
+        "secrets-backup": [
+          "secrets"
+        ],
         "secrets-pc": "secrets-pc",
         "secrets-public": [
-          "secrets-backup"
+          "secrets"
         ],
         "secrets-router": [
-          "secrets-backup"
+          "secrets"
         ],
         "weather": "weather"
       }
@@ -692,17 +695,17 @@
         "type": "github"
       }
     },
-    "secrets-backup": {
+    "secrets": {
       "inputs": {
         "agenix": "agenix_2",
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1788710724,
-        "narHash": "sha256-OF7ja5+FORGspUYhN7Flst7PW/aNAG7JA3CpEzWgFO4=",
+        "lastModified": 1790431291,
+        "narHash": "sha256-p+QrRocTWEYsdsk3uzU/p4g2E+Wx585xNPum9JikDFs=",
         "ref": "refs/heads/master",
-        "rev": "e1abcfc8ecb1a6c4ee06fd58171d07c27cb31411",
-        "revCount": 51,
+        "rev": "e949aec927efde1d4098c8c8edf8224af3c6d2e9",
+        "revCount": 53,
         "type": "git",
         "url": "file:///Users/veeti/code/personal/secrets"
       },

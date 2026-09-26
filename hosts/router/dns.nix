@@ -4,6 +4,7 @@ let
   hosts = inventory.hosts;
   networks = inventory.networks;
   policy = inventory.router;
+  dhcp = policy.dhcpNetworks;
 
   dnsNetworks = map (name: networks.${name}) policy.dnsNetworks;
   dnsInterfaces = [ "127.0.0.1" ] ++ map (network: network.router4) dnsNetworks ++ [ "::0" ];
@@ -12,23 +13,25 @@ let
     ++ map (network: "${network.cidr4} allow") dnsNetworks
     ++ [ "::1 allow" "fe80::/10 allow" "fd00::/8 allow" ];
 
-  dhcpNetworks = builtins.attrValues (lib.filterAttrs (_: network: network ? dhcp) networks);
-  dhcpReservations = builtins.attrValues (lib.filterAttrs (_: host: host.dhcpReservation or false) hosts);
-  dhcpInterfaces = map (network: network.interface) dhcpNetworks;
-  dhcpRanges = map (network:
+  dhcpInterfaces = map (name: networks.${name}.interface) (builtins.attrNames dhcp);
+  dhcpRanges = lib.mapAttrsToList (name: range:
     lib.concatStringsSep "," (
-      [ "set:${network.interface}" network.dhcp.start network.dhcp.end ]
-      ++ lib.optional (network.dhcp ? netmask) network.dhcp.netmask
-      ++ [ network.dhcp.lease ]
+      [ "set:${networks.${name}.interface}" range.start range.end ]
+      ++ lib.optional (range ? netmask) range.netmask
+      ++ [ range.lease ]
     )
-  ) dhcpNetworks;
-  dhcpOptions = lib.concatMap (network: [
-    "tag:${network.interface},option:router,${network.router4}"
-    "tag:${network.interface},option:dns-server,${lib.concatStringsSep "," (network.dhcp.dns or [ network.router4 ])}"
-  ]) dhcpNetworks;
-  dhcpHosts = map (host:
-    "${host.mac},${host.hostname},${host.${host.dhcpAddress or "ipv4"}}"
-  ) dhcpReservations;
+  ) dhcp;
+  dhcpOptions = lib.concatLists (lib.mapAttrsToList (name: range:
+    let network = networks.${name};
+    in [
+      "tag:${network.interface},option:router,${network.router4}"
+      "tag:${network.interface},option:dns-server,${lib.concatStringsSep "," (range.dns or [ network.router4 ])}"
+    ]
+  ) dhcp);
+  dhcpHosts = map (name:
+    let host = hosts.${name};
+    in "${host.mac},${host.hostname},${host.ipv4}"
+  ) [ "atx" "backup" "public" "slzb-06" "apple-tv" ];
 
   mdnsInterfaces = map (name: networks.${name}.interface) policy.mdnsNetworks;
 in {
@@ -102,7 +105,7 @@ in {
         local-data = [
           ''"ui.internal.veetik.com. IN A ${hosts.router.ipv4}"''
           ''"auth.veetik.com. IN A ${hosts.public.ipv4}"''
-          ''"authadmin.veetik.com. IN A ${hosts.public.adminIpv4}"''
+          ''"authadmin.veetik.com. IN A ${hosts.public.ipv4}"''
           ''"mc.veetik.com. IN CNAME oul-1.veetik.com."''
           ''"ha.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''

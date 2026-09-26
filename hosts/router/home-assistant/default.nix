@@ -8,7 +8,7 @@ let
   certDir = "${stateRoot}/cert/internal.veetik.com";
   host = inventory.hosts.${inventoryKey};
   network = inventory.networks.${host.network};
-  bridge = "br-${network.interface}";
+  bridge = network.interface;
   privateModules = config.homelab.microvms.${name}.guestModules or [];
   hassState = "/var/lib/hass";
   zigbee2mqttState = "/var/lib/zigbee2mqtt";

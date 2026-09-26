@@ -67,7 +67,7 @@ let
           -fsSL
           -X "$method"
           "https://api.cloudflare.com/client/v4$endpoint"
-          -H "Authorization: Bearer $CF_API_TOKEN"
+          -H "Authorization: Bearer $CLOUDFLARE_DNS_API_TOKEN"
           -H "Content-Type: application/json"
         )
 
@@ -139,8 +139,6 @@ let
     '';
   };
 in {
-  age.secrets.cloudflare_ddns_env = {};
-
   systemd.services.cloudflare-ddns = {
     description = "Update the public Cloudflare DNS record";
     wants = [ "network-online.target" "unbound.service" ];
@@ -149,7 +147,7 @@ in {
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${updateDns}/bin/update-cloudflare-dns";
-      EnvironmentFile = config.age.secrets.cloudflare_ddns_env.path;
+      EnvironmentFile = config.age.secrets.cloudflare_env.path;
       DynamicUser = true;
       CapabilityBoundingSet = [ "" ];
       DeviceAllow = [ "" ];

@@ -14,7 +14,7 @@ let
     lib.nameValuePair "40-${name}" {
       netdevConfig = {
         Kind = "vlan";
-        Name = network.interface;
+        Name = network.vlanInterface;
       };
       vlanConfig.Id = network.vlan;
     };
@@ -46,7 +46,8 @@ let
 
   vlanDevices = lib.mapAttrs' mkVlanDevice vlanDefinitions;
   vlanNetworks = lib.mapAttrs' mkVlanNetwork vlanDefinitions;
-  vlanInterfaces = map (network: network.interface) (builtins.attrValues vlanDefinitions);
+  vlanInterfaces = map (network: network.vlanInterface) (builtins.attrValues vlanDefinitions);
+  iotBridge = networks.iot.interface;
 in {
   boot.kernel.sysctl = {
     "net.ipv4.conf.all.forwarding" = 1;
@@ -205,8 +206,23 @@ in {
         networkConfig.LinkLocalAddressing = false;
         vlan = vlanInterfaces;
       };
-    } // vlanNetworks;
+    } // (removeAttrs vlanNetworks [ "40-iot" ]) // {
+      "40-iot" = {
+        matchConfig.Name = networks.iot.vlanInterface;
+        networkConfig.Bridge = iotBridge;
+      };
+      "50-iot-bridge" = {
+        matchConfig.Name = iotBridge;
+        address = [ (address4 networks.iot) ];
+        networkConfig.IPv4Forwarding = true;
+      };
+    };
 
-    netdevs = vlanDevices;
+    netdevs = vlanDevices // {
+      "30-iot-bridge".netdevConfig = {
+        Kind = "bridge";
+        Name = iotBridge;
+      };
+    };
   };
 }

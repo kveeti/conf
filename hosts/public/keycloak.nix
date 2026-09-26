@@ -3,10 +3,11 @@
 let
   publicHost = inventory.hosts.public;
   publicIp = publicHost.ipv4;
-  adminIp = publicHost.adminIpv4;
   ports = config.homelab.ports;
   publicDomain = "auth.veetik.com";
   adminDomain = "authadmin.veetik.com";
+  adminUrl = "https://${adminDomain}:${toString ports.keycloakAdminHttps}";
+  adminConsoleUrl = "${adminUrl}/admin/master/console/";
 
   groupsMapper = {
     name = "groups";
@@ -160,7 +161,7 @@ in {
       http-management-host = "127.0.0.1";
       http-management-port = ports.keycloakManagement;
       hostname = "https://${publicDomain}";
-      hostname-admin = "https://${adminDomain}";
+      hostname-admin = adminUrl;
       hostname-strict = true;
       hostname-backchannel-dynamic = true;
       proxy-headers = "xforwarded";
@@ -186,7 +187,7 @@ in {
     requires = [ "keycloak.service" "nginx.service" ];
     path = [ pkgs.keycloak-config-cli ];
     environment = {
-      KEYCLOAK_URL = "https://${adminDomain}/";
+      KEYCLOAK_URL = "${adminUrl}/";
       KEYCLOAK_CLIENTID = "keycloak-config";
       KEYCLOAK_GRANTTYPE = "client_credentials";
       KEYCLOAK_AVAILABILITYCHECK_ENABLED = "true";
@@ -255,23 +256,23 @@ in {
     ${adminDomain} = {
       useACMEHost = "veetik.com";
       onlySSL = true;
-      listen = [{ addr = adminIp; port = ports.https; ssl = true; }];
+      listen = [{ addr = publicIp; port = ports.keycloakAdminHttps; ssl = true; }];
       extraConfig = ''
         allow 127.0.0.1;
         allow 192.168.10.0/24;
         allow ${publicIp};
-        allow ${adminIp};
         allow 10.255.255.0/24;
         deny all;
       '';
-      locations."/".proxyPass = "http://127.0.0.1:${toString ports.keycloak}";
+      locations = {
+        "= /".return = "302 ${adminConsoleUrl}";
+        "= /admin/".return = "302 ${adminConsoleUrl}";
+        "/".proxyPass = "http://127.0.0.1:${toString ports.keycloak}";
+      };
     };
   };
 
-  networking.hosts = {
-    ${publicIp} = [ publicDomain ];
-    ${adminIp} = [ adminDomain ];
-  };
+  networking.hosts.${publicIp} = [ publicDomain adminDomain ];
 
   homelab.metrics.scrapes.keycloak = {
     path = "/metrics";

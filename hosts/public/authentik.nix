@@ -31,7 +31,6 @@ let
     AUTHENTIK_POSTGRESQL__USER = "authentik";
     AUTHENTIK_POSTGRESQL__SSLMODE = "disable";
     AUTHENTIK_LISTEN__HTTP = "0.0.0.0:9000";
-    AUTHENTIK_LISTEN__HTTPS = "127.0.0.1:${toString ports.authentikHttps}";
     AUTHENTIK_LISTEN__LDAP = "127.0.0.1:${toString ports.authentikLdap}";
     AUTHENTIK_LISTEN__LDAPS = "127.0.0.1:${toString ports.authentikLdaps}";
     AUTHENTIK_LISTEN__RADIUS = "127.0.0.1:${toString ports.authentikRadius}";

@@ -1,24 +1,12 @@
 {
   networks = {
     management = {
-      dhcp = {
-        start = "192.168.5.2";
-        end = "192.168.5.254";
-        lease = "24h";
-      };
-      interface = "vlan5";
       vlan = 5;
       cidr4 = "192.168.5.0/24";
       router4 = "192.168.5.1";
     };
 
     trusted = {
-      dhcp = {
-        start = "192.168.10.200";
-        end = "192.168.10.254";
-        lease = "24h";
-      };
-      interface = "vlan10";
       vlan = 10;
       cidr4 = "192.168.10.0/24";
       router4 = "192.168.10.1";
@@ -27,106 +15,50 @@
     };
 
     iot = {
-      dhcp = {
-        start = "192.168.20.10";
-        end = "192.168.20.254";
-        lease = "24h";
-      };
-      interface = "vlan20";
       vlan = 20;
       cidr4 = "192.168.20.0/24";
       router4 = "192.168.20.1";
     };
 
     untrusted = {
-      dhcp = {
-        start = "192.168.30.2";
-        end = "192.168.30.254";
-        lease = "24h";
-      };
-      interface = "vlan30";
       vlan = 30;
       cidr4 = "192.168.30.0/24";
       router4 = "192.168.30.1";
     };
 
     servers = {
-      dhcp = {
-        start = "192.168.40.200";
-        end = "192.168.40.254";
-        lease = "24h";
-      };
-      interface = "vlan40";
       vlan = 40;
       cidr4 = "192.168.40.0/24";
       router4 = "192.168.40.1";
     };
 
     dmz = {
-      dhcp = {
-        start = "192.168.66.3";
-        end = "192.168.66.3";
-        lease = "24h";
-        netmask = "255.255.255.248";
-      };
-      interface = "vlan66";
       vlan = 66;
       cidr4 = "192.168.66.0/29";
       router4 = "192.168.66.1";
     };
 
     minecraft = {
-      interface = "vlan76";
       vlan = 76;
       cidr4 = "192.168.76.0/30";
       router4 = "192.168.76.1";
     };
 
     media = {
-      dhcp = {
-        start = "192.168.111.8";
-        end = "192.168.111.8";
-        lease = "24h";
-        dns = [ "1.1.1.1" "1.0.0.1" "9.9.9.9" "149.112.112.112" ];
-      };
-      interface = "vlan111";
       vlan = 111;
       cidr4 = "192.168.111.0/24";
       router4 = "192.168.111.1";
     };
 
     wireguard = {
-      interface = "wg0";
       cidr4 = "10.255.255.0/24";
       router4 = "10.255.255.1";
     };
 
     unifi = {
-      interface = "vm-unifi";
       cidr4 = "192.168.100.0/24";
       router4 = "192.168.100.1";
     };
-  };
-
-  # Router policy groups are explicit: adding a VLAN does not grant it access.
-  router = {
-    wanInterface = "wan0";
-    lanInterface = "lan0";
-    ifbInterface = "ifb-wan";
-    sixRdInterface = "6rd-*";
-    dnsNetworks = [
-      "wireguard"
-      "management"
-      "trusted"
-      "iot"
-      "untrusted"
-      "servers"
-      "dmz"
-      "minecraft"
-      "unifi"
-    ];
-    internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dmz" "minecraft" ];
-    mdnsNetworks = [ "trusted" "iot" "untrusted" "servers" ];
   };
 
   hosts = {
@@ -152,9 +84,7 @@
     };
 
     atx = {
-      dhcpReservation = true;
       hostname = "atx";
-      interface = "enxc87f5465d1b8";
       mac = "c8:7f:54:65:d1:b8";
       network = "servers";
       ipv4 = "192.168.40.10";
@@ -198,7 +128,6 @@
     };
 
     backup = {
-      dhcpReservation = true;
       hostname = "backup";
       mac = "e8:6a:64:e5:e5:56";
       network = "servers";
@@ -228,9 +157,6 @@
       mac = "e8:6a:64:99:a8:76";
       network = "dmz";
       ipv4 = "192.168.66.2";
-      adminIpv4 = "192.168.66.3";
-      dhcpReservation = true;
-      dhcpAddress = "adminIpv4";
       ports = {
         ssh = 22;
         http = 80;
@@ -251,7 +177,7 @@
         nginxExporter = 9113;
         postgresqlExporter = 9187;
         authentikMetrics = 9300;
-        authentikHttps = 9443;
+        keycloakAdminHttps = 9443;
         smartctlExporter = 9633;
         authentikDebug = 9900;
         authentikDebugPython = 9901;
@@ -279,7 +205,6 @@
     };
 
     slzb-06 = {
-      dhcpReservation = true;
       hostname = "slzb";
       mac = "68:25:DD:49:0D:13";
       network = "iot";
@@ -287,7 +212,6 @@
     };
 
     apple-tv = {
-      dhcpReservation = true;
       hostname = "appletv";
       mac = "c0:95:6d:51:fb:32";
       network = "iot";

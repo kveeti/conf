@@ -35,15 +35,18 @@
     secrets-pc.url = "git+file:///Users/veeti/code/personal/secrets?rev=990f67cf535399bc448aa028d3f2d7e410bf5b30";
     mac.url = "path:./mac";
 
-    secrets-backup.url = "git+file:///Users/veeti/code/personal/secrets";
-    secrets-atx.follows = "secrets-backup";
-    secrets-public.follows = "secrets-backup";
-    secrets-router.follows = "secrets-backup";
+    secrets.url = "git+file:///Users/veeti/code/personal/secrets";
+    secrets-backup.follows = "secrets";
+    secrets-atx.follows = "secrets";
+    secrets-public.follows = "secrets";
+    secrets-router.follows = "secrets";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, disko, lanzaboote, money, food, rss, weather, microvm, home-manager, secrets-atx, secrets-backup, secrets-public, secrets-router, secrets-pc, mac }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, disko, lanzaboote, money, food, rss, weather, microvm, home-manager, secrets, secrets-atx, secrets-backup, secrets-public, secrets-router, secrets-pc, mac }:
     let
       inventory = import ./inventory.nix;
+      routerInventory = import ./hosts/router/inventory.nix { inherit inventory; lib = nixpkgs.lib; };
+      atxInventory = import ./hosts/atx/inventory.nix { inherit inventory; lib = nixpkgs.lib; };
 
       mkHost = {
         hostName,
@@ -70,7 +73,9 @@
           hostName = "router";
           specialArgs = {
             adminKeys = (import secrets-router).keys.admins;
+            inventory = routerInventory;
             vlan111OutboundAllowedIP = (import secrets-router).vlan111OutboundAllowedIP;
+            pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };
           };
           modules = [
             disko.nixosModules.disko
@@ -85,7 +90,7 @@
           system = "x86_64-linux";
           specialArgs = {
             adminKeys = (import secrets-router).keys.admins;
-            inherit inventory;
+            inventory = routerInventory;
             routerSystem = router.config.system.build.toplevel;
             diskoPackage = disko.packages.x86_64-linux.disko;
           };
@@ -96,6 +101,7 @@
           hostName = "atx";
           specialArgs = {
             adminKeys = (import secrets-atx).keys.admins;
+            inventory = atxInventory;
             inherit food rss weather;
             pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };
           };
