@@ -94,7 +94,7 @@ in {
 
       microvm = {
         hypervisor = lib.mkForce "qemu";
-        mem = lib.mkForce 6144;
+        mem = lib.mkForce 4096;
         vcpu = lib.mkForce 4;
         interfaces = [{
           type = "tap";
