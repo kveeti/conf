@@ -23,10 +23,21 @@ in {
 
   microvm.vms.control3 = {
     specialArgs = { inherit adminKeys inventory; };
-    config = { ... }: {
-      imports = [ ../../modules/profiles/microvm.nix ];
+    config = { config, ... }: {
+      imports = [
+        ../../modules/profiles/microvm.nix
+        ../../modules/services/k3s-server.nix
+      ];
 
       networking.hostName = host.hostname;
+
+      services.k3s = {
+        serverAddr = "https://${inventory.hosts.public.kubeIpv4}:6443";
+        tokenFile = "/var/lib/rancher/k3s/join-token";
+        nodeTaint = [ "node-role.kubernetes.io/control-plane=true:NoSchedule" ];
+      };
+
+      systemd.services.k3s.unitConfig.ConditionPathExists = config.services.k3s.tokenFile;
 
       microvm = {
         mem = lib.mkForce 2048;

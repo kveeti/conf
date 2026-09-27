@@ -14,6 +14,7 @@ in {
     ../../modules/features/disk-health.nix
     ../../modules/features/port-registry.nix
     ../../modules/services/postgresql.nix
+    ../../modules/services/k3s-server.nix
     ../../modules/telemetry/logs.nix
     ./authentik.nix
     ./bm.nix
@@ -108,6 +109,10 @@ in {
   '';
 
   services = {
+    k3s = {
+      clusterInit = true;
+      nodeName = "control1";
+    };
     openssh.listenAddresses = [{ addr = host.ipv4; port = ports.ssh; }];
     prometheus.exporters = {
       postgres.port = ports.postgresqlExporter;

@@ -12,6 +12,7 @@ in {
     ../../modules/profiles/server.nix
     ../../modules/features/port-registry.nix
     ../../modules/features/secure-boot.nix
+    ../../modules/services/k3s-server.nix
     ./archive-disk.nix
     ./disk.nix
     ./hardware.nix
@@ -89,6 +90,11 @@ in {
   };
 
   services = {
+    k3s = {
+      nodeName = "control2";
+      serverAddr = "https://${inventory.hosts.public.kubeIpv4}:6443";
+      tokenFile = "/var/lib/rancher/k3s/join-token";
+    };
     openssh.ports = [ ports.ssh ];
     prometheus.exporters.smartctl.port = ports.smartctlExporter;
     zfs = {
@@ -96,6 +102,8 @@ in {
       trim.enable = true;
     };
   };
+
+  systemd.services.k3s.unitConfig.ConditionPathExists = config.services.k3s.tokenFile;
 
   system.stateVersion = "25.11";
 }
