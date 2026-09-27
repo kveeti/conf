@@ -114,6 +114,18 @@
       };
     };
 
+    storage = {
+      hostname = "storage";
+      network = "kube";
+      ipv4 = "192.168.50.3";
+      ports = {
+        ssh = 22;
+        iscsi = 3260;
+        vmagent = 8429;
+        nodeExporter = 9100;
+      };
+    };
+
     atx-internal = {
       hostname = "internal";
       network = "servers";

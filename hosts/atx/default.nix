@@ -21,6 +21,7 @@ in {
     ./minecraft/default.nix
     ./network.nix
     ./storage.nix
+    ./storage-vm.nix
   ];
 
   age.secrets = {
@@ -102,6 +103,11 @@ in {
     "net.ipv4.ip_forward" = 0;
     "net.ipv4.conf.all.forwarding" = 0;
     "net.ipv6.conf.all.forwarding" = 0;
+  };
+
+  zramSwap = {
+    enable = true;
+    memoryPercent = 25;
   };
 
   system.stateVersion = "25.11";
