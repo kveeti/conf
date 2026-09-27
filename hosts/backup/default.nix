@@ -95,6 +95,10 @@ in {
       serverAddr = "https://${inventory.hosts.public.kubeIpv4}:6443";
       tokenFile = "/var/lib/rancher/k3s/join-token";
     };
+    openiscsi = {
+      enable = true;
+      name = "iqn.2026-09.com.veetik:control2";
+    };
     openssh.ports = [ ports.ssh ];
     prometheus.exporters.smartctl.port = ports.smartctlExporter;
     zfs = {
@@ -102,6 +106,12 @@ in {
       trim.enable = true;
     };
   };
+
+  systemd.tmpfiles.rules = [
+    "d /lib 0755 root root -"
+    "L /lib/modules - - - - /run/current-system/kernel-modules/lib/modules"
+    "d /var/lib/iscsi 0755 root root -"
+  ];
 
   systemd.services.k3s.unitConfig.ConditionPathExists = config.services.k3s.tokenFile;
 

@@ -113,6 +113,10 @@ in {
       clusterInit = true;
       nodeName = "control1";
     };
+    openiscsi = {
+      enable = true;
+      name = "iqn.2026-09.com.veetik:control1";
+    };
     openssh.listenAddresses = [{ addr = host.ipv4; port = ports.ssh; }];
     prometheus.exporters = {
       postgres.port = ports.postgresqlExporter;
@@ -123,6 +127,12 @@ in {
       trim.enable = true;
     };
   };
+
+  systemd.tmpfiles.rules = [
+    "d /lib 0755 root root -"
+    "L /lib/modules - - - - /run/current-system/kernel-modules/lib/modules"
+    "d /var/lib/iscsi 0755 root root -"
+  ];
 
   systemd.services.sshd = {
     wants = [ "network-online.target" ];
