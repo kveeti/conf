@@ -3,6 +3,8 @@
 let
   host = inventory.hosts.backup;
   network = inventory.networks.${host.network};
+  kubeNetwork = inventory.networks.kube;
+  kubeInterface = "vlan${toString kubeNetwork.vlan}";
   ports = config.homelab.ports;
 in {
   imports = [
@@ -57,13 +59,31 @@ in {
 
   systemd.network = {
     enable = true;
-    networks."10-lan" = {
-      matchConfig.Name = "en*";
-      address = [ "${host.ipv4}/24" ];
-      routes = [{ Gateway = network.router4; }];
-      networkConfig = {
-        DHCP = "no";
-        DNS = [ network.router4 ];
+    netdevs."20-kube" = {
+      netdevConfig = {
+        Kind = "vlan";
+        Name = kubeInterface;
+      };
+      vlanConfig.Id = kubeNetwork.vlan;
+    };
+    networks = {
+      "10-lan" = {
+        matchConfig.Name = "en*";
+        address = [ "${host.ipv4}/24" ];
+        vlan = [ kubeInterface ];
+        routes = [{ Gateway = network.router4; }];
+        networkConfig = {
+          DHCP = "no";
+          DNS = [ network.router4 ];
+        };
+      };
+      "20-kube" = {
+        matchConfig.Name = kubeInterface;
+        address = [ "${host.kubeIpv4}/24" ];
+        networkConfig = {
+          DHCP = "no";
+          LinkLocalAddressing = "no";
+        };
       };
     };
   };
