@@ -1,0 +1,208 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-vip
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:kube-vip-role
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - services/status
+  verbs:
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  - endpoints
+  verbs:
+  - list
+  - get
+  - watch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  verbs:
+  - list
+  - get
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - list
+  - get
+  - watch
+  - update
+  - create
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - get
+  - watch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:kube-vip-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-vip-role
+subjects:
+- kind: ServiceAccount
+  name: kube-vip
+  namespace: kube-system
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-vip
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: kube-vip
+  template:
+    metadata:
+      labels:
+        app: kube-vip
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - control1
+                - control2
+      containers:
+      - args:
+        - manager
+        env:
+        - name: vip_arp
+          value: 'true'
+        - name: vip_interface
+          value: vlan50
+        - name: svc_enable
+          value: 'true'
+        - name: svc_election
+          value: 'true'
+        - name: vip_leaderelection
+          value: 'true'
+        image: ghcr.io/kube-vip/kube-vip:v1.2.4
+        name: kube-vip
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+      hostNetwork: true
+      serviceAccountName: kube-vip
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-vip-cloud-controller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:kube-vip-cloud-controller-role
+rules:
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - create
+  - update
+  - list
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  - endpoints
+  - events
+  - services/status
+  verbs:
+  - "*"
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  - services
+  verbs:
+  - list
+  - get
+  - watch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:kube-vip-cloud-controller-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-vip-cloud-controller-role
+subjects:
+- kind: ServiceAccount
+  name: kube-vip-cloud-controller
+  namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-vip-cloud-provider
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-vip-cloud-provider
+  template:
+    metadata:
+      labels:
+        app: kube-vip-cloud-provider
+    spec:
+      containers:
+      - command:
+        - "/kube-vip-cloud-provider"
+        - "--leader-elect-resource-name=kube-vip-cloud-controller"
+        image: ghcr.io/kube-vip/kube-vip-cloud-provider:v0.0.12
+        name: kube-vip-cloud-provider
+      serviceAccountName: kube-vip-cloud-controller
+---
+apiVersion: v1
+data:
+  range-global: 192.168.50.10-192.168.50.31
+kind: ConfigMap
+metadata:
+  name: kubevip
+  namespace: kube-system
