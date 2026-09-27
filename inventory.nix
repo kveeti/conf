@@ -103,6 +103,17 @@
       };
     };
 
+    control3 = {
+      hostname = "control3";
+      network = "kube";
+      ipv4 = "192.168.50.7";
+      ports = {
+        ssh = 22;
+        vmagent = 8429;
+        nodeExporter = 9100;
+      };
+    };
+
     atx-internal = {
       hostname = "internal";
       network = "servers";

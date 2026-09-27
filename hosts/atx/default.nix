@@ -12,6 +12,7 @@ in {
     ../../modules/telemetry/logs.nix
     ../../modules/telemetry/metrics.nix
     ./certificates.nix
+    ./control3.nix
     ./disk.nix
     ./hardware.nix
     ./internal.nix
