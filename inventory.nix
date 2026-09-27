@@ -36,6 +36,9 @@
       vlan = 50;
       cidr4 = "192.168.50.0/24";
       router4 = "192.168.50.1";
+      publicIngress4 = "192.168.50.8";
+      internalIngress4 = "192.168.50.9";
+      servicePool4 = "192.168.50.10-192.168.50.31";
     };
 
     dmz = {

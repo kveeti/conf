@@ -22,6 +22,7 @@ in {
     ./disk.nix
     ./hardware.nix
     ./keycloak.nix
+    ./kube-vip.nix
     ./modi.nix
     ./money.nix
     ./nginx.nix
