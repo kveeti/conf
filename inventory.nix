@@ -126,6 +126,18 @@
       };
     };
 
+    backup-vm = {
+      hostname = "backup-vm";
+      network = "kube";
+      ipv4 = "192.168.50.4";
+      ports = {
+        ssh = 22;
+        s3 = 3900;
+        vmagent = 8429;
+        nodeExporter = 9100;
+      };
+    };
+
     atx-internal = {
       hostname = "internal";
       network = "servers";
