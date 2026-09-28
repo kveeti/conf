@@ -120,7 +120,7 @@ in {
           ''"food.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
           ''"weather.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
           ''"p.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
-          ''"rss.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
+          ''"rss.internal.veetik.com. IN A 192.168.50.9"''
         ];
       };
 

@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rss
+  namespace: rss
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: rss
+  template:
+    metadata:
+      labels:
+        app: rss
+    spec:
+      containers:
+        - name: rss
+          image: veetik/rss@sha256:d83ea20b62ac0a29d75ea89a515d1e4663973f078c4c5ca5f737ea394762a9bf
+          env:
+            - name: HOST
+              value: 0.0.0.0:8000
+            - name: DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: rss-app
+                  key: fqdn-uri
+            - name: DATABASE_URL
+              value: $(DATABASE_URI)?sslmode=verify-full&sslrootcert=/etc/rss/ca.crt
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+            - name: db-ca
+              mountPath: /etc/rss
+              readOnly: true
+      volumes:
+        - name: db-ca
+          secret:
+            secretName: rss-ca
+            items:
+              - key: ca.crt
+                path: ca.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rss
+  namespace: rss
+spec:
+  selector:
+    app: rss
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rss
+  namespace: rss
+spec:
+  secretName: tls-rss
+  dnsNames:
+    - rss.internal.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rss
+  namespace: rss
+spec:
+  ingressClassName: traefik-internal
+  tls:
+    - hosts:
+        - rss.internal.veetik.com
+      secretName: tls-rss
+  rules:
+    - host: rss.internal.veetik.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rss
+                port:
+                  name: http

@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rss
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: garage
+  namespace: rss
+spec:
+  retentionPolicy: 30d
+  configuration:
+    destinationPath: s3://rss-db/
+    endpointURL: http://192.168.50.4:3900
+    s3Credentials:
+      accessKeyId:
+        name: rss-garage
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: rss-garage
+        key: ACCESS_SECRET_KEY
+      region:
+        name: rss-garage
+        key: REGION
+    wal:
+      compression: gzip
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: rss
+  namespace: rss
+spec:
+  instances: 2
+  bootstrap:
+    initdb:
+      database: rss
+      owner: rss
+      locale: en_US.utf8
+  certificates:
+    serverAltDNSNames:
+      - rss-db.internal.veetik.com
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: kubernetes.io/hostname
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - control1
+                  - control2
+  managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: rss-external-rw
+            spec:
+              type: LoadBalancer
+              loadBalancerIP: 192.168.50.10
+              allocateLoadBalancerNodePorts: false
+              ports:
+                - name: postgres
+                  port: 5432
+                  targetPort: 5432
+                  protocol: TCP
+  storage:
+    storageClass: local-path
+    size: 4Gi
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: garage
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: rss-weekly
+  namespace: rss
+spec:
+  schedule: "0 0 4 * * 0"
+  backupOwnerReference: cluster
+  cluster:
+    name: rss
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+  target: primary

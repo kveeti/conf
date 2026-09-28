@@ -187,6 +187,12 @@ in {
             accept comment "internal apps -> public identity"
 
           iifname "${networks.servers.interface}" \
+            ip saddr ${hosts.atx-internal.ipv4} \
+            oifname "${networks.kube.interface}" \
+            ip daddr 192.168.50.10 tcp dport 5432 \
+            accept comment "RSS -> CNPG"
+
+          iifname "${networks.servers.interface}" \
             oifname "${networks.dmz.interface}" \
             ip saddr ${hosts.backup.ipv4} ip daddr ${hosts.public.ipv4} \
             tcp dport ${toString hosts.public.ports.https} \
@@ -257,6 +263,9 @@ in {
 
         chain postrouting {
           type nat hook postrouting priority srcnat; policy accept;
+          iifname "${networks.servers.interface}" oifname "${networks.kube.interface}" \
+            ip saddr ${hosts.atx-internal.ipv4} ip daddr 192.168.50.10 \
+            tcp dport 5432 snat to ${networks.kube.router4}
           oifname "${wan}" masquerade
         }
       }

@@ -1,0 +1,40 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: rss-db
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: cnpg
+  path: ./k3s/clusters/dev/apps/rss-db
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: rss
+      namespace: rss
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: rss
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: rss-db
+    - name: internal-ingress
+  path: ./k3s/clusters/dev/apps/rss
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: rss
+      namespace: rss
