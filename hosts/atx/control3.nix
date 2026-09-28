@@ -71,7 +71,7 @@ in {
       systemd.network = {
         enable = true;
         networks."10-ethernet" = {
-          matchConfig.Type = "ether";
+          matchConfig.Name = "ens3";
           address = [ "${host.ipv4}/${lib.last (lib.splitString "/" network.cidr4)}" ];
           routes = [{ Gateway = network.router4; }];
           networkConfig = {
