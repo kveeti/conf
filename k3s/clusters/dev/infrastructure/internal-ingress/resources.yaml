@@ -28,23 +28,27 @@ spec:
         name: traefik
         namespace: flux-system
   values:
+    experimental:
+      kubernetesGateway:
+        enabled: true
+    gateway:
+      enabled: false
+    gatewayClass:
+      enabled: true
+      name: traefik-internal
     deployment:
       replicas: 2
     ingressClass:
+      enabled: false
       name: traefik-internal
       isDefaultClass: false
     providers:
       kubernetesIngress:
-        ingressClass: traefik-internal
+        enabled: false
+      kubernetesGateway:
+        enabled: true
     service:
       spec:
         type: LoadBalancer
         loadBalancerIP: 192.168.50.9
         allocateLoadBalancerNodePorts: false
-    ports:
-      web:
-        http:
-          redirections:
-            entryPoint:
-              to: websecure
-              scheme: https
