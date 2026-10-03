@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: money
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: garage
+  namespace: money
+spec:
+  retentionPolicy: 30d
+  configuration:
+    destinationPath: s3://money-db/
+    endpointURL: http://192.168.50.4:3900
+    s3Credentials:
+      accessKeyId:
+        name: money-garage
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: money-garage
+        key: ACCESS_SECRET_KEY
+      region:
+        name: money-garage
+        key: REGION
+    wal:
+      compression: gzip
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: money-db
+  namespace: money
+spec:
+  instances: 2
+  bootstrap:
+    initdb:
+      database: money
+      owner: money
+      locale: en_US.utf8
+  certificates:
+    serverAltDNSNames:
+      - money-db.internal.veetik.com
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: kubernetes.io/hostname
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - control1
+                  - control2
+  storage:
+    storageClass: local-path
+    size: 4Gi
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: garage
+        serverName: money-db
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: money-weekly
+  namespace: money
+spec:
+  immediate: true
+  schedule: "0 0 4 * * 0"
+  backupOwnerReference: cluster
+  cluster:
+    name: money-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+  target: primary

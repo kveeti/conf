@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: money-garage
+    namespace: money
+type: Opaque
+stringData:
+    ACCESS_KEY_ID: ENC[AES256_GCM,data:rfl3f5q0SZ8hgDZbHeQBBZyXCFzjo4E4IWE=,iv:Ci+BuvNSNelCWTrWvLsLY8gq5U2biGtrQcUVHsvFhr0=,tag:7abknFQqzxRdb5eGu+ZDsQ==,type:str]
+    ACCESS_SECRET_KEY: ENC[AES256_GCM,data:dQGtGE8tWxulLj9O/SeQR7X2zNhmmD26wzcvmjOKXcLIoULf6XEgE9e9u4q6ADCuldRrym4UIN+at4loR6wLuQ==,iv:Co50IQIJDugpwvHDRa1pE2607ype4vb2GaktcUvDZD8=,tag:+ETTaZ8J9cVvdLeD5uyPTg==,type:str]
+    REGION: ENC[AES256_GCM,data:eIwQ7r0I,iv:F4mGdRaEn/BW9y+AIFeD3b5xgYphp3LB5jUfLDy8w3s=,tag:MKg7d8O7dRFaIfNVXSxqKA==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBTdW92VG5PTitHZm5qK3dO
+            UkdrekttYzlXcHNscUNyQ3hNaGJOTWR3OEQwCk1obnNQdFFLd3Bpck9tZkQzYmto
+            a1J6K0xVcENybC9KREhnMm9yWnBGTDAKLS0tIHJwMm9wdlovandRZmt1U25tSDRn
+            Z3ZEaWFQZktQUUNncGNQTSs3YTczcXcKD1vLRlJ8RIiwUGaYWvFz1rGLPVDTU9Mp
+            g96IiPOjALwJon9yxpYENk4IYdv14V4t9veo56uzEw6Zkjg2IvgKxw==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1thp7ryp69smykxuklnsexhpvhtqy7z407j82pz45eutdswwccuzs9s8wt5
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-03T17:40:28Z"
+    mac: ENC[AES256_GCM,data:Xm2TUcqQQZRekSGTGmVqFragG1rTwTJ77sO13syiXvhTtAKaDL9xpscO0ioywqqGG1HaJeHrqLZGRcPMRs8f+kKKy2C4djO6Psrb6WPjiIukJWEY0OO2vdX8kVMscfj8GtaY24oP1yTgnvdQ10FL23Z/zQgudo8unRh8Eb2Bc3w=,iv:hIpAJp3GySNQP5GTnKys+9V9lhq3JWN/72HlV33C46s=,tag:+6oB/6UfvedceRQgVyjkGA==,type:str]
+    version: 3.13.2

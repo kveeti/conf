@@ -123,6 +123,7 @@ in {
           ''"rss.internal.veetik.com. IN A 192.168.50.9"''
           ''"bookmarks.internal.veetik.com. IN A 192.168.50.9"''
           ''"tasks.internal.veetik.com. IN A 192.168.50.9"''
+          ''"money.internal.veetik.com. IN A 192.168.50.9"''
         ];
       };
 
