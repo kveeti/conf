@@ -15,6 +15,7 @@ in {
       "--advertise-address=${kubeIp}"
       "--flannel-iface=${kubeInterface}"
       "--tls-san=192.168.50.2"
+      "--secrets-encryption"
     ];
   };
 
