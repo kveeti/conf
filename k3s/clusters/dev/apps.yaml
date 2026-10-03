@@ -196,6 +196,52 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: keycloak-db
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: cnpg
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  path: ./k3s/clusters/dev/apps/keycloak-db
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: keycloak-db
+      namespace: keycloak
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: keycloak
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: keycloak-db
+    - name: internal-ingress
+    - name: cert-manager
+  path: ./k3s/clusters/dev/apps/keycloak
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: keycloak
+      namespace: keycloak
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: radicale
   namespace: flux-system
 spec:

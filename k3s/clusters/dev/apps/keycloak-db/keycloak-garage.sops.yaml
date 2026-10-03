@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: keycloak-garage
+    namespace: keycloak
+type: Opaque
+stringData:
+    ACCESS_KEY_ID: ENC[AES256_GCM,data:n4SqkPWLPzlSKpp3l2WU0s61rAQiK/TZhAU=,iv:1FzzzKlSeHCFWQDa7a7n4G/xIzJjLGIqQRPwJMavA8Y=,tag:7F8hDxgScIoLdf0xnAbDZw==,type:str]
+    ACCESS_SECRET_KEY: ENC[AES256_GCM,data:/JhbpNDPJV2hbOtc8K3NOfcijhCu2d7ldOWL+ZfuKei+iREDaVJZu/SZqvKpWdIUTZBZj1JDeGO1jqKq0olHRA==,iv:wbe7woGNpxeIjBmHg7QuW6cXCyUYxNM+NEx+Q9qnQi8=,tag:R2MTwOKvKd7mHa0NCODnvw==,type:str]
+    REGION: ENC[AES256_GCM,data:qqXY7Ald,iv:8KbSrLOX2/i0+/uPoN+zP/mdnoRqGX89WX4k7pBGPec=,tag:p26nBvdSV8KMJFHWZCa3sQ==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA3blpxSlVsTVlwTlh6RFBR
+            c0xVNzh5WFA1TklsOGhxakJUZ0QrcERvRVJvCmw5T0gxYnFaZThWdWVGbElIRGYw
+            ZEtONXRWTWlXZXRHUHZMeVN3NnlZVW8KLS0tIEt0d2Yrb3BqSG1rd3V0bWRiSkg5
+            QWw1c1VkbTg1NG90WEtCaFF3QUt2VHMKUlAHvsof4nmeOZfUnuK2EMrW9XyPwTkZ
+            I5pK67+MRE74RhM9/mHmPLcdNwNL4zsh1SUdLj4SsYOu9qhx9peLfA==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1thp7ryp69smykxuklnsexhpvhtqy7z407j82pz45eutdswwccuzs9s8wt5
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-03T21:19:06Z"
+    mac: ENC[AES256_GCM,data:Tz/UYfnyZTYHU575VgPEER4rhumnOr3V63bgdkzlxwGiQ2hNztgdlL41hBEw9+CyyPNOcGuCgP1It7GOM268RPMxhsBPMMsFwmCP5RLlhurTyazoKkpSLTZMvWwT2ZTEVf9hfe78wZzTLo3BosIg/XLiQX/WyofLzBZiO7Yyp7U=,iv:AG0wjgdh11GEqZGaGLZGHUhFuCfiA6N/lHjZp6W7lZc=,tag:6ytwQCRJay4Q0EMGyHbP5A==,type:str]
+    version: 3.13.2

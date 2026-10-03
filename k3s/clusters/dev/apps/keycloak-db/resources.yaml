@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: keycloak
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: garage
+  namespace: keycloak
+spec:
+  retentionPolicy: 30d
+  configuration:
+    destinationPath: s3://keycloak-db/
+    endpointURL: http://192.168.50.4:3900
+    s3Credentials:
+      accessKeyId:
+        name: keycloak-garage
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: keycloak-garage
+        key: ACCESS_SECRET_KEY
+      region:
+        name: keycloak-garage
+        key: REGION
+    wal:
+      compression: gzip
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: keycloak-db
+  namespace: keycloak
+spec:
+  instances: 2
+  bootstrap:
+    initdb:
+      database: keycloak
+      owner: keycloak
+      locale: en_US.utf8
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: kubernetes.io/hostname
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - control1
+                  - control2
+  storage:
+    storageClass: local-path
+    size: 4Gi
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: garage
+        serverName: keycloak-db
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: keycloak-weekly
+  namespace: keycloak
+spec:
+  immediate: true
+  schedule: "0 0 4 * * 0"
+  backupOwnerReference: cluster
+  cluster:
+    name: keycloak-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+  target: primary
