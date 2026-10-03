@@ -123,8 +123,14 @@ let
       (mkClient {
         id = "money";
         secretEnv = "OIDC_MONEY_CLIENT_SECRET";
-        redirects = [ "https://money.veetik.com/api/v1/auth/callback" ];
-        origins = [ "https://money.veetik.com" ];
+        redirects = [
+          "https://money.veetik.com/api/v1/auth/callback"
+          "https://money.internal.veetik.com/api/v1/auth/callback"
+        ];
+        origins = [
+          "https://money.veetik.com"
+          "https://money.internal.veetik.com"
+        ];
       })
     ];
   });

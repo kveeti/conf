@@ -100,11 +100,9 @@ in {
           ''"media.lan." redirect''
           ''"jellyfin.media.lan." static''
           ''"veetik.com." typetransparent''
-          ''"auth.veetik.com." static''
         ];
         local-data = [
           ''"ui.internal.veetik.com. IN A ${hosts.router.ipv4}"''
-          ''"auth.veetik.com. IN A ${hosts.public.ipv4}"''
           ''"authadmin.veetik.com. IN A ${hosts.public.ipv4}"''
           ''"mc.veetik.com. IN CNAME oul-1.veetik.com."''
           ''"ha.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''

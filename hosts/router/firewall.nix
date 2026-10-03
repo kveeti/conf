@@ -266,6 +266,7 @@ in {
           iifname "${networks.servers.interface}" oifname "${networks.kube.interface}" \
             ip saddr ${hosts.atx-internal.ipv4} ip daddr 192.168.50.10 \
             tcp dport 5432 snat to ${networks.kube.router4}
+          meta nfproto ipv4 iifname != "${wan}" ct status dnat masquerade
           oifname "${wan}" masquerade
         }
       }

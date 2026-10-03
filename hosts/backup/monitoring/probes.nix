@@ -82,5 +82,4 @@ in {
     ])
   ] ++ map lanJob publicProbes;
 
-  networking.hosts.${publicIp} = [ "auth.veetik.com" ];
 }

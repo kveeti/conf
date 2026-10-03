@@ -113,7 +113,6 @@ in {
 
       networking = {
         hostName = host.hostname;
-        hosts.${inventory.hosts.public.ipv4} = [ "auth.veetik.com" ];
         firewall.allowedTCPPorts = [
           config.homelab.ports.http
           config.homelab.ports.https
