@@ -1,0 +1,219 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tasks-config
+  namespace: tasks
+data:
+  FRONT_URL: https://tasks.internal.veetik.com
+  .env: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-backend
+  namespace: tasks
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: tasks-backend
+  template:
+    metadata:
+      labels:
+        app: tasks-backend
+    spec:
+      containers:
+        - name: tasks-backend
+          image: docker.io/veetik/tasks:backend
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: tasks-secrets
+          env:
+            - name: FRONT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: tasks-config
+                  key: FRONT_URL
+            - name: DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: tasks-db-app
+                  key: fqdn-uri
+            - name: DATABASE_URL
+              value: $(DATABASE_URI)?sslmode=verify-full&sslrootcert=/etc/tasks/ca.crt
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: http
+          volumeMounts:
+            - name: env-file
+              mountPath: /.env
+              subPath: .env
+              readOnly: true
+            - name: db-ca
+              mountPath: /etc/tasks
+              readOnly: true
+      volumes:
+        - name: env-file
+          configMap:
+            name: tasks-config
+            items:
+              - key: .env
+                path: .env
+        - name: db-ca
+          secret:
+            secretName: tasks-db-ca
+            items:
+              - key: ca.crt
+                path: ca.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasks-backend
+  namespace: tasks
+spec:
+  selector:
+    app: tasks-backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-frontend
+  namespace: tasks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasks-frontend
+  template:
+    metadata:
+      labels:
+        app: tasks-frontend
+    spec:
+      containers:
+        - name: tasks-frontend
+          image: docker.io/veetik/tasks:frontend
+          imagePullPolicy: Always
+          env:
+            - name: PUBLIC_API_URL
+              value: https://tasks.internal.veetik.com
+            - name: PUBLIC_VAPID_PUBLIC_KEY
+              value: BMvRTtdBaxw8nWOkVbBOH_mC7sPHTkgVbbtrYqEek05-iupcxgkLUksERHvFsBIE5xytDaNzxeuLHTLu8FC-O-k
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasks-frontend
+  namespace: tasks
+spec:
+  selector:
+    app: tasks-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tasks
+  namespace: tasks
+spec:
+  secretName: tls-tasks
+  dnsNames:
+    - tasks.internal.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: tasks
+  namespace: tasks
+spec:
+  gatewayClassName: traefik-internal
+  listeners:
+    - name: web
+      hostname: tasks.internal.veetik.com
+      port: 8000
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: websecure
+      hostname: tasks.internal.veetik.com
+      port: 8443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tls-tasks
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tasks
+  namespace: tasks
+spec:
+  parentRefs:
+    - name: tasks
+      sectionName: websecure
+  hostnames:
+    - tasks.internal.veetik.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: tasks-backend
+          port: 8000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: tasks-frontend
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tasks-redirect
+  namespace: tasks
+spec:
+  parentRefs:
+    - name: tasks
+      sectionName: web
+  hostnames:
+    - tasks.internal.veetik.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            port: 443
+            statusCode: 301

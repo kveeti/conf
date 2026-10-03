@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: tasks-garage
+    namespace: tasks
+type: Opaque
+stringData:
+    ACCESS_KEY_ID: ENC[AES256_GCM,data:1WwmfuO3Fgu3+7zNS77nzFr5uu5Ng7WCCWw=,iv:d9utuUL3/0sPWaLZOWHnOVsDf3bcUsIFLYMqLSbJHQ4=,tag:NH2kVjLg1k/N97cRX8jl+Q==,type:str]
+    ACCESS_SECRET_KEY: ENC[AES256_GCM,data:2z9pTEAw4+zIa/CLYii0zD5bwFs9mWe5UElJjkoL327eRQJeR6TFSZMaj8rv1GpKfrXnNdLLNY6sINxxJGCBOw==,iv:/wo9wY7HZ5vJWbtLdNJ7QMx7+9rzk/PnC95x8V9f5PA=,tag:x4xmR41OG/7flJOzdzJktg==,type:str]
+    REGION: ENC[AES256_GCM,data:E/TiBJ5k,iv:KE074OCgDrw2z2JYaVXL+Gl0SnSSH3//41hkhnvIlto=,tag:7WnaMpOM00sddKjxfled0g==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBHdWJGaDNoa21rVnErbTk1
+            T0ZZMGtFZ29uYTMzRnJWdXBxMEV2ZzQrcVM4CkhROHRaRkhQRUtWc3luUE9zalV5
+            ZjFsNDBnbStNdm5oOE5pdHM5VkdOREkKLS0tIHkyc1VWa05OSW5CRm14dmoyRzhJ
+            cFpSWjI2WGRwRFlTYlkxOWV6azRHcFEKveMUcbEwT7O9Rjc5kENrWMxmllo3Q6+8
+            93ekqxeXcovmn3sdm7QFtE7XtCpcyDqZ5HqUnrfcAcEnbtDjx/5IhA==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1thp7ryp69smykxuklnsexhpvhtqy7z407j82pz45eutdswwccuzs9s8wt5
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-03T14:37:55Z"
+    mac: ENC[AES256_GCM,data:WMdpZvYhQznyI02Lir5C7fz4wJMKP6S7udkX8TcwZ2NYFC4LocZBEKnwQSbwLgBNmD5mZ+OOT5+V4nxBV6v8WE2drtVJePTjOKHVZpmkabbh+4W3rmFXkYbsxk+KJ4gTWFVi2yfsikPo0D17ylDdEi9cTzcJ07cMyXXadyRxzws=,iv:cpx9ubVxuL5IuyxzJdNJUBo7kwg6rCi+qBSVCB9GBSI=,tag:gp8Kw42acduTAQgA+HghmQ==,type:str]
+    version: 3.13.2

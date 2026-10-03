@@ -96,6 +96,56 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: tasks-db
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: cnpg
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  path: ./k3s/clusters/dev/apps/tasks-db
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: tasks-db
+      namespace: tasks
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: tasks
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: tasks-db
+    - name: internal-ingress
+    - name: cert-manager
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  path: ./k3s/clusters/dev/apps/tasks
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: tasks-frontend
+      namespace: tasks
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: radicale
   namespace: flux-system
 spec:
