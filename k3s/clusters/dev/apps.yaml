@@ -48,6 +48,10 @@ spec:
   interval: 5m
   dependsOn:
     - name: cnpg
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
   path: ./k3s/clusters/dev/apps/bookmarks-db
   prune: true
   sourceRef:

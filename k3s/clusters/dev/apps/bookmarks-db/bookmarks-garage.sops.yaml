@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: bookmarks-garage
+    namespace: bookmarks
+type: Opaque
+stringData:
+    ACCESS_KEY_ID: ENC[AES256_GCM,data:LE5FJ+ycopDCw/WnTb3SHvYVSabAjuMSaok=,iv:of5qdJyKT5Xj+9+RMDHkqNfy/dOGkHW3R377IvytYLI=,tag:9t+OBO8cvKddTefaY011YQ==,type:str]
+    ACCESS_SECRET_KEY: ENC[AES256_GCM,data:6NUXEeobQjyS9ttA+j2KUYeOmbXPsjFd/dNeKjMLST7561GYDqfau7zm+1Lz5Av4YgGzEyy4zvO2fbMknNMyLA==,iv:Q8B+6Xsto4NiCmJ9mAv3TpOy49eYsvRKJfZK/WKtt9Y=,tag:EKxLySfhS2lrQKQnR/xMSQ==,type:str]
+    REGION: ENC[AES256_GCM,data:Cg/thu0c,iv:Q+Cma11cHLc+QmwG7Obcze8ALmjTM4+guXhul6Q2oPE=,tag:4WIHx1c6mULFVdzdPICWsQ==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBCdk1OeXNEWUFjSk9QMWJ1
+            Y0tiOGVvaVJRYUZWT1NCVVlCWUhkbjVYaHpBCkFyMlg3dHJhS2tlUTA2UDRxeHZo
+            cmFYcVh5YW9VeWNFVGEzbEVxU2t1YmMKLS0tIHQ3YkxsdmozTzN1RXJpSmlYdkpO
+            Y1FOUWtZZkJmS1NTVlY5OWtuSUdEdEUKCbPchHPA9rquI3uWi/VFpUM0tvoj/4wI
+            Mg429wraL4/E0/CFncKAuCEGhtP5NxcIcVrb9OCt3laGTEqoh72NMA==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1thp7ryp69smykxuklnsexhpvhtqy7z407j82pz45eutdswwccuzs9s8wt5
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-03T14:08:39Z"
+    mac: ENC[AES256_GCM,data:oBgWcDfFWeiZQPuoHeuvdthqhM7iXLgGDmO/7Q5JkvH8jJ+F4IwDAbk9UCSB/cnXn4RIMbUKLreVe5wkhVRXn9OLF0FHD1QtBfPoaxrfiwDU1189xrpFogxZZMWHva3c053rp5rUxGBOx3CCpSVDFNlsNWXElrih57XmMw3u+N4=,iv:KjQ9Mg8M+PEJBQAk2e4g8EQztobAs1RgZaWFIRYlRjA=,tag:AJtmdQdWyzbPN+iB0CFCug==,type:str]
+    version: 3.13.2

@@ -3,6 +3,29 @@ kind: Namespace
 metadata:
   name: bookmarks
 ---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: garage
+  namespace: bookmarks
+spec:
+  retentionPolicy: 30d
+  configuration:
+    destinationPath: s3://bookmarks-db/
+    endpointURL: http://192.168.50.4:3900
+    s3Credentials:
+      accessKeyId:
+        name: bookmarks-garage
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: bookmarks-garage
+        key: ACCESS_SECRET_KEY
+      region:
+        name: bookmarks-garage
+        key: REGION
+    wal:
+      compression: gzip
+---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -31,3 +54,25 @@ spec:
   storage:
     storageClass: local-path
     size: 2Gi
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: garage
+        serverName: bookmarks-db
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: bookmarks-weekly
+  namespace: bookmarks
+spec:
+  immediate: true
+  schedule: "0 0 4 * * 0"
+  backupOwnerReference: cluster
+  cluster:
+    name: bookmarks-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+  target: primary
