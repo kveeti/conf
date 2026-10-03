@@ -23,8 +23,21 @@ spec:
       labels:
         app: bookmarks-backend
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: bookmarks-backend
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           image: docker.io/veetik/bookmarks:backend@sha256:769200adbb782292f44f9490040a59688bb2e28e06cd739871dd7c1d5565d42a
           env:
             - name: DATABASE_URI
@@ -56,6 +69,8 @@ spec:
             tcpSocket:
               port: http
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
             - name: env-file
               mountPath: /.env
               subPath: .env
@@ -64,6 +79,9 @@ spec:
               mountPath: /etc/bookmarks
               readOnly: true
       volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
         - name: env-file
           configMap:
             name: bookmarks-config
@@ -105,8 +123,21 @@ spec:
       labels:
         app: bookmarks-frontend
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: bookmarks-frontend
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           image: docker.io/veetik/bookmarks:frontend@sha256:386f04dd8b909d04338dc8404472570012b5520c554a03d044d7051c39194d81
           imagePullPolicy: Always
           ports:
@@ -116,6 +147,13 @@ spec:
             httpGet:
               path: /
               port: http
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
 ---
 apiVersion: v1
 kind: Service

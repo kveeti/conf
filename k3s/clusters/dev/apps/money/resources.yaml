@@ -15,10 +15,23 @@ spec:
       labels:
         app: money
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: money
           image: docker.io/veetik/money@sha256:8ec792d8f1709138084636a7e7f6377597c0eb1785963a7c4bcf6703fa5d1db3
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           env:
             - name: IS_PROD
               value: "1"
@@ -62,6 +75,8 @@ spec:
             tcpSocket:
               port: http
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
             - name: db-ca
               mountPath: /etc/money
               readOnly: true
@@ -69,6 +84,9 @@ spec:
               mountPath: /run/secrets
               readOnly: true
       volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
         - name: db-ca
           secret:
             secretName: money-db-ca

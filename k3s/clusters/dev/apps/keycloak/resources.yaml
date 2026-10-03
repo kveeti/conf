@@ -15,8 +15,33 @@ spec:
       labels:
         app: keycloak
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: prepare-quarkus
+          image: quay.io/keycloak/keycloak@sha256:e03b95891c214fba3ab72f12f40c983211549e817c5fce8d0f37761db04ae185
+          command: ["/bin/sh", "-c", "cp -r /opt/keycloak/lib/quarkus/. /build/"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: quarkus
+              mountPath: /build
       containers:
         - name: keycloak
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           image: quay.io/keycloak/keycloak@sha256:e03b95891c214fba3ab72f12f40c983211549e817c5fce8d0f37761db04ae185
           args:
             - start
@@ -69,10 +94,25 @@ spec:
               path: /health/ready
               port: management
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: data
+              mountPath: /opt/keycloak/data
+            - name: quarkus
+              mountPath: /opt/keycloak/lib/quarkus
             - name: db-ca
               mountPath: /etc/keycloak
               readOnly: true
       volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+        - name: data
+          emptyDir:
+            sizeLimit: 128Mi
+        - name: quarkus
+          emptyDir:
+            sizeLimit: 256Mi
         - name: db-ca
           secret:
             secretName: keycloak-db-ca

@@ -22,9 +22,22 @@ spec:
       labels:
         app: tasks-backend
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: tasks-backend
-          image: docker.io/veetik/tasks:backend
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          image: docker.io/veetik/tasks@sha256:902c63258c27a60bd911ab4d6360bba7f96714e4076a7800bd9d92b7fbeb3d4c
           imagePullPolicy: Always
           envFrom:
             - secretRef:
@@ -49,6 +62,8 @@ spec:
             tcpSocket:
               port: http
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
             - name: env-file
               mountPath: /.env
               subPath: .env
@@ -57,6 +72,9 @@ spec:
               mountPath: /etc/tasks
               readOnly: true
       volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
         - name: env-file
           configMap:
             name: tasks-config
@@ -98,9 +116,22 @@ spec:
       labels:
         app: tasks-frontend
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: tasks-frontend
-          image: docker.io/veetik/tasks:frontend
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          image: docker.io/veetik/tasks@sha256:ba34265a63bb952f89c3952a8d8d6e6ed1e8cd72e91745b0eb0bc12d4359f46e
           imagePullPolicy: Always
           env:
             - name: PUBLIC_API_URL
@@ -114,6 +145,13 @@ spec:
             httpGet:
               path: /
               port: http
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
 ---
 apiVersion: v1
 kind: Service

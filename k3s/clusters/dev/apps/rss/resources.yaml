@@ -15,9 +15,22 @@ spec:
       labels:
         app: rss
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: rss
           image: veetik/rss@sha256:d83ea20b62ac0a29d75ea89a515d1e4663973f078c4c5ca5f737ea394762a9bf
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           env:
             - name: HOST
               value: 0.0.0.0:8000
@@ -36,10 +49,15 @@ spec:
               path: /
               port: http
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
             - name: db-ca
               mountPath: /etc/rss
               readOnly: true
       volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
         - name: db-ca
           secret:
             secretName: rss-ca
