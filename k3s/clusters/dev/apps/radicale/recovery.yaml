@@ -1,0 +1,27 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: radicale-restore
+  namespace: radicale
+spec:
+  trigger:
+    manual: initial-restore
+  restic:
+    repository: radicale-restic-config
+    copyMethod: Snapshot
+    capacity: 1Gi
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: storage-iscsi
+    volumeSnapshotClassName: storage-iscsi
+    cleanupTempPVC: true
+    cleanupCachePVC: true
+    cacheStorageClassName: local-path
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault

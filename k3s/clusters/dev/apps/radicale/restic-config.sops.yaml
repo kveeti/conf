@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: radicale-restic-config
+    namespace: radicale
+type: Opaque
+stringData:
+    RESTIC_REPOSITORY: ENC[AES256_GCM,data:8QxZiqSoR8BIAOZfxPlu2iXXWQabzoIcr6EoviaZ2CPANPAtcfRealN1edNaI/Sv,iv:nDheNDfwiAHoyLflqrWMNXh3HM/k3Ns0UDa2Irnz2AU=,tag:sNMpvcfBAhRc0FhHdPBk2w==,type:str]
+    RESTIC_PASSWORD: ENC[AES256_GCM,data:q8Gin8R2MqUEvptTRXrwD1jJlvzykAmLqtnqN/dDcoKRaWkn+QB7Sn+sZg/H1xNX+YThM1nyiUwiWYuJW3xHWg==,iv:jQYJDY3QECpKrAXmFGSp0BLdJFs6co8VfYxOFxRhuE8=,tag:QlVLx+R7vZWhIz5PIgwVNg==,type:str]
+    AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:RA77WYSeWETFlBaxMB7McOZvq6hUA2XDvv0=,iv:LJ9gI6SAZDxmiUhbpmbhT/jw0m6Qga0eZzNSNds4ZB8=,tag:9syTfQGX3zZ+sXqfJ6jmwA==,type:str]
+    AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:33Qaxim1OIjeDyyMykyZLRnbW5v6IAh0AN1NJ3DDMbhyZYd8ckZ7J9dI/hvEUw4u3JgkV7tnjt+QrmALF3QlRw==,iv:HT+s2X2HFARkzIxN7NvmzOLV6ALJmBHfaiFNDQ3Lc3w=,tag:PbwITG7P+TpYl6VQ74kUPg==,type:str]
+    AWS_DEFAULT_REGION: ENC[AES256_GCM,data:X1QPGWAp,iv:eUnrHug19vPs0IePPsQDo5exe4F3tDtDmnTqqrePibo=,tag:6eJis9MXMd7IU2rmt2wNrg==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBBV2FZVnFxWmZhMFBkZ1Vw
+            bjRWNWw4RDFsMGlRMDJZWVBLWTh2QXFsTlNzCkxzSXBTMk1MdmY5UGFiQkRNSTFC
+            eHR4OUxTMXk1SmMyMjBuTmwvcno2SXcKLS0tIHkxaWZtMWIxdDhQVDRNaFlMSG5Y
+            M3JVTWdQWnZIMkR4OTVWSWYxdkpNdWcKjfEaC3Z7XSK5qbk12i4yvk2hWS5UevCU
+            yJfU3FV1UzupuHE5e8GSpO3Kyd7xwUNxC7ZLkKmifTtkGkkpp6tzLA==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1thp7ryp69smykxuklnsexhpvhtqy7z407j82pz45eutdswwccuzs9s8wt5
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-09-30T19:07:04Z"
+    mac: ENC[AES256_GCM,data:K/tHVhk2gpsW114RY6c6iyUpOPUKG2Og6N9b3vKqRwwFRQCPwS36jP5AEXdRn/vfzqgXTnuICkBbKKJpexU2ayUAg0DiBML5wCDgKuxJ5Xozq+iGL7WbOESUA/AYfh0rSNC6bD7r/JnZh1CQD+pPnCaPi+X6kdBgFZn0TblF6LA=,iv:9eLDf/hl211/aI2LO8waGLxm2wabvY+BX0wcsI6NMnE=,tag:QYZ399nv1pkI/JVtA/Uo3Q==,type:str]
+    version: 3.13.2

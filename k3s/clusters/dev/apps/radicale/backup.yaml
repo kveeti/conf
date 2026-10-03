@@ -1,0 +1,24 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: radicale
+  namespace: radicale
+spec:
+  sourcePVC: radicale-data-restored
+  trigger:
+    schedule: "0 3 * * *"
+  restic:
+    repository: radicale-restic-config
+    retain:
+      within: 720h
+    pruneIntervalDays: 7
+    copyMethod: Clone
+    cacheStorageClassName: local-path
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault

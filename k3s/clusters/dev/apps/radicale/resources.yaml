@@ -1,0 +1,220 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: radicale
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radicale-data-restored
+  namespace: radicale
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: storage-iscsi
+  dataSourceRef:
+    apiGroup: volsync.backube
+    kind: ReplicationDestination
+    name: radicale-restore
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radicale
+  namespace: radicale
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: radicale
+  template:
+    metadata:
+      labels:
+        app: radicale
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: radicale
+          image: veetik/radicale-and-friends@sha256:225f08d9559888eb462b3d5b4f463f9b2d5658c779c557993c38b060a6031a3b
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GIT_CONFIG_COUNT
+              value: "1"
+            - name: GIT_CONFIG_KEY_0
+              value: safe.directory
+            - name: GIT_CONFIG_VALUE_0
+              value: /var/lib/radicale
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          ports:
+            - name: http
+              containerPort: 5232
+          readinessProbe:
+            tcpSocket:
+              port: http
+          livenessProbe:
+            tcpSocket:
+              port: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/radicale
+            - name: users
+              mountPath: /run/secrets
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: radicale-data-restored
+        - name: users
+          secret:
+            secretName: radicale-users
+            defaultMode: 0440
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: radicale
+  namespace: radicale
+spec:
+  podSelector:
+    matchLabels:
+      app: radicale
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: internal-ingress
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 5232
+  egress: []
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radicale
+  namespace: radicale
+spec:
+  selector:
+    app: radicale
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: radicale
+  namespace: radicale
+spec:
+  secretName: tls-radicale
+  dnsNames:
+    - dav.internal.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: radicale
+  namespace: radicale
+spec:
+  gatewayClassName: traefik-internal
+  listeners:
+    - name: web
+      hostname: dav.internal.veetik.com
+      port: 8000
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: websecure
+      hostname: dav.internal.veetik.com
+      port: 8443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tls-radicale
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: radicale
+  namespace: radicale
+spec:
+  parentRefs:
+    - name: radicale
+      sectionName: websecure
+  hostnames:
+    - dav.internal.veetik.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: radicale
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: radicale-redirect
+  namespace: radicale
+spec:
+  parentRefs:
+    - name: radicale
+      sectionName: web
+  hostnames:
+    - dav.internal.veetik.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            port: 443
+            statusCode: 301

@@ -116,7 +116,7 @@ in {
           ''"traces.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
           ''"media.lan. IN A ${hosts.media.ipv4}"''
           ''"jellyfin.media.lan. IN A ${hosts.jellyfin.ipv4}"''
-          ''"dav.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
+          ''"dav.internal.veetik.com. IN A 192.168.50.9"''
           ''"food.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
           ''"weather.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
           ''"p.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''

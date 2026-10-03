@@ -1,0 +1,71 @@
+name: Radicale image
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'radicale/**'
+      - '.github/workflows/radicale-image.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOCKERHUB_USERNAME: veetik
+  DOCKERHUB_IMAGE: veetik/radicale-and-friends
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: nix build ./radicale#dockerImage --out-link image
+
+      - name: Log in to Docker Hub
+        if: github.event_name == 'workflow_dispatch'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push architecture image
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          docker load --input image
+          docker tag "$DOCKERHUB_IMAGE:latest" "$DOCKERHUB_IMAGE:sha-$GITHUB_SHA-${{ matrix.arch }}"
+          docker push "$DOCKERHUB_IMAGE:sha-$GITHUB_SHA-${{ matrix.arch }}"
+
+  publish-manifest:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publish multi-arch tags
+        run: |
+          docker buildx imagetools create \
+            --tag "$DOCKERHUB_IMAGE:sha-${GITHUB_SHA::7}" \
+            --tag "$DOCKERHUB_IMAGE:latest" \
+            "$DOCKERHUB_IMAGE:sha-$GITHUB_SHA-amd64" \
+            "$DOCKERHUB_IMAGE:sha-$GITHUB_SHA-arm64"

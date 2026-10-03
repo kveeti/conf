@@ -37,7 +37,7 @@ spec:
       name: com.veetik.iscsi
     controller:
       externalSnapshotter:
-        enabled: false
+        enabled: true
       driver:
         image:
           tag: v1.9.5
@@ -103,3 +103,10 @@ spec:
         allowVolumeExpansion: true
         parameters:
           fsType: ext4
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: storage-iscsi
+driver: com.veetik.iscsi
+deletionPolicy: Delete
