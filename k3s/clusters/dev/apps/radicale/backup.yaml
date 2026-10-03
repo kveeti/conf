@@ -9,6 +9,9 @@ spec:
     schedule: "0 3 * * *"
   restic:
     repository: radicale-restic-config
+    moverServiceAccount: radicale-backup
+    moverPodLabels:
+      app.kubernetes.io/component: backup
     retain:
       within: 720h
     pruneIntervalDays: 7

@@ -8,6 +8,9 @@ spec:
     manual: initial-restore
   restic:
     repository: radicale-restic-config
+    moverServiceAccount: radicale-backup
+    moverPodLabels:
+      app.kubernetes.io/component: backup
     copyMethod: Snapshot
     capacity: 1Gi
     accessModes:
