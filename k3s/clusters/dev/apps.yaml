@@ -42,6 +42,56 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: bookmarks-db
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: cnpg
+  path: ./k3s/clusters/dev/apps/bookmarks-db
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: bookmarks-db
+      namespace: bookmarks
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: bookmarks
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: bookmarks-db
+    - name: internal-ingress
+    - name: cert-manager
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  path: ./k3s/clusters/dev/apps/bookmarks
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: bookmarks-backend
+      namespace: bookmarks
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: bookmarks-frontend
+      namespace: bookmarks
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: radicale
   namespace: flux-system
 spec:

@@ -1,0 +1,221 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookmarks-config
+  namespace: bookmarks
+data:
+  FRONT_URL: https://bookmarks.internal.veetik.com
+  IS_PROD: "true"
+  .env: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookmarks-backend
+  namespace: bookmarks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookmarks-backend
+  template:
+    metadata:
+      labels:
+        app: bookmarks-backend
+    spec:
+      containers:
+        - name: bookmarks-backend
+          image: docker.io/veetik/bookmarks:backend@sha256:769200adbb782292f44f9490040a59688bb2e28e06cd739871dd7c1d5565d42a
+          env:
+            - name: DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: bookmarks-db-app
+                  key: fqdn-uri
+            - name: DATABASE_URL
+              value: $(DATABASE_URI)?sslmode=verify-full&sslrootcert=/etc/bookmarks/ca.crt
+            - name: FRONT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: bookmarks-config
+                  key: FRONT_URL
+            - name: IS_PROD
+              valueFrom:
+                configMapKeyRef:
+                  name: bookmarks-config
+                  key: IS_PROD
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: bookmarks-secret
+                  key: SECRET
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: http
+          volumeMounts:
+            - name: env-file
+              mountPath: /.env
+              subPath: .env
+              readOnly: true
+            - name: db-ca
+              mountPath: /etc/bookmarks
+              readOnly: true
+      volumes:
+        - name: env-file
+          configMap:
+            name: bookmarks-config
+            items:
+              - key: .env
+                path: .env
+        - name: db-ca
+          secret:
+            secretName: bookmarks-db-ca
+            items:
+              - key: ca.crt
+                path: ca.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookmarks-backend
+  namespace: bookmarks
+spec:
+  selector:
+    app: bookmarks-backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookmarks-frontend
+  namespace: bookmarks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookmarks-frontend
+  template:
+    metadata:
+      labels:
+        app: bookmarks-frontend
+    spec:
+      containers:
+        - name: bookmarks-frontend
+          image: docker.io/veetik/bookmarks:frontend@sha256:386f04dd8b909d04338dc8404472570012b5520c554a03d044d7051c39194d81
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookmarks-frontend
+  namespace: bookmarks
+spec:
+  selector:
+    app: bookmarks-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: bookmarks
+  namespace: bookmarks
+spec:
+  secretName: tls-bookmarks
+  dnsNames:
+    - bookmarks.internal.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: bookmarks
+  namespace: bookmarks
+spec:
+  gatewayClassName: traefik-internal
+  listeners:
+    - name: web
+      hostname: bookmarks.internal.veetik.com
+      port: 8000
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: websecure
+      hostname: bookmarks.internal.veetik.com
+      port: 8443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tls-bookmarks
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: bookmarks
+  namespace: bookmarks
+spec:
+  parentRefs:
+    - name: bookmarks
+      sectionName: websecure
+  hostnames:
+    - bookmarks.internal.veetik.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: bookmarks-backend
+          port: 8000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: bookmarks-frontend
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: bookmarks-redirect
+  namespace: bookmarks
+spec:
+  parentRefs:
+    - name: bookmarks
+      sectionName: web
+  hostnames:
+    - bookmarks.internal.veetik.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            port: 443
+            statusCode: 301
