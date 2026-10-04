@@ -103,8 +103,6 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  dependsOn:
-    - name: gateway-api
   path: ./k3s/clusters/dev/infrastructure/internal-ingress
   prune: true
   sourceRef:
@@ -118,8 +116,6 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  dependsOn:
-    - name: internal-ingress
   path: ./k3s/clusters/dev/infrastructure/public-ingress
   prune: true
   sourceRef:
