@@ -110,11 +110,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  healthChecks:
-    - apiVersion: helm.toolkit.fluxcd.io/v2
-      kind: HelmRelease
-      name: traefik-internal
-      namespace: internal-ingress
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -130,11 +125,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  healthChecks:
-    - apiVersion: helm.toolkit.fluxcd.io/v2
-      kind: HelmRelease
-      name: traefik-public
-      namespace: public-ingress
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
