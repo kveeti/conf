@@ -14,7 +14,6 @@ let
   directSecrets = [
     "radicale-users"
     "food-secrets"
-    "weather-secrets"
     "samba-syncer-pass"
     "paperless-security-password"
     "restic-internal-rest-pass"
