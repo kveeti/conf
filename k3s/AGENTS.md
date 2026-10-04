@@ -32,7 +32,8 @@
 
 - Public Envoy: `192.168.50.8`. Internal Envoy: `192.168.50.9`.
   We use shared Gateway API Gateways with per-host certificates in the ingress
-  namespaces. Public web forwarding is not enabled yet.
+  namespaces. Router config forwards public TCP 80/443 to public Envoy;
+  deploy the router config separately.
 - Envoy Gateway controllers run separately in `public-gateway-system` and
   `internal-gateway-system`, with scoped RBAC. Proxy pods have no Secret-read
   permissions and cannot reach the Kubernetes API or databases.
