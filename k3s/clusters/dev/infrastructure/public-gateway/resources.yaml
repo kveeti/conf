@@ -42,6 +42,7 @@ spec:
             watch:
               type: Namespaces
               namespaces:
+                - public-gateway-system
                 - public-ingress
                 - keycloak
 ---

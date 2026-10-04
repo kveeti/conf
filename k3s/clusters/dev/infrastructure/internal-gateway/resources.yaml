@@ -42,6 +42,7 @@ spec:
             watch:
               type: Namespaces
               namespaces:
+                - internal-gateway-system
                 - internal-ingress
                 - bookmarks
                 - keycloak
