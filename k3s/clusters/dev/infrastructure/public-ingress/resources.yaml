@@ -26,6 +26,8 @@ spec:
         name: traefik
         namespace: flux-system
   values:
+    rbac:
+      enabled: false
     experimental:
       kubernetesGateway:
         enabled: true
