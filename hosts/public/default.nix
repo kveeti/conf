@@ -103,9 +103,9 @@ in {
     };
   };
 
-  networking.firewall.extraCommands = ''
-    iptables -w -A nixos-fw -s ${inventory.networks.trusted.cidr4} -p tcp --dport ${toString ports.keycloakAdminHttps} -j nixos-fw-accept
-    iptables -w -A nixos-fw -s ${inventory.networks.wireguard.cidr4} -p tcp --dport ${toString ports.keycloakAdminHttps} -j nixos-fw-accept
+  networking.firewall.extraInputRules = ''
+    ip saddr { ${inventory.networks.trusted.cidr4}, ${inventory.networks.wireguard.cidr4} } \
+      tcp dport ${toString ports.keycloakAdminHttps} accept
   '';
 
   services = {

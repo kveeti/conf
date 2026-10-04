@@ -5,6 +5,11 @@ let
   kubeIp = host.kubeIpv4 or host.ipv4;
   kubeInterface = if host ? kubeIpv4 then "vlan${toString inventory.networks.kube.vlan}" else "ens3";
   kubeReservedRange = "192.168.50.0/27";
+  etcdPeerIps = [
+    inventory.hosts.public.kubeIpv4
+    inventory.hosts.backup.kubeIpv4
+    inventory.hosts.control3.ipv4
+  ];
 in {
   services.k3s = {
     enable = true;
@@ -19,12 +24,19 @@ in {
     ];
   };
 
+  networking.nftables.enable = true;
+
   networking.firewall = {
     trustedInterfaces = [ "cni0" "flannel.1" ];
     interfaces.${kubeInterface} = {
-      allowedTCPPorts = [ 2379 2380 6443 10250 ];
+      allowedTCPPorts = [ 6443 10250 ];
       allowedUDPPorts = [ 8472 ];
     };
+    extraInputRules = ''
+      iifname "${kubeInterface}" \
+        ip saddr { ${lib.concatStringsSep ", " etcdPeerIps} } \
+        tcp dport { 2379, 2380 } accept
+    '';
   };
 
   systemd.network.networks."20-kube" = lib.mkIf (host ? kubeIpv4) {
