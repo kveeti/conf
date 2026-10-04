@@ -217,6 +217,9 @@ spec:
   parentRefs:
     - name: bookmarks
       sectionName: websecure
+    - name: internal-gateway
+      namespace: internal-ingress
+      sectionName: websecure
   hostnames:
     - bookmarks.internal.veetik.com
   rules:

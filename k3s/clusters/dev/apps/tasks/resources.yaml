@@ -215,6 +215,9 @@ spec:
   parentRefs:
     - name: tasks
       sectionName: websecure
+    - name: internal-gateway
+      namespace: internal-ingress
+      sectionName: websecure
   hostnames:
     - tasks.internal.veetik.com
   rules:

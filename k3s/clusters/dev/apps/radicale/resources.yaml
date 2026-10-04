@@ -125,6 +125,13 @@ spec:
           podSelector:
             matchLabels:
               app.kubernetes.io/name: traefik
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: internal-ingress
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: envoy
+              gateway.envoyproxy.io/owning-gateway-name: internal-gateway
       ports:
         - protocol: TCP
           port: 5232
@@ -191,6 +198,9 @@ metadata:
 spec:
   parentRefs:
     - name: radicale
+      sectionName: websecure
+    - name: internal-gateway
+      namespace: internal-ingress
       sectionName: websecure
   hostnames:
     - dav.internal.veetik.com

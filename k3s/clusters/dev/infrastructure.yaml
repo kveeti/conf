@@ -139,6 +139,70 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: envoy-gateway
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: gateway-api
+  path: ./k3s/clusters/dev/infrastructure/envoy-gateway
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: envoy-gateway-crds
+      namespace: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: internal-gateway
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: envoy-gateway
+    - name: internal-ingress
+    - name: cert-manager
+  path: ./k3s/clusters/dev/infrastructure/internal-gateway
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: envoy-gateway-internal
+      namespace: internal-gateway-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: public-gateway
+  namespace: flux-system
+spec:
+  interval: 5m
+  dependsOn:
+    - name: envoy-gateway
+    - name: public-ingress
+    - name: cert-manager
+  path: ./k3s/clusters/dev/infrastructure/public-gateway
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: envoy-gateway-public
+      namespace: public-gateway-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: cnpg
   namespace: flux-system
 spec:

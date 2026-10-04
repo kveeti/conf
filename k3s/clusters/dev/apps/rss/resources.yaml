@@ -127,6 +127,9 @@ spec:
   parentRefs:
     - name: rss
       sectionName: websecure
+    - name: internal-gateway
+      namespace: internal-ingress
+      sectionName: websecure
   hostnames:
     - rss.internal.veetik.com
   rules:

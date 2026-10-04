@@ -181,6 +181,9 @@ spec:
   parentRefs:
     - name: keycloak-public
       sectionName: websecure
+    - name: public-gateway
+      namespace: public-ingress
+      sectionName: websecure
   hostnames:
     - auth.veetik.com
   rules:
@@ -203,6 +206,9 @@ metadata:
 spec:
   parentRefs:
     - name: keycloak
+      sectionName: websecure
+    - name: internal-gateway
+      namespace: internal-ingress
       sectionName: websecure
   hostnames:
     - authadmin.internal.veetik.com
@@ -306,6 +312,13 @@ spec:
           podSelector:
             matchLabels:
               app.kubernetes.io/name: traefik
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: public-ingress
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: envoy
+              gateway.envoyproxy.io/owning-gateway-name: public-gateway
       ports:
         - protocol: TCP
           port: 8080
