@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: weather
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.35
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.35
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.35
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: weather-data
+  namespace: weather
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: storage-iscsi-mutual-chap
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather
+  namespace: weather
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: weather
+  template:
+    metadata:
+      labels:
+        app: weather
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: weather
+          image: veetik/weather@sha256:f7ed828f5a649c3e53c2ef40f9fd5fc8563eb71e4dc59b5d83f5946e8ea78e2f
+          envFrom:
+            - secretRef:
+                name: weather-secrets
+          env:
+            - name: PORT
+              value: "8000"
+            - name: DB_PATH
+              value: /data/data.db
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: http
+          livenessProbe:
+            tcpSocket:
+              port: http
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: weather-data
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather
+  namespace: weather
+spec:
+  selector:
+    app: weather
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: weather
+  namespace: weather
+spec:
+  parentRefs:
+    - name: internal-gateway
+      namespace: internal-ingress
+      sectionName: websecure
+  hostnames:
+    - weather.internal.veetik.com
+  rules:
+    - backendRefs:
+        - name: weather
+          port: 80

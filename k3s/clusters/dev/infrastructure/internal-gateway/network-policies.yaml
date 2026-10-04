@@ -101,7 +101,7 @@ spec:
             matchExpressions:
               - key: kubernetes.io/metadata.name
                 operator: In
-                values: [keycloak, radicale, rss]
+                values: [keycloak, radicale, rss, weather]
           podSelector:
             matchExpressions:
               - key: app

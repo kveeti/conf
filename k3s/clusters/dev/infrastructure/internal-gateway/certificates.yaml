@@ -36,3 +36,16 @@ spec:
   issuerRef:
     kind: ClusterIssuer
     name: cloudflare-prod
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: weather
+  namespace: internal-ingress
+spec:
+  secretName: tls-weather
+  dnsNames:
+    - weather.internal.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod

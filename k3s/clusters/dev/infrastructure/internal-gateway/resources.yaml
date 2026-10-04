@@ -47,6 +47,7 @@ spec:
                 - keycloak
                 - radicale
                 - rss
+                - weather
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
@@ -117,6 +118,7 @@ spec:
           - name: tls-keycloak-admin
           - name: tls-radicale
           - name: tls-rss
+          - name: tls-weather
       allowedRoutes:
         kinds:
           - kind: HTTPRoute
@@ -126,7 +128,7 @@ spec:
             matchExpressions:
               - key: kubernetes.io/metadata.name
                 operator: In
-                values: [keycloak, radicale, rss]
+                values: [keycloak, radicale, rss, weather]
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

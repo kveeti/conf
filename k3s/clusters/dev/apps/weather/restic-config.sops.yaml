@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: weather-restic-config
+    namespace: weather
+type: Opaque
+data:
+    AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:zGMo6DP239m23wqf2gyiHV+/boADiIeVUIHIXVk+BT+aPIpZ,iv:FzGQVTyuzIqCMPx6rof0Dx1ekMRts7VSJim/lkgAnCI=,tag:OnlgEWYAnf0i2eI7G4m5yQ==,type:str]
+    AWS_DEFAULT_REGION: ENC[AES256_GCM,data:33V39PtiIIE=,iv:0G033GTayhP4IO/WlhyKqien9RtN+oN4FnCmZS/q45A=,tag:qPSojz77iC9iazuiIUeAaQ==,type:str]
+    AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:lQu7KGPpupv/5hv8u+dVlUztVLxhBM6sDsFTY2XThxYf9Z5k3gQb9gnfovUy6FC4wU0msm/lfn8hKQoCW+ZsKx+xEpWjJr6C6Nz3vdeiyJMTsk5sza3QvA==,iv:Ud9Ux+MFAqWeRPQPgpIIe/7vWsz2N1zJnz4QPMGsklg=,tag:0Dpm5FHqsUTWh3VV2dycXQ==,type:str]
+    RESTIC_PASSWORD: ENC[AES256_GCM,data:2YO6A9EwNd/YsOhbYF2kCXO3SgQ4yD7bONG5MegWQfMS7tXdejky85JHnkjwG3Poc8HyvP6CtXkylyIZeYldIhQmoB10IQ5nW8qP1UMHzR3Wgzm2e3FrnA==,iv:G3XwSyDNIakKO+P3Z8O0lF7iLMALIWI+lcwV95FKiYc=,tag:r9pRw8GoNUH1RWX+lE6G1g==,type:str]
+    RESTIC_REPOSITORY: ENC[AES256_GCM,data:A3GAPooCsHLqMW8RAiePiUrGnPtenzlZPGzy/DxB6FG4jaPxuqqO8tYxFPtXSNkKZA6AxTc6GY66Iq3A+yH3aQ==,iv:LotBajqHq/F7dRl/e5NZoZZ4uZ88fiqe956AJyN9IAk=,tag:A3HzJwjeEapI8DIyQkpyZQ==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAwaVJpd0pmR2s2Qmt0cGc4
+            WTZ3MExQWXY0c0x1cm5pamplYjJYbnU3ZTA4ClFJZEo2NUpKY2o4TlFsekVNcVJN
+            TGZiZ3pOU0NmTDhsejNUNEoxbkJuL28KLS0tIGx6RmhKYXFaU3lZejlCN3RkaUE3
+            NXFLd1cxS3ZHUmZjZy9mMnFXU2xhTW8KwJ7M4pdcr5GVT1ENLZK9TwYoJx3GrRkU
+            xYeM+/IuutKntnZlc9z4xVtXoQe8794aqS5CwwRRkjVNPgiyaUagLQ==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1thp7ryp69smykxuklnsexhpvhtqy7z407j82pz45eutdswwccuzs9s8wt5
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-04T16:48:45Z"
+    mac: ENC[AES256_GCM,data:BQEcht1byLiFkp1obtck7RzUOz6ehACMBqGDWflrOFawazRHf3iOFoX1NgikXvNovDNx8WKL153qtumknzc/5dhlqFpEsX529Jk01ceH9kgzFFQymL34/mQOY4YHjVgc/+ndQTjMgDhN+ioQodhzwGk0hY1NyvNCJ1S5bi8IV40=,iv:y4E8XfGDOI9ITvEla+H0uhPKOUCTTjPv4hKzoChRo28=,tag:OczERqeXevW3GB1iRWPvlg==,type:str]
+    version: 3.13.2

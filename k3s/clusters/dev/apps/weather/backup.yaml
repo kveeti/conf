@@ -1,0 +1,27 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: weather
+  namespace: weather
+spec:
+  sourcePVC: weather-data
+  trigger:
+    schedule: "0 3 * * *"
+  restic:
+    repository: weather-restic-config
+    moverServiceAccount: weather-backup
+    moverPodLabels:
+      app.kubernetes.io/component: backup
+    retain:
+      within: 720h
+    pruneIntervalDays: 7
+    copyMethod: Clone
+    cacheStorageClassName: local-path
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+      runAsGroup: 65532
+      fsGroup: 65532
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault
