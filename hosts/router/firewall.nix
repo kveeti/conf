@@ -28,7 +28,7 @@ let
   portForwards = [
     {
       name = "web";
-      destination = hosts.public.ipv4;
+      destination = "192.168.50.8";
       protocol = "tcp";
       ports = [ hosts.public.ports.http hosts.public.ports.https ];
     }
