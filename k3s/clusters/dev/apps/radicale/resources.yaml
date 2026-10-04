@@ -67,10 +67,9 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 128Mi
+              memory: 64Mi
             limits:
-              cpu: "1"
-              memory: 1Gi
+              memory: 64Mi
           ports:
             - name: http
               containerPort: 5232

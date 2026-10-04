@@ -40,6 +40,12 @@ metadata:
   namespace: keycloak
 spec:
   instances: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1Gi
+    limits:
+      memory: 1Gi
   bootstrap:
     initdb:
       database: keycloak

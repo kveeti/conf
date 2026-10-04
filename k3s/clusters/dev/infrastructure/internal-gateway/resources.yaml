@@ -63,6 +63,9 @@ spec:
       envoyDeployment:
         replicas: 2
         container:
+          resources:
+            limits:
+              memory: 512Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
