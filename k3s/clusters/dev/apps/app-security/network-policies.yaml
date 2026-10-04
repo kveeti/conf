@@ -35,7 +35,8 @@ spec:
   podSelector:
     matchExpressions:
       - key: app
-        operator: Exists
+        operator: In
+        values: [keycloak, rss]
   policyTypes: [Ingress]
   ingress:
     - from:
@@ -46,6 +47,32 @@ spec:
             matchLabels:
               app.kubernetes.io/name: envoy
               gateway.envoyproxy.io/owning-gateway-name: internal-gateway
+      ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-public-ingress-to-apps
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [bookmarks-backend, bookmarks-frontend, money, tasks-backend, tasks-frontend]
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: public-ingress
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: envoy
+              gateway.envoyproxy.io/owning-gateway-name: public-gateway
       ports:
         - protocol: TCP
           port: 8000

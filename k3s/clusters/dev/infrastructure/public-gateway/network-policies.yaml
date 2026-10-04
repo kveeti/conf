@@ -98,12 +98,17 @@ spec:
   egress:
     - to:
         - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: keycloak
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values: [bookmarks, keycloak, money, tasks]
           podSelector:
-            matchLabels:
-              app: keycloak
+            matchExpressions:
+              - key: app
+                operator: Exists
       ports:
+        - protocol: TCP
+          port: 8000
         - protocol: TCP
           port: 8080
     - to:

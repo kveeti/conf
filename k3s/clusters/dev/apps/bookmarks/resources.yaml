@@ -4,7 +4,7 @@ metadata:
   name: bookmarks-config
   namespace: bookmarks
 data:
-  FRONT_URL: https://bookmarks.internal.veetik.com
+  FRONT_URL: https://bm.veetik.com
   IS_PROD: "true"
   .env: ""
 ---
@@ -187,11 +187,11 @@ metadata:
   namespace: bookmarks
 spec:
   parentRefs:
-    - name: internal-gateway
-      namespace: internal-ingress
+    - name: public-gateway
+      namespace: public-ingress
       sectionName: websecure
   hostnames:
-    - bookmarks.internal.veetik.com
+    - bm.veetik.com
   rules:
     - matches:
         - path:

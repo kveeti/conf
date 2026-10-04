@@ -44,12 +44,9 @@ spec:
               namespaces:
                 - internal-gateway-system
                 - internal-ingress
-                - bookmarks
                 - keycloak
-                - money
                 - radicale
                 - rss
-                - tasks
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
@@ -117,12 +114,9 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: tls-bookmarks
           - name: tls-keycloak-admin
-          - name: tls-money
           - name: tls-radicale
           - name: tls-rss
-          - name: tls-tasks
       allowedRoutes:
         kinds:
           - kind: HTTPRoute
@@ -132,7 +126,7 @@ spec:
             matchExpressions:
               - key: kubernetes.io/metadata.name
                 operator: In
-                values: [bookmarks, keycloak, money, radicale, rss, tasks]
+                values: [keycloak, radicale, rss]
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

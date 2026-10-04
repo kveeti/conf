@@ -72,8 +72,7 @@ spec:
   interval: 5m
   dependsOn:
     - name: bookmarks-db
-    - name: internal-gateway
-    - name: cert-manager
+    - name: public-gateway
   decryption:
     provider: sops
     secretRef:
@@ -126,8 +125,7 @@ spec:
   interval: 5m
   dependsOn:
     - name: tasks-db
-    - name: internal-gateway
-    - name: cert-manager
+    - name: public-gateway
   decryption:
     provider: sops
     secretRef:
@@ -176,8 +174,7 @@ spec:
   interval: 5m
   dependsOn:
     - name: money-db
-    - name: internal-gateway
-    - name: cert-manager
+    - name: public-gateway
   decryption:
     provider: sops
     secretRef:

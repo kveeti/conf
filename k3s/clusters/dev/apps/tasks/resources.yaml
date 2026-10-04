@@ -4,7 +4,7 @@ metadata:
   name: tasks-config
   namespace: tasks
 data:
-  FRONT_URL: https://tasks.internal.veetik.com
+  FRONT_URL: https://tasks.veetik.com
   .env: ""
 ---
 apiVersion: apps/v1
@@ -147,7 +147,10 @@ spec:
           imagePullPolicy: Always
           env:
             - name: PUBLIC_API_URL
-              value: https://tasks.internal.veetik.com
+              valueFrom:
+                configMapKeyRef:
+                  name: tasks-config
+                  key: FRONT_URL
             - name: PUBLIC_VAPID_PUBLIC_KEY
               value: BMvRTtdBaxw8nWOkVbBOH_mC7sPHTkgVbbtrYqEek05-iupcxgkLUksERHvFsBIE5xytDaNzxeuLHTLu8FC-O-k
           ports:
@@ -185,11 +188,11 @@ metadata:
   namespace: tasks
 spec:
   parentRefs:
-    - name: internal-gateway
-      namespace: internal-ingress
+    - name: public-gateway
+      namespace: public-ingress
       sectionName: websecure
   hostnames:
-    - tasks.internal.veetik.com
+    - tasks.veetik.com
   rules:
     - matches:
         - path:

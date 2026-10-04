@@ -46,7 +46,7 @@ spec:
             - name: PORT
               value: "8000"
             - name: BACKEND_URL
-              value: https://money.internal.veetik.com
+              value: https://money.veetik.com
             - name: OIDC_ISSUER
               value: https://auth.veetik.com/realms/main
             - name: OIDC_CLIENT_ID
@@ -126,11 +126,11 @@ metadata:
   namespace: money
 spec:
   parentRefs:
-    - name: internal-gateway
-      namespace: internal-ingress
+    - name: public-gateway
+      namespace: public-ingress
       sectionName: websecure
   hostnames:
-    - money.internal.veetik.com
+    - money.veetik.com
   rules:
     - matches:
         - path:

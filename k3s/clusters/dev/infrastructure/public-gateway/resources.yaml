@@ -44,7 +44,10 @@ spec:
               namespaces:
                 - public-gateway-system
                 - public-ingress
+                - bookmarks
                 - keycloak
+                - money
+                - tasks
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
@@ -91,19 +94,6 @@ spec:
     name: public
     namespace: public-ingress
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: keycloak-public
-  namespace: public-ingress
-spec:
-  secretName: tls-keycloak-public
-  dnsNames:
-    - auth.veetik.com
-  issuerRef:
-    kind: ClusterIssuer
-    name: cloudflare-prod
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -113,28 +103,33 @@ spec:
   gatewayClassName: envoy-public
   listeners:
     - name: web
-      hostname: auth.veetik.com
+      hostname: "*.veetik.com"
       port: 80
       protocol: HTTP
       allowedRoutes:
         namespaces:
           from: Same
     - name: websecure
-      hostname: auth.veetik.com
+      hostname: "*.veetik.com"
       port: 443
       protocol: HTTPS
       tls:
         mode: Terminate
         certificateRefs:
           - name: tls-keycloak-public
+          - name: tls-bookmarks
+          - name: tls-money
+          - name: tls-tasks
       allowedRoutes:
         kinds:
           - kind: HTTPRoute
         namespaces:
           from: Selector
           selector:
-            matchLabels:
-              kubernetes.io/metadata.name: keycloak
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values: [bookmarks, keycloak, money, tasks]
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -146,7 +141,7 @@ spec:
     - name: public-gateway
       sectionName: web
   hostnames:
-    - auth.veetik.com
+    - "*.veetik.com"
   rules:
     - filters:
         - type: RequestRedirect

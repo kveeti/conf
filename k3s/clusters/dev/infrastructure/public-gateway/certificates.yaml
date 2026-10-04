@@ -1,0 +1,51 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: keycloak-public
+  namespace: public-ingress
+spec:
+  secretName: tls-keycloak-public
+  dnsNames:
+    - auth.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: bookmarks
+  namespace: public-ingress
+spec:
+  secretName: tls-bookmarks
+  dnsNames:
+    - bm.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: money
+  namespace: public-ingress
+spec:
+  secretName: tls-money
+  dnsNames:
+    - money.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tasks
+  namespace: public-ingress
+spec:
+  secretName: tls-tasks
+  dnsNames:
+    - tasks.veetik.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
