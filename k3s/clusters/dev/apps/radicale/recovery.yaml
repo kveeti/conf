@@ -5,7 +5,7 @@ metadata:
   namespace: radicale
 spec:
   trigger:
-    manual: initial-restore
+    manual: mutual-chap-migration-restore
   restic:
     repository: radicale-restic-config
     moverServiceAccount: radicale-backup
@@ -15,8 +15,8 @@ spec:
     capacity: 1Gi
     accessModes:
       - ReadWriteOnce
-    storageClassName: storage-iscsi
-    volumeSnapshotClassName: storage-iscsi
+    storageClassName: storage-iscsi-mutual-chap
+    volumeSnapshotClassName: storage-iscsi-mutual-chap
     cleanupTempPVC: true
     cleanupCachePVC: true
     cacheStorageClassName: local-path

@@ -29,6 +29,10 @@ spec:
   interval: 5m
   dependsOn:
     - name: snapshot-controller
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
   path: ./k3s/clusters/dev/infrastructure/democratic-csi
   prune: true
   sourceRef:
@@ -38,6 +42,10 @@ spec:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
       name: democratic-csi
+      namespace: democratic-csi
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: democratic-csi-mutual-chap
       namespace: democratic-csi
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1

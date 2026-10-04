@@ -13,12 +13,12 @@ metadata:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: radicale-data-restored
+  name: radicale-data-mutual-chap-restored
   namespace: radicale
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: storage-iscsi
+  storageClassName: storage-iscsi-mutual-chap
   dataSourceRef:
     apiGroup: volsync.backube
     kind: ReplicationDestination
@@ -97,7 +97,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: radicale-data-restored
+            claimName: radicale-data-mutual-chap-restored
         - name: users
           secret:
             secretName: radicale-users

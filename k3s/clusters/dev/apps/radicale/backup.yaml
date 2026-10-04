@@ -4,7 +4,7 @@ metadata:
   name: radicale
   namespace: radicale
 spec:
-  sourcePVC: radicale-data-restored
+  sourcePVC: radicale-data-mutual-chap-restored
   trigger:
     schedule: "0 3 * * *"
   restic:
