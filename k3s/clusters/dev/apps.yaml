@@ -270,7 +270,6 @@ metadata:
 spec:
   interval: 5m
   dependsOn:
-    - name: internal-gateway
     - name: democratic-csi
     - name: volsync
   decryption:
