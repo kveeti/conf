@@ -49,7 +49,7 @@ spec:
         enabled: false
       kubernetesGateway:
         enabled: true
-        namespaces: [keycloak]
+        namespaces: [public-ingress, keycloak]
         labelSelector: app.kubernetes.io/instance=traefik-public-public-ingress
     ports:
       web:

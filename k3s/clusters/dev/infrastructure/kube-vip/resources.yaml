@@ -107,6 +107,10 @@ spec:
           value: 'true'
         - name: vip_interface
           value: vlan50
+        - name: vip_nodename
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         - name: svc_enable
           value: 'true'
         - name: svc_election
