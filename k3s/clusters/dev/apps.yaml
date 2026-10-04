@@ -227,6 +227,7 @@ spec:
   dependsOn:
     - name: keycloak-db
     - name: internal-ingress
+    - name: public-ingress
     - name: cert-manager
   path: ./k3s/clusters/dev/apps/keycloak
   prune: true
