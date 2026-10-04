@@ -168,46 +168,6 @@ spec:
       port: 80
       targetPort: http
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: bookmarks
-  namespace: bookmarks
-spec:
-  secretName: tls-bookmarks
-  dnsNames:
-    - bookmarks.internal.veetik.com
-  issuerRef:
-    kind: ClusterIssuer
-    name: cloudflare-prod
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: bookmarks
-  namespace: bookmarks
-spec:
-  gatewayClassName: traefik-internal
-  listeners:
-    - name: web
-      hostname: bookmarks.internal.veetik.com
-      port: 8000
-      protocol: HTTP
-      allowedRoutes:
-        namespaces:
-          from: Same
-    - name: websecure
-      hostname: bookmarks.internal.veetik.com
-      port: 8443
-      protocol: HTTPS
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: tls-bookmarks
-      allowedRoutes:
-        namespaces:
-          from: Same
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -215,8 +175,6 @@ metadata:
   namespace: bookmarks
 spec:
   parentRefs:
-    - name: bookmarks
-      sectionName: websecure
     - name: internal-gateway
       namespace: internal-ingress
       sectionName: websecure
@@ -237,26 +195,3 @@ spec:
       backendRefs:
         - name: bookmarks-frontend
           port: 80
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: bookmarks-redirect
-  namespace: bookmarks
-spec:
-  parentRefs:
-    - name: bookmarks
-      sectionName: web
-  hostnames:
-    - bookmarks.internal.veetik.com
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            port: 443
-            statusCode: 301

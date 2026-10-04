@@ -113,46 +113,6 @@ spec:
       port: 80
       targetPort: http
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: money
-  namespace: money
-spec:
-  secretName: tls-money
-  dnsNames:
-    - money.internal.veetik.com
-  issuerRef:
-    kind: ClusterIssuer
-    name: cloudflare-prod
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: money
-  namespace: money
-spec:
-  gatewayClassName: traefik-internal
-  listeners:
-    - name: web
-      hostname: money.internal.veetik.com
-      port: 8000
-      protocol: HTTP
-      allowedRoutes:
-        namespaces:
-          from: Same
-    - name: websecure
-      hostname: money.internal.veetik.com
-      port: 8443
-      protocol: HTTPS
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: tls-money
-      allowedRoutes:
-        namespaces:
-          from: Same
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -160,8 +120,6 @@ metadata:
   namespace: money
 spec:
   parentRefs:
-    - name: money
-      sectionName: websecure
     - name: internal-gateway
       namespace: internal-ingress
       sectionName: websecure
@@ -175,26 +133,3 @@ spec:
       backendRefs:
         - name: money
           port: 80
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: money-redirect
-  namespace: money
-spec:
-  parentRefs:
-    - name: money
-      sectionName: web
-  hostnames:
-    - money.internal.veetik.com
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            port: 443
-            statusCode: 301

@@ -124,12 +124,6 @@ spec:
               kubernetes.io/metadata.name: internal-ingress
           podSelector:
             matchLabels:
-              app.kubernetes.io/name: traefik
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: internal-ingress
-          podSelector:
-            matchLabels:
               app.kubernetes.io/name: envoy
               gateway.envoyproxy.io/owning-gateway-name: internal-gateway
       ports:
@@ -150,46 +144,6 @@ spec:
       port: 80
       targetPort: http
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: radicale
-  namespace: radicale
-spec:
-  secretName: tls-radicale
-  dnsNames:
-    - dav.internal.veetik.com
-  issuerRef:
-    kind: ClusterIssuer
-    name: cloudflare-prod
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: radicale
-  namespace: radicale
-spec:
-  gatewayClassName: traefik-internal
-  listeners:
-    - name: web
-      hostname: dav.internal.veetik.com
-      port: 8000
-      protocol: HTTP
-      allowedRoutes:
-        namespaces:
-          from: Same
-    - name: websecure
-      hostname: dav.internal.veetik.com
-      port: 8443
-      protocol: HTTPS
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: tls-radicale
-      allowedRoutes:
-        namespaces:
-          from: Same
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -197,8 +151,6 @@ metadata:
   namespace: radicale
 spec:
   parentRefs:
-    - name: radicale
-      sectionName: websecure
     - name: internal-gateway
       namespace: internal-ingress
       sectionName: websecure
@@ -212,26 +164,3 @@ spec:
       backendRefs:
         - name: radicale
           port: 80
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: radicale-redirect
-  namespace: radicale
-spec:
-  parentRefs:
-    - name: radicale
-      sectionName: web
-  hostnames:
-    - dav.internal.veetik.com
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            port: 443
-            statusCode: 301

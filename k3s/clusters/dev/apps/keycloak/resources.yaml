@@ -133,45 +133,6 @@ spec:
       port: 80
       targetPort: http
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: keycloak
-  namespace: keycloak
-spec:
-  secretName: tls-keycloak
-  dnsNames:
-    - auth.veetik.com
-    - authadmin.internal.veetik.com
-  issuerRef:
-    kind: ClusterIssuer
-    name: cloudflare-prod
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: keycloak
-  namespace: keycloak
-spec:
-  gatewayClassName: traefik-internal
-  listeners:
-    - name: web
-      port: 8000
-      protocol: HTTP
-      allowedRoutes:
-        namespaces:
-          from: Same
-    - name: websecure
-      port: 8443
-      protocol: HTTPS
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: tls-keycloak
-      allowedRoutes:
-        namespaces:
-          from: Same
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -179,8 +140,6 @@ metadata:
   namespace: keycloak
 spec:
   parentRefs:
-    - name: keycloak-public
-      sectionName: websecure
     - name: public-gateway
       namespace: public-ingress
       sectionName: websecure
@@ -205,8 +164,6 @@ metadata:
   namespace: keycloak
 spec:
   parentRefs:
-    - name: keycloak
-      sectionName: websecure
     - name: internal-gateway
       namespace: internal-ingress
       sectionName: websecure
@@ -221,79 +178,6 @@ spec:
         - name: keycloak
           port: 80
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: keycloak-redirect
-  namespace: keycloak
-spec:
-  parentRefs:
-    - name: keycloak
-      sectionName: web
-  hostnames:
-    - authadmin.internal.veetik.com
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            port: 443
-            statusCode: 301
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: keycloak-public
-  namespace: keycloak
-spec:
-  gatewayClassName: traefik-public
-  listeners:
-    - name: web
-      hostname: auth.veetik.com
-      port: 8000
-      protocol: HTTP
-      allowedRoutes:
-        namespaces:
-          from: Same
-    - name: websecure
-      hostname: auth.veetik.com
-      port: 8443
-      protocol: HTTPS
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: tls-keycloak
-      allowedRoutes:
-        namespaces:
-          from: Same
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: keycloak-public-redirect
-  namespace: keycloak
-spec:
-  parentRefs:
-    - name: keycloak-public
-      sectionName: web
-  hostnames:
-    - auth.veetik.com
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            port: 443
-            statusCode: 301
----
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -306,12 +190,6 @@ spec:
   policyTypes: [Ingress]
   ingress:
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: public-ingress
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: traefik
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: public-ingress

@@ -27,7 +27,7 @@ spec:
   interval: 5m
   dependsOn:
     - name: rss-db
-    - name: internal-ingress
+    - name: internal-gateway
   path: ./k3s/clusters/dev/apps/rss
   prune: true
   sourceRef:
@@ -72,7 +72,7 @@ spec:
   interval: 5m
   dependsOn:
     - name: bookmarks-db
-    - name: internal-ingress
+    - name: internal-gateway
     - name: cert-manager
   decryption:
     provider: sops
@@ -126,7 +126,7 @@ spec:
   interval: 5m
   dependsOn:
     - name: tasks-db
-    - name: internal-ingress
+    - name: internal-gateway
     - name: cert-manager
   decryption:
     provider: sops
@@ -176,7 +176,7 @@ spec:
   interval: 5m
   dependsOn:
     - name: money-db
-    - name: internal-ingress
+    - name: internal-gateway
     - name: cert-manager
   decryption:
     provider: sops
@@ -226,8 +226,8 @@ spec:
   interval: 5m
   dependsOn:
     - name: keycloak-db
-    - name: internal-ingress
-    - name: public-ingress
+    - name: internal-gateway
+    - name: public-gateway
     - name: cert-manager
   path: ./k3s/clusters/dev/apps/keycloak
   prune: true
@@ -248,7 +248,7 @@ metadata:
 spec:
   interval: 5m
   dependsOn:
-    - name: internal-ingress
+    - name: internal-gateway
     - name: volsync
   decryption:
     provider: sops
