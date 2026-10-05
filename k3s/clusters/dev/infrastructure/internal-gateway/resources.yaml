@@ -48,6 +48,7 @@ spec:
                 - radicale
                 - rss
                 - weather
+                - papra
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
@@ -119,6 +120,7 @@ spec:
           - name: tls-radicale
           - name: tls-rss
           - name: tls-weather
+          - name: tls-papra
       allowedRoutes:
         kinds:
           - kind: HTTPRoute
@@ -128,7 +130,7 @@ spec:
             matchExpressions:
               - key: kubernetes.io/metadata.name
                 operator: In
-                values: [keycloak, radicale, rss, weather]
+                values: [keycloak, radicale, rss, weather, papra]
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

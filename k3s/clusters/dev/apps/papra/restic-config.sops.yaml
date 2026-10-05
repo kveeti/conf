@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: papra-restic-config
+    namespace: papra
+type: Opaque
+data:
+    AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:1uJT8o7WfdaD3umBgvidO8pQNYoJnidZrpCD5TWwD5zVtmoD,iv:J2digxhxMc0osmLDOCx10slgtCurJZJgYt5wjxxZXZY=,tag:XEAc1+hoMcGZ0xVy30v+EA==,type:str]
+    AWS_DEFAULT_REGION: ENC[AES256_GCM,data:WvFSDhfsqa8=,iv:K0mOYvBzS/4Qz1ZR1gOfTmmysGw3CbzHoiv0+jRFXV4=,tag:GMP91NDyF9S9escQJ/akjg==,type:str]
+    AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:tNoKIquMug/3UDolsoks283aQBjIq3jFRRASl/i3jzfBbDJPZM6rXooiaC6SHOD3jTnif7VqcVMdDYUDUCwzG+b7/aNjh+SPT5hLd1tVUMoZ3LHy9Hg+6w==,iv:C4htYKKuxrXpgBKA7ftWkv74AOBDATLBxrtuQmvTUbQ=,tag:92lPFTZ8WykaJMELoy80qQ==,type:str]
+    RESTIC_PASSWORD: ENC[AES256_GCM,data:Oh8MQ/vfr2V2T05aBFBdc2OilpanSKKJAswjSKyxwWXxyqJFhalnmZNti9txQM7JcQnSoRBH1X5/2L2KOkRssrV9RkWNCaa8a7OrBVap/WIVx3ejHihPfg==,iv:M5bSz1iCrm2bQCphcFPrkAuv3t+oiCjdHVCqutkXLuY=,tag:LplhzYTnMqLAhY17ukw8Ww==,type:str]
+    RESTIC_REPOSITORY: ENC[AES256_GCM,data:rqEaxesP8cH0/pS59GEUBcHBLaB45DUCdr0nIYMjDbwEWDc/C/scPehtO7cl5ua8N+aOcK2GGAfBlNOi,iv:4vg/8XLrWcBHDwMh09nmeqJ1COE6H7e+LWh168Yc3eA=,tag:Cztxp5Umt70jwE7EfA3u+w==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBrOVN4NUtmcEFuUHRzMzRx
+            d1ZBb0JweHFBWUxYM1ZVMlpmRVFpZnhRMzA0Cms0NzVnT1AxenNmbHczV21saGNL
+            SmJrRWN1dFVKL3hoUWUvNEpUZkdxY1UKLS0tIHR6RGJsTEFOUTUvZjBjWmxKb2VJ
+            cjVXZUcvemU5eXVITW9lS3ZHRFU0M2MKW5bN/MS0yE6Y4nU4Qx7yuqIPB6IiYl5I
+            mxy82gRg0JYpVoGdY/3fkqSGluOSp8JtYwcoBU2DBUPfLkZbbR5BfA==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1thp7ryp69smykxuklnsexhpvhtqy7z407j82pz45eutdswwccuzs9s8wt5
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-05T22:27:18Z"
+    mac: ENC[AES256_GCM,data:SW+1YimFe2dnxLmuSXqUErk/kWLl7AGBbyjPOQjzPIqfKbKjotW1lXD6QwlrqX/uQBOSR4UkwhyolRMRc/CHAyLajyyATLOGDty0L4UWEs9y3we+Io5CYRl1I4FfcFi0a0hFw8JNrBPdOkXPys6fGPoJDqCY+Ptxfo2vcqj/UfI=,iv:QjIp962h0bB6TIEuo5mp12mw9AckvN40HGxfjrUjkaQ=,tag:Las6lFAStoPpZ9WjjrWIbg==,type:str]
+    version: 3.13.2

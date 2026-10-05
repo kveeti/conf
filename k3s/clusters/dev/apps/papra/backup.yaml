@@ -1,0 +1,27 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: papra
+  namespace: papra
+spec:
+  sourcePVC: papra-data
+  trigger:
+    schedule: "0 3 * * *"
+  restic:
+    repository: papra-restic-config
+    moverServiceAccount: papra-backup
+    moverPodLabels:
+      app.kubernetes.io/component: backup
+    retain:
+      within: 720h
+    pruneIntervalDays: 7
+    copyMethod: Clone
+    cacheStorageClassName: local-path
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault

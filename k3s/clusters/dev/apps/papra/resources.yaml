@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: papra
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.35
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.35
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.35
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: papra-data
+  namespace: papra
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: storage-iscsi-mutual-chap
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: papra
+  namespace: papra
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: papra
+  template:
+    metadata:
+      labels:
+        app: papra
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: papra
+          image: ghcr.io/papra-hq/papra@sha256:bf4a66e776d0a40d71543747a2e17af800204b4a81d19f7951b8552c8032dbeb
+          envFrom:
+            - secretRef:
+                name: papra-secrets
+          env:
+            - name: APP_BASE_URL
+              value: https://docs.internal.veetik.com
+            - name: AUTH_PROVIDERS_EMAIL_IS_ENABLED
+              value: "false"
+            - name: TASKS_PERSISTENCE_DRIVER
+              value: libsql
+            - name: TASKS_PERSISTENCE_DRIVERS_LIBSQL_URL
+              value: file:/app/app-data/db/tasks.sqlite
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          ports:
+            - name: http
+              containerPort: 1221
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: http
+          livenessProbe:
+            tcpSocket:
+              port: http
+          volumeMounts:
+            - name: data
+              mountPath: /app/app-data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: papra-data
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: papra
+  namespace: papra
+spec:
+  selector:
+    app: papra
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: papra
+  namespace: papra
+spec:
+  parentRefs:
+    - name: internal-gateway
+      namespace: internal-ingress
+      sectionName: websecure
+  hostnames:
+    - docs.internal.veetik.com
+  rules:
+    - backendRefs:
+        - name: papra
+          port: 80

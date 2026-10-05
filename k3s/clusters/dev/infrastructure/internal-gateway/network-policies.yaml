@@ -116,6 +116,16 @@ spec:
     - to:
         - namespaceSelector:
             matchLabels:
+              kubernetes.io/metadata.name: papra
+          podSelector:
+            matchLabels:
+              app: papra
+      ports:
+        - protocol: TCP
+          port: 1221
+    - to:
+        - namespaceSelector:
+            matchLabels:
               kubernetes.io/metadata.name: internal-gateway-system
           podSelector:
             matchLabels:
