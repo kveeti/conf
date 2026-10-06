@@ -133,3 +133,9 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
+    - to:
+        - ipBlock:
+            cidr: 192.168.76.2/32
+      ports:
+        - protocol: TCP
+          port: 8100
