@@ -2,6 +2,7 @@
   lib,
   buildNpmPackage,
   fetchFromGitHub,
+  fetchurl,
   nix-update-script,
   versionCheckHook,
   writableTmpDirAsHomeHook,
@@ -10,24 +11,36 @@
   makeBinaryWrapper,
   stdenvNoCC,
 }:
+let
+  piAiModelData = fetchurl {
+    url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-1.0.0.tgz";
+    hash = "sha256-85uZwpuFmPF1sQhA5dKoGYPnwM5crk19+DoQB0R9LCs=";
+  };
+in
 buildNpmPackage (finalAttrs: {
   pname = "pi-coding-agent";
-  version = "0.80.8";
+  version = "1.0.0";
 
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-wCsZA1gb9sFri6OdTWBf0UCXYxqxlbImG8iE6K+D9u4=";
+    hash = "sha256-CGznIVHXG6gr2F8vzHcR/v4P9xJgZHeMTt/CJ/kB78o=";
   };
 
-  npmDepsHash = "sha256-WdSQHKKOVzEFxUQH3QnSVzs+HpJPATnCQ701nbRB0lc=";
+  npmDepsHash = "sha256-ndEvWdB6sa5nNNtabk2OMZKUFG9x3op185deZHxFnXk=";
 
   npmWorkspace = "packages/coding-agent";
 
   postPatch = ''
+    mkdir -p packages/ai/src/providers/data
+    tar -xzf ${piAiModelData} \
+      -C packages/ai/src/providers \
+      --strip-components=3 \
+      package/dist/providers/data
+
     substituteInPlace packages/coding-agent/src/core/model-runtime.ts \
-      --replace-fail "options.allowModelNetwork ?? process.env.PI_OFFLINE === undefined" "options.allowModelNetwork ?? false"
+      --replace-fail "process.env.PI_OFFLINE === undefined" "false"
   '';
 
   # Skip native module rebuild for unneeded workspaces (e.g. canvas from web-ui)
@@ -44,9 +57,13 @@ buildNpmPackage (finalAttrs: {
   buildPhase = ''
     runHook preBuild
 
-    npx tsgo -p packages/ai/tsconfig.build.json
-    npx tsgo -p packages/tui/tsconfig.build.json
-    npx tsgo -p packages/agent/tsconfig.build.json
+    npm exec -- tsc -p packages/chord/tsconfig.build.json
+    npm exec -- tsc -p packages/tui/tsconfig.build.json
+    npm exec -- tsc -p packages/telemetry/tsconfig.build.json
+    npm exec -- tsc -p packages/codemode/tsconfig.build.json
+    npm exec -- tsc -p packages/mcp/tsconfig.build.json
+    npm exec -- tsc -p packages/ai/tsconfig.build.json
+    npm exec -- tsc -p packages/agent/tsconfig.build.json
     npm run build --workspace=packages/coding-agent
 
     runHook postBuild
@@ -59,8 +76,12 @@ buildNpmPackage (finalAttrs: {
     local nm="$out/lib/node_modules/pi-monorepo/node_modules"
 
     # Replace workspace deps needed at runtime with real copies
-    for ws in @earendil-works/pi-ai:packages/ai \
+    for ws in @earendil-works/chord:packages/chord \
+              @earendil-works/pi-ai:packages/ai \
               @earendil-works/pi-agent-core:packages/agent \
+              @earendil-works/pi-codemode:packages/codemode \
+              @earendil-works/pi-mcp:packages/mcp \
+              @earendil-works/pi-telemetry:packages/telemetry \
               @earendil-works/pi-tui:packages/tui; do
       IFS=: read -r pkg src <<< "$ws"
       rm "$nm/$pkg"
@@ -101,7 +122,12 @@ buildNpmPackage (finalAttrs: {
   versionCheckProgram = "${placeholder "out"}/bin/pi";
   versionCheckProgramArg = "--version";
 
-  passthru.updateScript = nix-update-script { };
+  passthru.updateScript = nix-update-script {
+    extraArgs = [
+      "--custom-dep"
+      "modelData"
+    ];
+  };
 
   meta = {
     description = "Coding agent CLI with read, bash, edit, write tools and session management";

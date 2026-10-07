@@ -1,35 +1,40 @@
-{ config, pkgs, inputs, keys, ... }:
+{ config, lib, pkgs, inputs, keys, ... }:
 
 {
   imports =
     [
       ./hardware-config.nix
       ./hardening.nix
-      # enable only after `sbctl create-keys` — unsigned first boot bricks
-#      ./secureboot.nix
+      ./secureboot.nix
       # enable only after cryptenroll writes a TPM token — switches to systemd-initrd, breaking the SSH unlock below
 #      ./tpm-luks.nix
       ./single-signon.nix
       ./helium.nix
-      ./i3.nix
-      ./syncthing.nix
+      ./hyprland.nix
+      ../../modules/telemetry/metrics.nix
       inputs.lanzaboote.nixosModules.lanzaboote
     ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+    "discord"
+    "steam"
+    "steam-unwrapped"
+    "steam-run"
+  ];
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.supportedFilesystems = [ "zfs" ];
-  boot.zfs.forceImportRoot = false;
-  networking.hostId = "8f2c1ad7";  # must stay stable or the ZFS pool won't import
+  boot.supportedFilesystems = [ "btrfs" ];
 
   boot.initrd = {
     systemd.users.root.shell = "/usr/bin/systemd-tty-ask-password-agent";
-    availableKernelModules = [ "e1000e" ];
+    availableKernelModules = [ "r8169" ];
     network = {
       enable = true;
+      flushBeforeStage2 = true;
       ssh = {
         enable = true;
         port = 2222;
@@ -39,6 +44,11 @@
     };
   };
 
+  boot.initrd.systemd.network.networks."10-ethernet" = {
+    matchConfig.Name = "enp10s0";
+    networkConfig.DHCP = "ipv4";
+  };
+
   networking.hostName = "pc";
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -46,6 +56,14 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   networking.networkmanager.enable = true;
+  hardware.enableRedistributableFirmware = true;
+
+  homelab.metrics = {
+    enable = true;
+    remoteWriteUrl = "https://metrics.internal.veetik.com/api/v1/write";
+    username = "telemetry";
+    passwordFile = config.age.secrets.telemetry-pass.path;
+  };
 
   time.timeZone = "Europe/Helsinki";
 
@@ -64,8 +82,6 @@
   };
 
   services.xserver.enable = true;
-
-  services.xserver.dpi = 168;
 
   services.displayManager.sddm.enable = true;
 
@@ -110,6 +126,7 @@
   };
 
   programs.firefox.enable = true;
+  programs.steam.enable = true;
 
   environment.systemPackages = with pkgs; [
     vim
@@ -145,11 +162,10 @@
     };
   };
 
-  # ip= field-6 iface name required; bare ip=dhcp leaves resolv.conf empty (NM treats eno1 as externally managed)
-  boot.kernelParams = [ "i915.enable_guc=3" "ip=:::::eno1:dhcp" ];
-  services.xserver.deviceSection = ''
-    Option "TearFree" "true"
-  '';
+  boot.kernelParams = [
+    "i915.enable_guc=3"
+    "amdgpu.ppfeaturemask=0xfff7ffff"
+  ];
   hardware.graphics.extraPackages = with pkgs; [
     intel-media-driver
     intel-compute-runtime

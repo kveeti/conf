@@ -32,7 +32,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    secrets-pc.url = "git+file:///Users/veeti/code/personal/secrets?rev=990f67cf535399bc448aa028d3f2d7e410bf5b30";
+    secrets-pc.follows = "secrets";
     mac.url = "path:./mac";
 
     secrets.url = "git+file:///Users/veeti/code/personal/secrets";

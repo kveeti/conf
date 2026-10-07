@@ -2,7 +2,7 @@
 {
   disko.devices = {
     disk.main = {
-      device = "/dev/disk/by-id/ata-SanDisk_SD9TB8W256G1001_185187804143";
+      device = "/dev/disk/by-id/nvme-Samsung_SSD_990_EVO_Plus_1TB_S7U4NJ0Y409169R";
       type = "disk";
       content = {
         type = "gpt";
@@ -24,38 +24,25 @@
               name = "cryptroot";
               settings.allowDiscards = true;
               content = {
-                type = "zfs";
-                pool = "rpool";
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "/root" = {
+                    mountpoint = "/";
+                    mountOptions = [ "compress=zstd" "noatime" ];
+                  };
+                  "/nix" = {
+                    mountpoint = "/nix";
+                    mountOptions = [ "compress=zstd" "noatime" ];
+                  };
+                  "/var" = {
+                    mountpoint = "/var";
+                    mountOptions = [ "compress=zstd" "noatime" ];
+                  };
+                };
               };
             };
           };
-        };
-      };
-    };
-
-    zpool.rpool = {
-      type = "zpool";
-      options.ashift = "12";
-      rootFsOptions = {
-        compression = "zstd";
-        acltype = "posixacl";
-        xattr = "sa";
-        mountpoint = "none";
-        "com.sun:auto-snapshot" = "false";
-      };
-      datasets = {
-        root = {
-          type = "zfs_fs";
-          mountpoint = "/";
-        };
-        nix = {
-          type = "zfs_fs";
-          mountpoint = "/nix";
-          options."com.sun:auto-snapshot" = "false";
-        };
-        var = {
-          type = "zfs_fs";
-          mountpoint = "/var";
         };
       };
     };
