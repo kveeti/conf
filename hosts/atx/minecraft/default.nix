@@ -77,7 +77,10 @@ in {
         };
       };
 
-      networking.firewall.allowedTCPPorts = [ config.homelab.ports.game ];
+      networking.firewall.allowedTCPPorts = [
+        config.homelab.ports.game
+        config.homelab.ports.map
+      ];
 
       environment.systemPackages = with pkgs; [
         jdk25_headless

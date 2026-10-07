@@ -270,6 +270,7 @@
         vmagent = 8429;
         nodeExporter = 9100;
         game = 25565;
+        map = 8100;
       };
     };
 

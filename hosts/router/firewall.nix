@@ -158,6 +158,11 @@ in {
           meta l4proto ipv6-icmp accept
           iifname "${sixRd}" ct state { new, untracked } counter drop
 
+          iifname "${networks.kube.interface}" \
+            oifname "${networks.minecraft.interface}" \
+            ip daddr ${hosts.minecraft.ipv4} tcp dport ${toString hosts.minecraft.ports.map} \
+            accept comment "public Envoy -> Minecraft map"
+
           iifname "${networks.servers.interface}" oifname "${networks.servers.interface}" accept
           iifname "${networks.dmz.interface}" \
             oifname "${networks.servers.interface}" \
