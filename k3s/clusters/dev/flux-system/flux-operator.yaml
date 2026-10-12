@@ -22,4 +22,4 @@ spec:
     name: flux-operator
   values:
     web:
-      enabled: false
+      enabled: true
