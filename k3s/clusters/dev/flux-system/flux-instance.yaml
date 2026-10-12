@@ -1,0 +1,49 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.8.8"
+    registry: ghcr.io/fluxcd
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    multitenant: false
+    networkPolicy: true
+    domain: cluster.local
+  sync:
+    kind: GitRepository
+    url: https://github.com/kveeti/conf.git
+    ref: refs/heads/main
+    path: k3s/clusters/dev
+    interval: 1m
+  kustomize:
+    patches:
+      - target:
+          kind: Namespace
+          name: flux-system
+        patch: |-
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: flux-system
+            labels:
+              pod-security.kubernetes.io/enforce: restricted
+              pod-security.kubernetes.io/enforce-version: v1.35
+              pod-security.kubernetes.io/audit: restricted
+              pod-security.kubernetes.io/audit-version: v1.35
+              pod-security.kubernetes.io/warn: restricted
+              pod-security.kubernetes.io/warn-version: v1.35
+      - target:
+          kind: Kustomization
+          name: flux-system
+        patch: |-
+          - op: replace
+            path: /spec/interval
+            value: 5m

@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - gotk-components.yaml
   - gotk-sync.yaml
+  - flux-operator.yaml
 patches:
   - target:
       kind: Namespace
