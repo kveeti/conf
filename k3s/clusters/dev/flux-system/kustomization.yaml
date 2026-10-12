@@ -1,29 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - gotk-components.yaml
-  - gotk-sync.yaml
   - flux-operator.yaml
-patches:
-  - target:
-      kind: Namespace
-      name: flux-system
-    patch: |-
-      - op: add
-        path: /metadata/labels/pod-security.kubernetes.io~1enforce
-        value: restricted
-      - op: add
-        path: /metadata/labels/pod-security.kubernetes.io~1enforce-version
-        value: v1.35
-      - op: add
-        path: /metadata/labels/pod-security.kubernetes.io~1audit
-        value: restricted
-      - op: add
-        path: /metadata/labels/pod-security.kubernetes.io~1audit-version
-        value: v1.35
-      - op: add
-        path: /metadata/labels/pod-security.kubernetes.io~1warn
-        value: restricted
-      - op: add
-        path: /metadata/labels/pod-security.kubernetes.io~1warn-version
-        value: v1.35
+  - flux-instance.yaml
