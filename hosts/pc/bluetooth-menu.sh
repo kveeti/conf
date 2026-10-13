@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 show_error() {
-    printf '%s\n' "$1" | fuzzel --dmenu --prompt 'Bluetooth error: ' || true
+    printf '%s\n' "$1" | rofi -dmenu -p 'Bluetooth error: ' || true
 }
 
 run_action() {
@@ -53,7 +53,7 @@ device_menu() {
             'Back'
         )
 
-        if ! choice=$(printf '%s\n' "${options[@]}" | fuzzel --dmenu --index --prompt "$name: "); then
+        if ! choice=$(printf '%s\n' "${options[@]}" | rofi -dmenu -no-custom -format i -p "$name: "); then
             return
         fi
 
@@ -102,43 +102,45 @@ while true; do
         exit 1
     fi
 
-    options=(
-        "Power: $(get_property "$controller" Powered)"
-        "Scan for devices"
-        "Pairable: $(get_property "$controller" Pairable)"
-        "Discoverable: $(get_property "$controller" Discoverable)"
-    )
-
     mapfile -t devices < <(bluetoothctl devices)
+    device_count=${#devices[@]}
+    options=()
 
     for device in "${devices[@]}"; do
         read -r _ address name <<< "$device"
         options+=("$name [$address]")
     done
 
-    if ! choice=$(printf '%s\n' "${options[@]}" | fuzzel --dmenu --index --prompt 'Bluetooth: '); then
+    options+=(
+        "Power: $(get_property "$controller" Powered)"
+        "Scan for devices"
+        "Pairable: $(get_property "$controller" Pairable)"
+        "Discoverable: $(get_property "$controller" Discoverable)"
+    )
+
+    if ! choice=$(printf '%s\n' "${options[@]}" | rofi -dmenu -no-custom -format i -p 'Bluetooth: '); then
         exit 0
     fi
 
     case "$choice" in
-        0)
+        "$device_count")
             if [[ $(get_property "$controller" Powered) == no ]]; then
                 rfkill unblock bluetooth
             fi
             toggle_property "$controller" Powered power
             ;;
-        1)
+        "$((device_count + 1))")
             run_action --timeout 5 scan on
             ;;
-        2)
+        "$((device_count + 2))")
             toggle_property "$controller" Pairable pairable
             ;;
-        3)
+        "$((device_count + 3))")
             toggle_property "$controller" Discoverable discoverable
             ;;
         *)
-            if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 4 && choice < ${#options[@]} )); then
-                read -r _ address name <<< "${devices[choice - 4]}"
+            if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice < device_count )); then
+                read -r _ address name <<< "${devices[choice]}"
                 device_menu "$address" "$name"
             fi
             ;;

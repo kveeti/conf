@@ -1,9 +1,17 @@
 { pkgs, ... }:
 
 let
+  bluetoothBattery = pkgs.writeShellApplication {
+    name = "bluetooth-battery";
+    runtimeInputs = [ pkgs.python3 pkgs.systemd ];
+    text = ''
+      exec python3 ${./bluetooth-battery.py}
+    '';
+  };
+
   bluetoothMenu = pkgs.writeShellApplication {
     name = "bluetooth-menu";
-    runtimeInputs = with pkgs; [ bluez fuzzel gnugrep util-linux ];
+    runtimeInputs = with pkgs; [ bluez rofi gnugrep util-linux ];
     text = builtins.readFile ./bluetooth-menu.sh;
   };
 
@@ -11,7 +19,7 @@ let
     name = "bluetooth-menu";
     desktopName = "Bluetooth";
     exec = "${bluetoothMenu}/bin/bluetooth-menu";
-    icon = "bluetooth";
+    icon = "${pkgs.kdePackages.breeze-icons}/share/icons/breeze-dark/devices/24/network-bluetooth.svg";
     categories = [ "Settings" "HardwareSettings" ];
   };
 
@@ -19,11 +27,10 @@ let
     name = "toggle-hdr";
     runtimeInputs = [ pkgs.gnugrep pkgs.hyprland ];
     text = ''
-      monitor=', highres, auto, 1.5, cm'
       if hyprctl monitors | grep -q 'colorManagementPreset: hdr'; then
-        hyprctl keyword monitor "$monitor, srgb"
+        hyprctl keyword monitor ', highres, auto, 1.5, cm, srgb, bitdepth, 8'
       else
-        hyprctl keyword monitor "$monitor, hdr"
+        hyprctl keyword monitor ', 3840x2160@120, auto, 1.5, cm, hdr, bitdepth, 10'
       fi
     '';
   };
@@ -58,6 +65,7 @@ in
 
   home.packages = with pkgs; [
     prismlauncher
+    rofi
     discord
     bluetoothMenu
     bluetoothDesktop
@@ -68,6 +76,14 @@ in
   ];
 
   programs.keepassxc.enable = true;
+
+  xdg.desktopEntries.steam = {
+    name = "Steam";
+    exec = "steam %U";
+    icon = "steam";
+    type = "Application";
+    categories = [ "Network" "FileTransfer" "Game" ];
+  };
 
   xdg.desktopEntries.discord = {
     name = "Discord";
@@ -85,10 +101,94 @@ in
     target-colorspace-hint=yes
   '';
 
+  xdg.configFile."rofi/config.rasi".text = ''
+    configuration {
+      modi: "drun";
+      show-icons: true;
+      drun-display-format: "{name}";
+      drun-match-fields: "name,keywords";
+      drun-exclude-categories: "Printing";
+      matching: "fuzzy";
+      sort: true;
+      sorting-method: "fzf";
+    }
+
+    @theme "/dev/null"
+
+    * {
+      font: "Noto Sans 12";
+      background-color: transparent;
+      text-color: #dedede;
+    }
+
+    window {
+      width: 600px;
+      location: center;
+      anchor: center;
+      background-color: #20202099;
+      border: 1px;
+      border-color: #ffffff12;
+      border-radius: 14px;
+      padding: 12px;
+      children: [ mainbox ];
+    }
+
+    mainbox {
+      orientation: vertical;
+      spacing: 8px;
+      children: [ inputbar, listview ];
+    }
+
+    inputbar {
+      padding: 4px 8px;
+      children: [ entry ];
+    }
+
+    entry {
+      placeholder: "Search apps…";
+      placeholder-color: #888888;
+      text-color: #f5f5f5;
+    }
+
+    listview {
+      lines: 7;
+      columns: 1;
+      fixed-height: true;
+      scrollbar: false;
+      spacing: 2px;
+    }
+
+    element {
+      padding: 8px;
+      spacing: 10px;
+      border-radius: 8px;
+      children: [ element-icon, element-text ];
+    }
+
+    element selected.normal {
+      background-color: #ffffff14;
+      text-color: #ffffff;
+    }
+
+    element-icon {
+      size: 20px;
+      vertical-align: 0.5;
+    }
+
+    element-text {
+      vertical-align: 0.5;
+    }
+  '';
+
   home.file.".config/hypr/hyprland.conf".text = ''
     monitor = , highres, auto, 1.5
 
-    $mainMod = SUPER
+    layerrule = match:namespace ^(rofi)$, blur on, ignore_alpha 0, animation popin 97%
+    windowrule = match:initial_class ^(steam|org\.prismlauncher\.PrismLauncher|org\.keepassxc\.KeePassXC)$, float on
+    windowrule = match:initial_class ^(steam|org\.prismlauncher\.PrismLauncher|org\.keepassxc\.KeePassXC)$, size 1280 800
+    windowrule = match:initial_class ^(steam|org\.prismlauncher\.PrismLauncher|org\.keepassxc\.KeePassXC)$, center on
+
+    $mainMod = ALT
 
     general {
       gaps_in = 0
@@ -102,8 +202,22 @@ in
       vrr = 2
     }
 
+    decoration {
+      blur {
+        passes = 2
+      }
+    }
+
     animations {
-      enabled = false
+      enabled = true
+      bezier = dialog, 0.16, 1, 0.3, 1
+      bezier = pop, 0.34, 1.25, 0.64, 1
+      animation = windows, 0
+      animation = workspaces, 0
+      animation = fade, 0
+      animation = layers, 1, 3, pop, popin 97%
+      animation = layersIn, 1, 2.5, pop, popin 97%
+      animation = fadeLayers, 1, 2, dialog
     }
 
     xwayland {
@@ -128,7 +242,7 @@ in
     exec-once = dex --autostart --environment Hyprland
     exec-once = ddc-brightness init
 
-    bind = $mainMod, SPACE, exec, fuzzel
+    bind = $mainMod, SPACE, exec, rofi -show drun
     bind = $mainMod SHIFT, X, exec, hyprlock
     bind = $mainMod, RETURN, exec, ghostty
     bind = $mainMod SHIFT, Q, killactive
@@ -150,7 +264,9 @@ in
     bind = $mainMod, E, layoutmsg, togglesplit
     bind = $mainMod, F, fullscreen
     bind = $mainMod SHIFT, SPACE, togglefloating
-    bind = $mainMod ALT, H, exec, toggle-hdr
+    bindm = $mainMod, mouse:272, movewindow
+    bindm = $mainMod, mouse:273, resizewindow
+    bind = CTRL SUPER ALT, H, exec, toggle-hdr
 
     bind = $mainMod, 1, workspace, 1
     bind = $mainMod, 2, workspace, 2
@@ -213,23 +329,30 @@ in
   home.file.".config/waybar/config".text = builtins.toJSON {
     height = 16;
     "modules-left" = [ "hyprland/workspaces" ];
-    "modules-right" = [ "custom/brightness" "cpu" "memory" "disk" "clock" ];
-    cpu = { format = "C {usage}%"; };
-    memory = { format = "R {percentage}%"; };
-    disk = { path = "/"; format = "D {percentage_used}%"; };
+    "modules-right" = [ "custom/bluetooth-battery" "custom/brightness" "cpu" "memory" "disk" "clock" ];
+    "custom/bluetooth-battery" = {
+      exec = "${bluetoothBattery}/bin/bluetooth-battery";
+      format = "<span size=\"120%\"></span> {}";
+      "return-type" = "json";
+      "hide-empty-text" = true;
+    };
+    cpu = { format = "C {usage}%"; };
+    memory = { format = "R {percentage}%"; };
+    disk = { path = "/"; format = "D {percentage_used}%"; };
     "custom/brightness" = {
       exec = "ddc-brightness status";
       "return-type" = "text";
       interval = 5;
       signal = 8;
-      format = "BRT {}";
+      format = "<span size=\"120%\">󰖙</span> {}";
+      "tooltip-format" = "Brightness: {}";
     };
-    clock = { format = "{:%a %Y-%m-%d %H:%M}"; };
+    clock = { format = "{:%a %Y-%m-%d %H:%M}"; };
   };
 
   home.file.".config/waybar/style.css".text = ''
     * {
-      font-family: "JetBrainsMono Nerd Font";
+      font-family: "Noto Sans", "Symbols Nerd Font";
       font-size: 12px;
     }
 
@@ -238,7 +361,7 @@ in
       color: #eeeeee;
     }
 
-    #workspaces, #cpu, #memory, #disk, #custom-brightness, #clock {
+    #workspaces, #cpu, #memory, #disk, #custom-bluetooth-battery, #custom-brightness, #clock {
       padding: 0 10px;
     }
   '';

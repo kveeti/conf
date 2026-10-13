@@ -62,7 +62,6 @@ in
 
   environment.systemPackages = with pkgs; [
     dex
-    fuzzel
     hyprlock
     waybar
     ddcBrightness
