@@ -8,7 +8,7 @@ let
       state="$XDG_RUNTIME_DIR/hyprland-brightness"
 
       read_current() {
-        ddcutil --bus 5 getvcp 10 2>/dev/null \
+        ddcutil --bus 8 getvcp 10 2>/dev/null \
           | grep -oE '= +[0-9]+' \
           | grep -oE '[0-9]+' \
           | head -1
@@ -42,7 +42,7 @@ let
           if [ "$value" -lt 0 ]; then value=0; fi
 
           printf '%s\n' "$value" > "$state"
-          ddcutil --bus 5 --noverify setvcp 10 "$value" >/dev/null 2>&1 || true
+          ddcutil --bus 8 --noverify setvcp 10 "$value" >/dev/null 2>&1 || true
           pkill -RTMIN+8 waybar || true
           ;;
         *)

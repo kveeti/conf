@@ -133,6 +133,7 @@
           system = "x86_64-linux";
           modules = [
             disko.nixosModules.disko
+            microvm.nixosModules.host
             home-manager.nixosModules.home-manager
             ./hosts/pc/configuration.nix
             ./hosts/pc/disk.nix

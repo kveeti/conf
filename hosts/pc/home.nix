@@ -15,6 +15,19 @@ let
     categories = [ "Settings" "HardwareSettings" ];
   };
 
+  toggleHdr = pkgs.writeShellApplication {
+    name = "toggle-hdr";
+    runtimeInputs = [ pkgs.gnugrep pkgs.hyprland ];
+    text = ''
+      monitor=', highres, auto, 1.5, cm'
+      if hyprctl monitors | grep -q 'colorManagementPreset: hdr'; then
+        hyprctl keyword monitor "$monitor, srgb"
+      else
+        hyprctl keyword monitor "$monitor, hdr"
+      fi
+    '';
+  };
+
   notwaita-cursor = pkgs.stdenvNoCC.mkDerivation {
     pname = "notwaita-cursor";
     version = "1.0.0-alpha1";
@@ -48,6 +61,7 @@ in
     discord
     bluetoothMenu
     bluetoothDesktop
+    toggleHdr
     (llama-cpp.override { vulkanSupport = true; })
     (callPackage ./pi-coding-agent.nix {})
     wl-clipboard
@@ -55,22 +69,37 @@ in
 
   programs.keepassxc.enable = true;
 
+  xdg.desktopEntries.discord = {
+    name = "Discord";
+    exec = "Discord --enable-speech-dispatcher --enable-features=UseOzonePlatform --ozone-platform=wayland --force-device-scale-factor=1";
+    icon = "discord";
+    type = "Application";
+    categories = [ "Network" "InstantMessaging" ];
+  };
+
   # jellyfin-mpv-shim embeds libmpv; force Intel HW decode so 4K doesn't
   # software-decode on the i5-9500.
   home.file.".config/jellyfin-mpv-shim/mpv.conf".text = ''
     hwdec=auto-safe
     vo=gpu-next
-    video-sync=display-resample
+    target-colorspace-hint=yes
   '';
 
   home.file.".config/hypr/hyprland.conf".text = ''
-    monitor = desc:Technical Concepts Ltd 27R83U X2414000835, 3840x2160@144, auto, 1.5
+    monitor = , highres, auto, 1.5
 
     $mainMod = SUPER
 
     general {
       gaps_in = 0
       gaps_out = 0
+      border_size = 1
+      col.active_border = rgba(606060ff)
+      col.inactive_border = rgba(303030ff)
+    }
+
+    misc {
+      vrr = 2
     }
 
     animations {
@@ -109,18 +138,19 @@ in
     bind = $mainMod, H, movefocus, l
     bind = $mainMod, J, movefocus, d
     bind = $mainMod, K, movefocus, u
-    bind = $mainMod, RIGHT, movefocus, r
+    bind = $mainMod, L, movefocus, r
 
     bind = $mainMod SHIFT, H, movewindow, l
     bind = $mainMod SHIFT, J, movewindow, d
     bind = $mainMod SHIFT, K, movewindow, u
-    bind = $mainMod SHIFT, RIGHT, movewindow, r
+    bind = $mainMod SHIFT, L, movewindow, r
 
     bind = $mainMod, B, layoutmsg, togglesplit
     bind = $mainMod, V, layoutmsg, togglesplit
     bind = $mainMod, E, layoutmsg, togglesplit
     bind = $mainMod, F, fullscreen
     bind = $mainMod SHIFT, SPACE, togglefloating
+    bind = $mainMod ALT, H, exec, toggle-hdr
 
     bind = $mainMod, 1, workspace, 1
     bind = $mainMod, 2, workspace, 2
@@ -159,6 +189,9 @@ in
     bind = , F12, exec, wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
     bind = , F11, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
     bind = , F10, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+    bindel = , XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
+    bindel = , XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+    bindl = , XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
   '';
 
   home.file.".config/hypr/hyprlock.conf".text = ''
@@ -178,6 +211,7 @@ in
   '';
 
   home.file.".config/waybar/config".text = builtins.toJSON {
+    height = 16;
     "modules-left" = [ "hyprland/workspaces" ];
     "modules-right" = [ "custom/brightness" "cpu" "memory" "disk" "clock" ];
     cpu = { format = "C {usage}%"; };

@@ -9,6 +9,7 @@
       # enable only after cryptenroll writes a TPM token — switches to systemd-initrd, breaking the SSH unlock below
 #      ./tpm-luks.nix
       ./single-signon.nix
+      ./agent-vm.nix
       ./helium.nix
       ./hyprland.nix
       ../../modules/telemetry/metrics.nix
@@ -57,6 +58,10 @@
 
   networking.networkmanager.enable = true;
   hardware.enableRedistributableFirmware = true;
+
+  services.udev.extraRules = ''
+    KERNEL=="hidraw*", ATTRS{idVendor}=="19f5", MODE="0666"
+  '';
 
   homelab.metrics = {
     enable = true;
