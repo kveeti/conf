@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
@@ -22,7 +23,7 @@
     };
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs, agenix, home-manager, nixvim }:
+  outputs = inputs@{ self, nix-darwin, nixpkgs, nixpkgs-unstable, agenix, home-manager, nixvim }:
     let
       hostname = "e";
       username = "veeti";
@@ -73,6 +74,10 @@
 
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;
+        home-manager.extraSpecialArgs = {
+          inherit nixpkgs;
+          pkgs-unstable = import nixpkgs-unstable { inherit system; };
+        };
         home-manager.users."${username}".home = {
           username = username;
           homeDirectory = homeDir;
@@ -84,113 +89,21 @@
 
           ({ config, lib, pkgs, ... }: {
             programs.home-manager.enable = true;
-            programs.nixvim.nixpkgs.source = nixpkgs;
-            programs.git.enable = true;
             programs.git.settings = {
-              user.email = "veeti@veetik.com";
-              user.name = "Veeti K";
-              user.signingkey = "111E474490913E21";
-              commit.gpgsign = true;
               branch.sort = "-committerdate";
               push.autoSetupRemote = true;
             };
 
             xdg.configFile."ghostty/config".source = config.lib.file.mkOutOfStoreSymlink ./ghostty.conf;
             xdg.configFile."ghostty/themes/vague".source = config.lib.file.mkOutOfStoreSymlink ./ghostty-vague.conf;
-            xdg.configFile."tmux/tmux.conf".source = config.lib.file.mkOutOfStoreSymlink ./tmux.conf;
-
-            imports = [ ./nvim.nix ];
+            imports = [ ../modules/home/nvim.nix ../modules/home/common.nix ];
           })
         ];
-
-        programs.zsh.enable = true;
-        programs.zsh.interactiveShellInit = ''
-          mosh() {
-            local theme=light
-            defaults read -g AppleInterfaceStyle >/dev/null 2>&1 && theme=dark
-            command mosh --server="env NVIM_THEME=$theme mosh-server" "$@"
-          }
-
-          enc() {
-            local file="$1"
-            if [[ -z "$file" ]]; then
-              echo "usage: enc <file or dir>"
-              return 1
-            fi
-
-            local passphrase1 passphrase2
-            echo -n "enter passphrase: "
-            read -s passphrase1
-            echo
-            echo -n "confirm passphrase: "
-            read -s passphrase2
-            echo
-            if [[ "$passphrase1" != "$passphrase2" ]]; then
-              echo "passphrases do not match. aborting."
-              return 1
-            fi
-
-            tar -cf - "$file" | zstd -T0 | pv -c | gpg --no-symkey-cache --batch --yes --passphrase "$passphrase1" --symmetric --cipher-algo AES256 --compress-level 0 -o "$file.tar.zst.gpg"
-            echo "done"
-          }
-
-          dec() {
-            local file="$1"
-            if [[ -z "$file" ]]; then
-              echo "usage: dec <file.tar.zst.gpg>"
-              return 1
-            fi
-
-            local tar_name=$(basename "$file" .tar.zst.gpg)
-            if [[ -e "$tar_name" ]]; then
-              echo "error: '$tar_name' already exists. aborting."
-              return 1
-            fi
-
-            local passphrase
-            echo -n "enter passphrase: "
-            read -s passphrase
-            echo
-
-            gpg --no-symkey-cache --batch --passphrase "$passphrase" --decrypt "$file" | zstd -d | pv -c | tar -xf -
-            echo "done"
-          }
-
-          function t() {
-            if [[ $# -eq 1 ]]; then
-              selected="$1"
-            else
-              selected=$(find ~/code -maxdepth 7 \( -name "node_modules" -o -name ".git" -o -name "dist" -o -name "build" -o -name "target" \) -prune -o -type d -print0 | fzf --read0)
-            fi
-
-            if [[ -z $selected ]]; then
-              exit 0
-            fi
-
-            selected_name=$(basename "$selected" | tr . _)
-            tmux_running=$(pgrep tmux)
-
-            if [[ -z $TMUX ]] && [[ -z "$tmux_running" ]]; then
-              tmux new-session -s "$selected_name" -c "$selected"
-              exit 0
-            fi
-
-            if ! tmux has-session -t="$selected_name" 2> /dev/null; then
-              tmux new-session -ds "$selected_name" -c "$selected"
-            fi
-
-            if [[ -z $TMUX ]]; then
-              tmux attach -t "$selected_name"
-            else
-              tmux switch-client -t "$selected_name"
-            fi
-          }
-        '';
 
         homebrew.enable = true;
         homebrew.taps = [ "cormacrelf/tap" ];
         homebrew.casks = [ "keepassxc" "alacritty" "ghostty" "firefox" "syncthing-app" "codex" ];
-        homebrew.brews = [ "lazygit" "colima" "tmux" "dark-notify" ];
+        homebrew.brews = [ "lazygit" "colima" "dark-notify" ];
         environment.systemPath = [ "/opt/homebrew/bin" ];
 
         security.pam.services.sudo_local = {

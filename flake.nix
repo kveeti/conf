@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/9ae611a455b90cf061d8f332b977e387bda8e1ca";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     disko = {
       url = "github:nix-community/disko/a4cb7bf73f264d40560ba527f9280469f1f081c6";
@@ -32,17 +32,22 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixvim = {
+      url = "github:nix-community/nixvim/nixos-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     secrets-pc.follows = "secrets";
     mac.url = "path:./mac";
 
-    secrets.url = "git+file:///Users/veeti/code/personal/secrets";
+    secrets.url = "git+file:///home/veeti/code/secrets";
     secrets-backup.follows = "secrets";
     secrets-atx.follows = "secrets";
     secrets-public.follows = "secrets";
     secrets-router.follows = "secrets";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, disko, lanzaboote, money, food, rss, weather, microvm, home-manager, secrets, secrets-atx, secrets-backup, secrets-public, secrets-router, secrets-pc, mac }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixvim, disko, lanzaboote, money, food, rss, weather, microvm, home-manager, secrets, secrets-atx, secrets-backup, secrets-public, secrets-router, secrets-pc, mac }:
     let
       inventory = import ./inventory.nix;
       routerInventory = import ./hosts/router/inventory.nix { inherit inventory; lib = nixpkgs.lib; };
@@ -136,6 +141,11 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "bak";
+              home-manager.extraSpecialArgs = {
+                inherit nixpkgs;
+                pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };
+              };
+              home-manager.sharedModules = [ nixvim.homeModules.nixvim ];
               home-manager.users.veeti = import ./hosts/pc/home.nix;
             }
             secrets-pc.nixosModules.pc
@@ -160,6 +170,23 @@
             ./hosts/public
           ];
         };
+      };
+
+      homeConfigurations."veeti@pc" = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+            "discord"
+            "steam"
+            "steam-unwrapped"
+            "steam-run"
+          ];
+        };
+        extraSpecialArgs = {
+          inherit nixpkgs;
+          pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };
+        };
+        modules = [ nixvim.homeModules.nixvim ./hosts/pc/home.nix ];
       };
 
       darwinConfigurations = {

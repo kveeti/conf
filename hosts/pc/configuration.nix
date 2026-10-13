@@ -117,7 +117,10 @@
 
   # services.xserver.libinput.enable = true;
 
+  programs.zsh.enable = true;
+
   users.users."veeti" = {
+    shell = pkgs.zsh;
     isNormalUser = true;
     description = "veeti";
     extraGroups = [ "networkmanager" "wheel" "video" "render" "i2c" ];
@@ -130,6 +133,7 @@
 
   environment.systemPackages = with pkgs; [
     vim
+    neovim
     git
     sbctl
     ghostty

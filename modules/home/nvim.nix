@@ -1,6 +1,7 @@
-{ pkgs, ... }:
+{ pkgs, nixpkgs, ... }:
 {
             programs.nixvim = {
+              nixpkgs.source = nixpkgs;
               enable = true;
 
               extraPlugins = [

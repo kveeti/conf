@@ -30,6 +30,11 @@ let
   };
 in
 {
+  imports = [
+    ../../modules/home/common.nix
+    ../../modules/home/nvim.nix
+  ];
+
   home.username = "veeti";
   home.homeDirectory = "/home/veeti";
   home.stateVersion = "25.11";
@@ -45,6 +50,7 @@ in
     bluetoothDesktop
     (llama-cpp.override { vulkanSupport = true; })
     (callPackage ./pi-coding-agent.nix {})
+    wl-clipboard
   ];
 
   programs.keepassxc.enable = true;
