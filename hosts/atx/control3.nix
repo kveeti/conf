@@ -30,6 +30,10 @@ in {
       ];
 
       networking.hostName = host.hostname;
+      networking.hosts.${inventory.hosts.backup.kubeIpv4} = [
+        "metrics.internal.veetik.com"
+        "logs.internal.veetik.com"
+      ];
 
       services.k3s = {
         serverAddr = "https://${inventory.hosts.public.kubeIpv4}:6443";

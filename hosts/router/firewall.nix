@@ -163,6 +163,12 @@ in {
             ip daddr ${hosts.minecraft.ipv4} tcp dport ${toString hosts.minecraft.ports.map} \
             accept comment "public Envoy -> Minecraft map"
 
+          iifname "${networks.kube.interface}" \
+            oifname "${networks.servers.interface}" \
+            ip saddr { ${hosts.public.kubeIpv4}, ${hosts.backup.kubeIpv4}, ${hosts.control3.ipv4} } \
+            ip daddr ${hosts.backup.ipv4} \
+            tcp dport ${toString backupPorts.https} accept comment "control nodes -> backup telemetry"
+
           iifname "${networks.servers.interface}" oifname "${networks.servers.interface}" accept
           iifname "${networks.dmz.interface}" \
             oifname "${networks.servers.interface}" \
