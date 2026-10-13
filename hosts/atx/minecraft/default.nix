@@ -28,6 +28,7 @@ in {
       imports = [
         ../../../modules/profiles/microvm.nix
         ./backup
+        ./monitoring
       ];
 
       networking.hostName = host.hostname;

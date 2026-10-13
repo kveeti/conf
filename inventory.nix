@@ -271,6 +271,7 @@
         nodeExporter = 9100;
         game = 25565;
         map = 8100;
+        minecraftExporter = 9150;
       };
     };
 

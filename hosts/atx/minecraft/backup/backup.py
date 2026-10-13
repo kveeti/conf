@@ -277,6 +277,8 @@ def restic_backup(server, mode):
         '--exclude', str(server.path / 'logs'),
         '--exclude', str(server.path / 'cache'),
         '--exclude', '**/session.lock',
+        '--exclude', '**/DistantHorizons.sqlite*',
+        '--exclude', str(server.path / 'bluemap' / 'web' / 'maps' / '**' / 'tiles'),
         str(server.path),
     ])
     snapshot_id = backup_snapshot_id(output)
@@ -433,6 +435,24 @@ def backup_once(server):
     return snapshot_id
 
 
+def record_status(server, **changes):
+    """Best-effort atomic monitoring metadata; never jeopardize a backup."""
+    path = server.backups / '.monitoring.json'
+    try:
+        try:
+            status = json.loads(path.read_text())
+        except (FileNotFoundError, json.JSONDecodeError):
+            status = {}
+        if not isinstance(status, dict):
+            status = {}
+        status.update(changes)
+        temporary = path.with_suffix('.new')
+        temporary.write_text(json.dumps(status) + '\n')
+        os.replace(temporary, path)
+    except (OSError, TypeError, ValueError) as error:
+        server.log(f'Could not write monitoring status: {error}')
+
+
 def attempt(server):
     ensure_repository(server)
     with (server.backups / '.lock').open('a') as lock:
@@ -441,8 +461,18 @@ def attempt(server):
         except BlockingIOError:
             server.log('Another backup or cleanup is running; skipping')
             return
-        resume_saving(server)
-        return backup_once(server)
+        started = time.monotonic()
+        record_status(server, last_attempt=time.time(), in_progress=True)
+        try:
+            resume_saving(server)
+            snapshot = backup_once(server)
+        except BaseException:
+            record_status(server, success=False, in_progress=False,
+                          duration=time.monotonic() - started)
+            raise
+        record_status(server, success=True, in_progress=False, last_success=time.time(),
+                      duration=time.monotonic() - started)
+        return snapshot
 
 
 def report_failure(server, error):

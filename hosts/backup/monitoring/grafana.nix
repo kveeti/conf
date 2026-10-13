@@ -51,6 +51,9 @@ in {
           type = "prometheus";
           uid = "victoriametrics";
           url = "http://127.0.0.1:${toString ports.victoriametrics}";
+          # Match vmagent's default scrape interval so $__rate_interval covers
+          # enough samples, including when zooming in on process CPU/I/O.
+          jsonData.timeInterval = "30s";
           isDefault = true;
         }
         {

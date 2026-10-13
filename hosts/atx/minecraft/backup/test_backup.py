@@ -211,6 +211,8 @@ class BackupTests(unittest.TestCase):
         self.assertIn(str(self.server / 'logs'), backup_command)
         self.assertIn(str(self.server / 'cache'), backup_command)
         self.assertIn('**/session.lock', backup_command)
+        self.assertIn('**/DistantHorizons.sqlite*', backup_command)
+        self.assertIn(str(self.server / 'bluemap' / 'web' / 'maps' / '**' / 'tiles'), backup_command)
         self.assertNotIn('rsync', [call.args[0][0] for call in backup.subprocess.run.call_args_list])
         self.assert_clean()
 
