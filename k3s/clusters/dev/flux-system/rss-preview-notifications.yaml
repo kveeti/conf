@@ -25,4 +25,4 @@ spec:
       matchLabels:
         app.kubernetes.io/part-of: rss-previews
   inclusionList:
-    - '^Reconciliation finished in '
+    - '^Health check passed in '
