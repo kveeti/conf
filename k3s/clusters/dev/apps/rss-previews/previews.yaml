@@ -146,9 +146,9 @@ spec:
       parentRefs:
         - name: public-gateway
           namespace: public-ingress
-          sectionName: rss-previews
+          sectionName: previews
       hostnames:
-        - pr-<< inputs.id >>.rss-preview.veetik.com
+        - rss-pr-<< inputs.id >>.preview.veetik.com
       rules:
         - backendRefs:
             - name: rss-pr-<< inputs.id >>

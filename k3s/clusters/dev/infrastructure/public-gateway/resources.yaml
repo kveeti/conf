@@ -132,14 +132,14 @@ spec:
               - key: kubernetes.io/metadata.name
                 operator: In
                 values: [bookmarks, keycloak, money, tasks, public-ingress]
-    - name: rss-previews
-      hostname: "*.rss-preview.veetik.com"
+    - name: previews
+      hostname: "*.preview.veetik.com"
       port: 443
       protocol: HTTPS
       tls:
         mode: Terminate
         certificateRefs:
-          - name: tls-rss-previews
+          - name: tls-previews
       allowedRoutes:
         kinds:
           - kind: HTTPRoute
