@@ -11,6 +11,9 @@ metadata:
   name: rss-previews
   namespace: rss-preview
 rules:
+  - apiGroups: [kustomize.toolkit.fluxcd.io]
+    resources: [kustomizations]
+    verbs: [get, list, watch, create, update, patch, delete]
   - apiGroups: [fluxcd.controlplane.io]
     resources: [resourcesets]
     verbs: [get, list, watch, create, update, patch, delete]

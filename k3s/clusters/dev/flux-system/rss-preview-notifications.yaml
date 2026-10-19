@@ -1,0 +1,28 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: rss-preview-comments
+  namespace: flux-system
+spec:
+  type: githubpullrequestcomment
+  address: https://github.com/kveeti/rss
+  secretRef:
+    name: rss-preview-github
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: rss-preview-comments
+  namespace: flux-system
+spec:
+  providerRef:
+    name: rss-preview-comments
+  eventSeverity: info
+  eventSources:
+    - kind: Kustomization
+      name: '*'
+      namespace: rss-preview
+      matchLabels:
+        app.kubernetes.io/part-of: rss-previews
+  inclusionList:
+    - '^Reconciliation finished in '

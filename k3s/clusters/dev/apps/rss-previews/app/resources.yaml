@@ -1,0 +1,217 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: rss-pr-${PREVIEW_PR}
+  namespace: rss-preview
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - control1
+                  - control2
+  bootstrap:
+    initdb:
+      database: rss
+      locale: en_US.utf8
+      owner: rss
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
+  instances: 1
+  postgresql:
+    parameters:
+      max_connections: "40"
+      max_wal_size: 256MB
+      min_wal_size: 80MB
+      shared_buffers: 128MB
+      wal_keep_size: 0MB
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  storage:
+    size: 1Gi
+    storageClass: local-path
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rss-pr-${PREVIEW_PR}
+  namespace: rss-preview
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rss-preview
+      rss-preview/pr: ${quote}${PREVIEW_PR}${quote}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: rss-preview
+        rss-preview/pr: ${quote}${PREVIEW_PR}${quote}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - env:
+            - name: HOST
+              value: 0.0.0.0:8000
+            - name: DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  key: fqdn-uri
+                  name: rss-pr-${PREVIEW_PR}-app
+            - name: DATABASE_URL
+              value: $(DATABASE_URI)?sslmode=verify-full&sslrootcert=/etc/rss/ca.crt
+          image: veetik/rss:${PREVIEW_SHA}
+          name: rss
+          ports:
+            - containerPort: 8000
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            limits:
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /etc/rss
+              name: db-ca
+              readOnly: true
+      securityContext:
+        fsGroup: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - emptyDir:
+            sizeLimit: 128Mi
+          name: tmp
+        - name: db-ca
+          secret:
+            items:
+              - key: ca.crt
+                path: ca.crt
+            secretName: rss-pr-${PREVIEW_PR}-ca
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rss-pr-${PREVIEW_PR}
+  namespace: rss-preview
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    app: rss-preview
+    rss-preview/pr: ${quote}${PREVIEW_PR}${quote}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: rss-pr-${PREVIEW_PR}
+  namespace: rss-preview
+spec:
+  hostnames:
+    - rss-pr-${PREVIEW_PR}.preview.veetik.com
+  parentRefs:
+    - name: public-gateway
+      namespace: public-ingress
+      sectionName: previews
+  rules:
+    - backendRefs:
+        - name: rss-pr-${PREVIEW_PR}
+          port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: rss-pr-${PREVIEW_PR}-database-client
+  namespace: rss-preview
+spec:
+  egress:
+    - ports:
+        - port: 5432
+          protocol: TCP
+      to:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: rss-pr-${PREVIEW_PR}
+  podSelector:
+    matchLabels:
+      app: rss-preview
+      rss-preview/pr: ${quote}${PREVIEW_PR}${quote}
+  policyTypes:
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: rss-pr-${PREVIEW_PR}-database
+  namespace: rss-preview
+spec:
+  egress:
+    - ports:
+        - port: 443
+          protocol: TCP
+      to:
+        - ipBlock:
+            cidr: 10.43.0.1/32
+    - ports:
+        - port: 6443
+          protocol: TCP
+      to:
+        - ipBlock:
+            cidr: 192.168.50.5/32
+        - ipBlock:
+            cidr: 192.168.50.6/32
+        - ipBlock:
+            cidr: 192.168.50.7/32
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: rss-preview
+              rss-preview/pr: ${quote}${PREVIEW_PR}${quote}
+      ports:
+        - port: 5432
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: cloudnative-pg
+      ports:
+        - port: 8000
+          protocol: TCP
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: rss-pr-${PREVIEW_PR}
+  policyTypes:
+    - Ingress
+    - Egress
