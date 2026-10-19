@@ -1,6 +1,19 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
+  name: rss-previews
+  namespace: public-ingress
+spec:
+  secretName: tls-rss-previews
+  dnsNames:
+    - "*.rss-preview.veetik.com"
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-prod
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
   name: minecraft-map
   namespace: public-ingress
 spec:

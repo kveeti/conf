@@ -48,6 +48,7 @@ spec:
                 - keycloak
                 - money
                 - tasks
+                - rss-preview
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
@@ -131,6 +132,22 @@ spec:
               - key: kubernetes.io/metadata.name
                 operator: In
                 values: [bookmarks, keycloak, money, tasks, public-ingress]
+    - name: rss-previews
+      hostname: "*.rss-preview.veetik.com"
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tls-rss-previews
+      allowedRoutes:
+        kinds:
+          - kind: HTTPRoute
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: rss-preview
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
