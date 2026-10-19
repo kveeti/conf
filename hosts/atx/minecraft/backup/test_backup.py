@@ -29,19 +29,18 @@ class BackupTests(unittest.TestCase):
         self.now = datetime(2026, 9, 7, 12, tzinfo=timezone.utc)
         self.clock.now.return_value = self.now
         self.addCleanup(patch.stopall)
-        self.panes = []
+        self.processes = {}
         self.saving = {}
-        self.pending = {}
         self.sent = []
         self.messages = []
-        self.tmux_error = None
         self.on_command = lambda name, command: None
         self.fake_repos = {}
         self.restic_commands = []
         self.restic_fail = {}
         self.restic_bad_backup_json = False
         self.real_run = subprocess.run
-        patch.object(backup.subprocess, 'check_output', side_effect=self.pane_state).start()
+        patch.object(backup, 'server_pid', side_effect=lambda name: self.processes.get(name)).start()
+        patch.object(backup, 'send_command', side_effect=self.send_command).start()
         patch.object(backup.subprocess, 'run', side_effect=self.run_command).start()
         self.sleep = patch.object(backup.time, 'sleep').start()
         self.job = self.add_server('servu')
@@ -60,60 +59,46 @@ class BackupTests(unittest.TestCase):
         (server.path / 'world/session.lock').write_bytes(b'lock')
         (server.path / 'mods/mod.jar').write_bytes(b'mod' * 2048)
         (server.path / 'cache/cache').write_bytes(b'cache')
-        self.panes.append((name, f'%{len(self.panes) + 1}', 'java', str(server.path)))
+        self.processes[name] = len(self.processes) + 1
         self.saving[name] = True
         return server
 
     def set_running(self, name, running):
-        self.panes = [(n, p, 'java' if running else 'bash', cwd) if n == name else (n, p, c, cwd)
-                      for n, p, c, cwd in self.panes]
+        self.processes[name] = 1 if running else None
 
     def emit(self, message, name='servu'):
         with (self.servers / name / 'logs/latest.log').open('a') as output:
             output.write('[12:00:00] [Server thread/INFO]: ' + message + '\n')
 
-    def pane_state(self, args, **kwargs):
-        target = args[args.index('-t') + 1]
-        name, _, command, cwd = next(row for row in self.panes if row[1] == target)
-        return f'{name}\t{command}\t{cwd}\n'
-
     def run_command(self, args, **kwargs):
         if args[0] == 'restic':
             return self.run_restic(args, **kwargs)
-        if args[0] != 'tmux':
-            return self.real_run(args, **kwargs)
-        if args[1] == 'list-panes':
-            return subprocess.CompletedProcess(args, 1 if self.tmux_error else 0,
-                                               '\n'.join('\t'.join(row) for row in self.panes),
-                                               self.tmux_error or '')
-        target = args[args.index('-t') + 1]
-        name = next(row[0] for row in self.panes if row[1] == target)
-        if '-l' in args:
-            self.pending[target] = args[-1]
-        elif args[-1] == 'Enter':
-            command = self.pending[target]
-            message_prefix = 'tellraw @a '
-            if command.startswith(message_prefix):
-                component = json.loads(command[len(message_prefix):])
-                self.assertEqual(component['color'], 'gray')
-                self.assertTrue(component['italic'])
-                self.messages.append((name, component['text'], self.saving[name]))
-                return subprocess.CompletedProcess(args, 0)
-            self.sent.append((name, command))
-            self.on_command(name, command)
-            if command == 'save-off':
-                self.emit('Automatic saving is now disabled' if self.saving[name] else 'Saving is already turned off', name)
-                self.saving[name] = False
-            elif command == 'save-on':
-                self.emit('Automatic saving is now enabled' if not self.saving[name] else 'Saving is already turned on', name)
-                self.saving[name] = True
-            elif command == 'save-all flush':
-                self.emit('Saved the game', name)
-            elif command == 'list':
-                self.emit('There are 1 of a max of 10 players online: 71680', name)
-            else:
-                raise AssertionError(command)
-        return subprocess.CompletedProcess(args, 0)
+        return self.real_run(args, **kwargs)
+
+    def send_command(self, name, command, expected_pid=None):
+        if self.processes.get(name) != expected_pid:
+            raise RuntimeError('Server restarted')
+        message_prefix = 'tellraw @a '
+        if command.startswith(message_prefix):
+            component = json.loads(command[len(message_prefix):])
+            self.assertEqual(component['color'], 'gray')
+            self.assertTrue(component['italic'])
+            self.messages.append((name, component['text'], self.saving[name]))
+            return
+        self.sent.append((name, command))
+        self.on_command(name, command)
+        if command == 'save-off':
+            self.emit('Automatic saving is now disabled' if self.saving[name] else 'Saving is already turned off', name)
+            self.saving[name] = False
+        elif command == 'save-on':
+            self.emit('Automatic saving is now enabled' if not self.saving[name] else 'Saving is already turned on', name)
+            self.saving[name] = True
+        elif command == 'save-all flush':
+            self.emit('Saved the game', name)
+        elif command == 'list':
+            self.emit('There are 1 of a max of 10 players online: 71680', name)
+        else:
+            raise AssertionError(command)
 
     def run_restic(self, args, **kwargs):
         self.assertEqual(kwargs['env']['RESTIC_PASSWORD'], 'minecraft')
@@ -201,9 +186,9 @@ class BackupTests(unittest.TestCase):
     def test_online_backup_uses_restic_and_restores_saving(self):
         snapshot_id = backup.backup_once(self.job)
         self.assertEqual(self.commands(), ['save-off', 'save-all flush', 'list', 'save-on'])
-        self.assertEqual(self.messages[0], ('servu', 'Backup in 5 seconds.', True))
+        self.assertEqual(self.messages[0], ('servu', 'Backing up in 5 seconds...', True))
         self.sleep.assert_called_once_with(5)
-        self.assertRegex(self.messages[-1][1], r'^Backup completed \(\d+s, \+\d+MB\)$')
+        self.assertRegex(self.messages[-1][1], r'^Backed up in \d+\.\d+s \(\+\d+ MB\)$')
         self.assertTrue(self.messages[-1][2])
         self.assertEqual(self.snapshots()[0]['id'], snapshot_id)
         self.assertEqual(self.snapshots()[0]['tags'], ['online'])
@@ -239,7 +224,7 @@ class BackupTests(unittest.TestCase):
         with patch.object(backup, 'log') as logged:
             backup.backup_once(self.job)
         message = self.messages[-1][1]
-        self.assertIn(', +', message)
+        self.assertIn('(+', message)
         self.assertTrue(any(message in call.args[0] for call in logged.call_args_list))
 
     def test_bad_restic_backup_json_fails_without_snapshot_acceptance(self):
@@ -266,7 +251,7 @@ class BackupTests(unittest.TestCase):
             backup.backup_once(self.job)
 
         self.assertEqual([snapshot['id'] for snapshot in self.snapshots()], [complete_id])
-        self.assertFalse(any('Backup completed' in message for _, message, _ in self.messages))
+        self.assertFalse(any('Backed up in' in message for _, message, _ in self.messages))
         self.assert_clean()
 
     def test_partial_offline_backup_discards_snapshot(self):
@@ -390,22 +375,19 @@ class BackupTests(unittest.TestCase):
         (self.servers / 'link').symlink_to(self.server, target_is_directory=True)
         self.assertEqual([server.name for server in backup.discover()], ['new-server', 'servu'])
 
-    def test_finds_only_java_in_matching_session_and_directory(self):
-        self.panes.insert(0, ('servu', '%8', 'btop', str(self.server)))
-        self.assertEqual(backup.find_pane(self.job), '%1')
-        self.panes.append(('servu', '%9', 'java', str(self.server)))
-        with self.assertRaisesRegex(backup.BackupError, 'More than one'):
-            backup.find_pane(self.job)
-        self.panes = [('servu', '%1', 'java', '/somewhere/else')]
-        with self.assertRaisesRegex(backup.BackupError, 'not '):
-            backup.find_pane(self.job)
+    def test_restart_during_backup_rejects_old_console(self):
+        console = backup.Console(self.job)
+        self.addCleanup(console.close)
+        self.processes['servu'] += 1
+        with self.assertRaisesRegex(backup.RetryBackup, 'restarted'):
+            console.send('save-off')
+        self.assertEqual(self.sent, [])
 
-    def test_no_tmux_server_is_offline_but_permission_error_is_not(self):
-        self.tmux_error = 'error connecting to /tmp/tmux-1000/default (No such file or directory)'
-        self.assertIsNone(backup.find_pane(self.job))
-        self.tmux_error = 'error connecting to /tmp/tmux-1000/default (Permission denied)'
-        with self.assertRaises(backup.BackupError):
-            backup.find_pane(self.job)
+    def test_starting_service_retries_instead_of_taking_offline_backup(self):
+        with patch.object(backup, 'server_pid', side_effect=RuntimeError('starting')):
+            with self.assertRaisesRegex(backup.RetryBackup, 'starting'):
+                backup.backup_once(self.job)
+        self.assertEqual(self.snapshots(), [])
 
     def test_two_servers_have_separate_repositories_and_commands(self):
         other = self.add_server('other')
@@ -446,7 +428,7 @@ class BackupTests(unittest.TestCase):
         self.assertEqual(order, ['servu', 'zother', 'servu'])
         sleep.assert_called_once()
         self.assertGreater(sleep.call_args.args[0], 90)
-        self.assertIn('Retrying in 91s.', self.messages[0][1])
+        self.assertIn('Retrying in 91s', self.messages[0][1])
 
     def test_failure_reports_and_continues_other_servers(self):
         self.add_server('zother')
@@ -456,7 +438,7 @@ class BackupTests(unittest.TestCase):
         with patch.object(backup, 'attempt', side_effect=attempt) as attempted:
             self.assertTrue(backup.back_up_all())
         self.assertEqual(attempted.call_count, 2)
-        self.assertEqual(self.messages, [('servu', 'Backup failed. Check the server log.', True)])
+        self.assertEqual(self.messages, [('servu', 'Backup failed. Check the server log', True)])
 
     def test_recovery_continues_after_source_is_missing(self):
         other = self.add_server('zother')

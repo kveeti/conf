@@ -16,7 +16,7 @@ class ResticIntegrationTests(unittest.TestCase):
             root = Path(directory)
             with patch.object(backup, 'SERVERS', root / 'servers'), \
                  patch.object(backup, 'BACKUPS', root / 'backups'), \
-                 patch.object(backup, 'find_pane', return_value=None), \
+                 patch.object(backup, 'server_pid', return_value=None), \
                  patch.dict(os.environ, {'RESTIC_CACHE_DIR': str(root / 'cache')}):
                 server = backup.Server('test')
                 server.path.mkdir(parents=True)

@@ -29,6 +29,7 @@ in {
         ../../../modules/profiles/microvm.nix
         ./backup
         ./monitoring
+        ./server.nix
       ];
 
       networking.hostName = host.hostname;

@@ -1,14 +1,14 @@
 { pkgs, ... }:
 
 let
-  command = "${pkgs.python3}/bin/python3 ${./backup.py}";
+  command = "${pkgs.python3}/bin/python3 ${./.}/backup.py";
 in {
   environment.systemPackages = [ pkgs.restic ];
 
   systemd.services.minecraft-backup = {
     description = "Back up all local Minecraft servers";
     unitConfig.RequiresMountsFor = [ "/home/veeti/servers" "/home/veeti/backups" ];
-    path = [ pkgs.restic pkgs.tmux ];
+    path = [ pkgs.restic pkgs.systemd ];
     serviceConfig = {
       Type = "oneshot";
       User = "veeti";
@@ -24,7 +24,7 @@ in {
       IOSchedulingPriority = 7;
       MemoryMax = "512M";
       NoNewPrivileges = true;
-      # The script needs the existing tmux socket in /tmp, so no PrivateTmp.
+      PrivateTmp = true;
     };
   };
 

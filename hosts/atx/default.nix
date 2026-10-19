@@ -100,6 +100,7 @@ in {
   systemd.tmpfiles.rules = [ "d /var/lib/microvms 0755 root root -" ];
 
   boot.kernel.sysctl = {
+    "kernel.panic" = 30;
     "net.ipv4.ip_forward" = 0;
     "net.ipv4.conf.all.forwarding" = 0;
     "net.ipv6.conf.all.forwarding" = 0;

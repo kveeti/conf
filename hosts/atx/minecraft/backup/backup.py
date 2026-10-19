@@ -17,6 +17,8 @@ import stat
 import subprocess
 import time
 
+from console import server_pid, send_command
+
 SERVERS = Path('/home/veeti/servers')
 BACKUPS = Path('/home/veeti/backups')
 RESTIC_PASSWORD = 'minecraft'
@@ -86,39 +88,19 @@ def discover():
             if path.is_dir() and not path.is_symlink()]
 
 
-def find_pane(server):
-    """Select the sole Java pane in the matching session, not an arbitrary pane."""
-    result = subprocess.run(
-        ['tmux', 'list-panes', '-a', '-F',
-         '#{session_name}\t#{pane_id}\t#{pane_current_command}\t#{pane_current_path}'],
-        capture_output=True, text=True, timeout=5,
-    )
-    if result.returncode:
-        if ('no server running on ' in result.stderr
-                or '(No such file or directory)' in result.stderr
-                or result.stderr.strip() == 'no sessions'):
-            return None
-        raise BackupError('Cannot inspect tmux: ' + result.stderr.strip())
-    panes = []
-    for line in result.stdout.splitlines():
-        session, pane, command, cwd = line.split('\t', 3)
-        if session != server.name or command != 'java':
-            continue
-        if Path(cwd).resolve() != server.path.resolve():
-            raise BackupError(f'Java in session {server.name} is running from {cwd}, not {server.path}')
-        panes.append(pane)
-    if len(panes) > 1:
-        raise BackupError(f'More than one Java pane in session {server.name}; refusing to guess')
-    return panes[0] if panes else None
+def running_pid(server):
+    try:
+        return server_pid(server.name)
+    except RuntimeError as error:
+        raise RetryBackup(str(error)) from error
 
 
 class Console:
-    def __init__(self, server, pane=None):
+    def __init__(self, server, pid=None):
         self.server = server
-        self.pane = pane or find_pane(server)
-        if self.pane is None:
-            raise BackupError('No Java pane in the matching tmux session')
-        self.check_pane()
+        self.pid = pid or running_pid(server)
+        if self.pid is None:
+            raise BackupError('Minecraft service is not running')
         self.path = server.path / 'logs/latest.log'
         self.file = self.path.open('rb')
         self.file.seek(0, os.SEEK_END)
@@ -150,20 +132,11 @@ class Console:
                     raise BackupError('Minecraft reported a save error: ' + text)
         return messages
 
-    def check_pane(self):
-        state = subprocess.check_output(
-            ['tmux', 'display-message', '-p', '-t', self.pane,
-             '#{session_name}\t#{pane_current_command}\t#{pane_current_path}'],
-            text=True, timeout=5,
-        ).strip().split('\t', 2)
-        if (len(state) != 3 or state[0] != self.server.name or state[1] != 'java'
-                or Path(state[2]).resolve() != self.server.path.resolve()):
-            raise BackupError(f'{self.pane} is no longer running this server; refusing to type into it')
-
     def send(self, command):
-        self.check_pane()
-        subprocess.run(['tmux', 'send-keys', '-t', self.pane, '-l', '--', command], check=True, timeout=5)
-        subprocess.run(['tmux', 'send-keys', '-t', self.pane, 'Enter'], check=True, timeout=5)
+        try:
+            send_command(self.server.name, command, expected_pid=self.pid)
+        except RuntimeError as error:
+            raise RetryBackup(str(error)) from error
 
     def command(self, command, replies, timeout=30):
         self.read()
@@ -179,10 +152,10 @@ class Console:
 
 def notify(server, message):
     try:
-        pane = find_pane(server)
-        if pane is None:
+        pid = running_pid(server)
+        if pid is None:
             return
-        console = Console(server, pane)
+        console = Console(server, pid)
         try:
             text = ' '.join(message.splitlines())
             component = json.dumps({'text': text, 'color': 'gray', 'italic': True}, separators=(',', ':'))
@@ -357,13 +330,13 @@ def locked_worlds(server):
                 raise RetryBackup('World is in use; cannot take an offline backup') from error
             info = os.fstat(file.fileno())
             identities[path] = (info.st_dev, info.st_ino)
-        if find_pane(server) is not None:
+        if running_pid(server) is not None:
             raise RetryBackup('Server started before the offline backup')
 
         def validate():
             current = {path: (path.stat().st_dev, path.stat().st_ino)
                        for path in server.path.rglob('session.lock')}
-            if current != identities or find_pane(server) is not None:
+            if current != identities or running_pid(server) is not None:
                 raise RetryBackup('Server or world changed during the offline backup')
 
         yield validate
@@ -375,9 +348,9 @@ def backup_once(server):
     error = None
     started_at = None
     try:
-        pane = find_pane(server)
-        if pane is not None:
-            console = Console(server, pane)  # Watch before the first save command.
+        pid = running_pid(server)
+        if pid is not None:
+            console = Console(server, pid)
         mode = 'online' if console else 'offline'
         if console:
             notify(server, 'Backing up in 5 seconds...')
