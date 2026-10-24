@@ -12,6 +12,7 @@
       ./agent-vm.nix
       ./helium.nix
       ./hyprland.nix
+      ./niri.nix
       ../../modules/telemetry/metrics.nix
       inputs.lanzaboote.nixosModules.lanzaboote
     ];
@@ -23,6 +24,9 @@
     "steam"
     "steam-unwrapped"
     "steam-run"
+    "spotify"
+    "nvidia-x11"
+    "nvidia-settings"
   ];
 
   boot.loader.systemd-boot.enable = true;
@@ -111,11 +115,32 @@
 
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
+  services.avahi.enable = true;
+
   services.pipewire = {
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+    raopOpenFirewall = true;
+    extraConfig.pipewire.raop = {
+      "context.modules" = [
+        {
+          name = "libpipewire-module-raop-discover";
+          args."stream.rules" = [
+            {
+              matches = [ { "raop.ip" = "~.*"; } ];
+              actions."create-stream"."stream.props"."priority.session" = 1;
+            }
+          ];
+        }
+      ];
+    };
+    wireplumber.extraConfig."disable-bluetooth-mics" = {
+      "monitor.bluez.properties" = {
+        "bluez5.roles" = [ "a2dp_sink" "a2dp_source" "bap_sink" ];
+      };
+    };
     #jack.enable = true;
     #media-session.enable = true;
   };
@@ -135,6 +160,11 @@
 
   programs.firefox.enable = true;
   programs.steam.enable = true;
+
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
 
   environment.systemPackages = with pkgs; [
     vim
@@ -171,18 +201,12 @@
     };
   };
 
-  boot.kernelParams = [
-    "i915.enable_guc=3"
-    "amdgpu.ppfeaturemask=0xfff7ffff"
-  ];
-  hardware.graphics.extraPackages = with pkgs; [
-    intel-media-driver
-    intel-compute-runtime
-    libvdpau-va-gl
-    vpl-gpu-rt
-  ];
-  environment.sessionVariables = {
-    LIBVA_DRIVER_NAME = "iHD";
+  services.xserver.videoDrivers = [ "nvidia" ];
+
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = true;
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
   };
 
   # DDC/CI brightness control for the external monitor (ddcutil over i2c)

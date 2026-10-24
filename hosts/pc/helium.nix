@@ -18,7 +18,6 @@ let
 
     # libva.so.2 isn't bundled in the AppImage's FHS env; without it Chromium's
     # GPU process can't dlopen VAAPI and silently falls back to software decode.
-    # nixpkgs' libva is patched to find the iHD driver in /run/opengl-driver.
     extraPkgs = pkgs: with pkgs; [ libnotify libsecret libva ];
 
     extraInstallCommands = ''

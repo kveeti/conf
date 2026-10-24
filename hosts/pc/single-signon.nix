@@ -7,7 +7,7 @@
     enable = true;
     user = "veeti";
   };
-  services.displayManager.defaultSession = "hyprland";
+  services.displayManager.defaultSession = "niri";
 
   systemd.services.display-manager.serviceConfig.KeyringMode = "inherit";
 
