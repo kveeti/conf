@@ -46,11 +46,40 @@ let
       "[ ! -e ${lib.escapeShellArg instance.restoreMarker} ] && "
     + instance.hasData;
 
+  automaticInstances = lib.filterAttrs (_: instance: instance.restoreDirectory == null) cfg.instances;
+  manualInstances = lib.filterAttrs (_: instance: instance.restoreDirectory != null) cfg.instances;
+
+  restoreCommands = lib.mapAttrsToList (name: instance:
+    pkgs.writeShellApplication {
+      name = "restore-${name}";
+      runtimeInputs = [ pkgs.restic pkgs.coreutils pkgs.util-linux pkgs.systemd ] ++ instance.extraPackages;
+      text = ''
+        restoreName=${lib.escapeShellArg name}
+        restoreDirectory=${lib.escapeShellArg instance.restoreDirectory}
+        restoreTagArgs=(${tagArgs instance})
+        restoreLock=/run/backup-${name}.lock
+        restoreRepository=${lib.escapeShellArg "rest:${cfg.serverUrl}/${instance.repository}"}
+        restoreUsername=${lib.escapeShellArg instance.username}
+        restoreRestPasswordFile=${lib.escapeShellArg instance.restPasswordFile}
+        restoreEncryptionPasswordFile=${lib.escapeShellArg instance.encryptionPasswordFile}
+        preRestore() {
+          ${instance.preRestoreScript}
+          :
+        }
+        postRestore() {
+          ${instance.postRestoreScript}
+          :
+        }
+        ${builtins.readFile ./restore-directory.sh}
+      '';
+    }
+  ) manualInstances;
+
   backupServices = lib.mapAttrs' (name: instance:
     lib.nameValuePair "backup-${name}" {
       description = "Back up ${name}";
-      after = [ "restore-${name}.service" ];
-      requires = [ "restore-${name}.service" ];
+      after = lib.optional (instance.restoreDirectory == null) "restore-${name}.service";
+      requires = lib.optional (instance.restoreDirectory == null) "restore-${name}.service";
       path = [ pkgs.restic pkgs.coreutils pkgs.util-linux ] ++ instance.extraPackages;
       serviceConfig = {
         Type = "oneshot";
@@ -61,10 +90,15 @@ let
       };
       script = ''
         set -euo pipefail
-        ${ensureRepository instance}
+        ${lib.optionalString (instance.restoreDirectory != null) ''
+          exec 8>/run/backup-${name}.lock
+          flock -n 8
+        ''}${ensureRepository instance}
         ${lib.optionalString (instance.cleanup != null) "trap ${lib.escapeShellArg instance.cleanup} EXIT"}
         ${lib.optionalString (instance.prepare != null) instance.prepare}
+        ${instance.preBackupScript}
         restic backup ${tagArgs instance} ${lib.escapeShellArgs instance.paths} ${lib.concatMapStringsSep " " (exclude: "--exclude ${lib.escapeShellArg exclude}") (excludes instance)}
+        ${instance.postBackupScript}
 
         metric=/var/lib/node-exporter-textfile/restic_${name}.prom
         printf 'restic_backup_last_success_timestamp_seconds{instance="%s"} %s\n' \
@@ -124,7 +158,7 @@ let
         ${lib.optionalString (instance.restoreMarker != null) "rm -f ${lib.escapeShellArg instance.restoreMarker}"}
       '';
     }
-  ) cfg.instances;
+  ) automaticInstances;
 in {
   options.homelab.backups = {
     serverUrl = lib.mkOption {
@@ -149,14 +183,24 @@ in {
             description = "REST server user.";
           };
 
+          passwordFile = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "File containing the password used for both REST access and repository encryption.";
+          };
+
           restPasswordFile = lib.mkOption {
             type = lib.types.str;
-            description = "File containing the REST server password.";
+            default = if config.passwordFile != null then config.passwordFile
+              else throw "Backup ${name}: set passwordFile or restPasswordFile.";
+            description = "REST access password file. Defaults to passwordFile; retained for existing repositories with separate passwords.";
           };
 
           encryptionPasswordFile = lib.mkOption {
             type = lib.types.str;
-            description = "File containing the repository encryption password.";
+            default = if config.passwordFile != null then config.passwordFile
+              else throw "Backup ${name}: set passwordFile or encryptionPasswordFile.";
+            description = "Repository encryption password file. Defaults to passwordFile; retained for existing repositories with separate passwords.";
           };
 
           paths = lib.mkOption {
@@ -188,13 +232,45 @@ in {
             description = "Commands run after a snapshot attempt.";
           };
 
+          preBackupScript = lib.mkOption {
+            type = lib.types.lines;
+            default = "";
+            description = "Commands run before backup. Failure stops the backup.";
+          };
+
+          postBackupScript = lib.mkOption {
+            type = lib.types.lines;
+            default = "";
+            description = "Commands run after a successful backup.";
+          };
+
+          restoreDirectory = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "Directory restored in place by restore-<name>, instead of automatic startup recovery. Files absent from the snapshot are not deleted.";
+          };
+
+          preRestoreScript = lib.mkOption {
+            type = lib.types.lines;
+            default = "";
+            description = "Commands run before restore. Failure stops the restore.";
+          };
+
+          postRestoreScript = lib.mkOption {
+            type = lib.types.lines;
+            default = "";
+            description = "Commands run after a successful restore.";
+          };
+
           hasData = lib.mkOption {
             type = lib.types.lines;
+            default = "";
             description = "Shell test which succeeds when state already exists.";
           };
 
           restore = lib.mkOption {
             type = lib.types.lines;
+            default = "";
             description = "Commands which restore the latest snapshot.";
           };
 
@@ -245,6 +321,17 @@ in {
   };
 
   config = lib.mkIf (cfg.instances != {}) {
+    assertions = lib.mapAttrsToList (name: instance: {
+      assertion = if instance.restoreDirectory == null then
+        instance.hasData != "" && instance.restore != ""
+      else
+        lib.hasPrefix "/" instance.restoreDirectory
+        && instance.restoreDirectory != "/"
+        && lib.elem instance.restoreDirectory instance.paths;
+      message = "Backup ${name} needs automatic restore hooks or an absolute restore directory included in its backup paths.";
+    }) cfg.instances;
+
+    environment.systemPackages = restoreCommands;
     systemd.services = backupServices // restoreServices;
     systemd.timers = backupTimers;
 
