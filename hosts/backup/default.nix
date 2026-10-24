@@ -17,6 +17,7 @@ in {
     ./disk.nix
     ./hardware.nix
     ./monitoring
+    ./radicale.nix
     ./restic.nix
   ];
 

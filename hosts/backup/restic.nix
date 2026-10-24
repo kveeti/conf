@@ -25,7 +25,12 @@ in {
     repositories = lib.genAttrs repositories (name: {
       clientPasswordFile = config.age.secrets."restic-${name}-rest-pass".path;
       encryptionPasswordFile = config.age.secrets."restic-${name}-encryption-pass".path;
-    });
+    }) // {
+      radicale = {
+        clientPasswordFile = config.age.secrets.restic-radicale-password.path;
+        encryptionPasswordFile = config.age.secrets.restic-radicale-password.path;
+      };
+    };
   };
 
   services.nginx.virtualHosts."backup.internal.veetik.com" = {

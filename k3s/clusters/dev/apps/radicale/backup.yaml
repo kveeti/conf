@@ -3,7 +3,10 @@ kind: ReplicationSource
 metadata:
   name: radicale
   namespace: radicale
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  paused: true
   sourcePVC: radicale-data-mutual-chap-restored
   trigger:
     schedule: "0 3 * * *"
