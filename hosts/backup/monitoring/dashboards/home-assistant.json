@@ -39,7 +39,7 @@
         "type": "prometheus",
         "uid": "victoriametrics"
       },
-      "description": "Ambient sensor temperatures (Zigbee device chip temps excluded).",
+      "description": "Ambient sensor temperatures (device chip temperatures and dew points excluded).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -121,7 +121,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "hass_sensor_temperature_celsius{entity!~\".+_device_temperature\"}",
+          "expr": "hass_sensor_temperature_celsius{entity!~\".+_(device_temperature|dew_point)\"}",
           "legendFormat": "{{friendly_name}}",
           "range": true,
           "refId": "A"

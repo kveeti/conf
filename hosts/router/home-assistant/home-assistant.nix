@@ -1,4 +1,4 @@
-{ config, pkgs-unstable, ... }:
+{ pkgs-unstable, ... }:
 
 {
   services.home-assistant = {
@@ -78,6 +78,7 @@
             { type = "tile"; entity = "light.bathroom_lights"; vertical = false; features_position = "bottom"; }
             { type = "tile"; entity = "sensor.living_room_temp_temperature"; name = "Living room temp"; vertical = false; icon_tap_action.action = "none"; features_position = "bottom"; }
             { type = "tile"; entity = "sensor.living_room_temp_humidity"; name = "Living room humidity"; vertical = false; features_position = "bottom"; }
+            { type = "tile"; entity = "sensor.balcony_temp_temperature"; name = "Balcony temp"; vertical = false; features_position = "bottom"; }
           ];
         }
         {
@@ -133,11 +134,15 @@
         time_zone = "Europe/Helsinki";
         unit_system = "metric";
       };
-      http = {
-        server_host = "127.0.0.1";
-        server_port = config.homelab.ports.homeAssistant;
-        use_x_forwarded_for = true;
-        trusted_proxies = [ "127.0.0.1" ];
+      lovelace.dashboards = {
+        nixos-lovelace = null;
+        lovelace = {
+          mode = "yaml";
+          filename = "ui-lovelace.yaml";
+          title = "Home";
+          icon = "mdi:view-dashboard";
+          show_in_sidebar = true;
+        };
       };
       frontend = {};
       config = {};

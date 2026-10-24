@@ -87,6 +87,16 @@
             lanzaboote.nixosModules.lanzaboote
             microvm.nixosModules.host
             secrets-router.nixosModules.router
+            {
+              microvm.vms.homeassistant.config = {
+                disabledModules = [
+                  "services/home-automation/home-assistant.nix"
+                ];
+                imports = [
+                  "${nixpkgs-unstable}/nixos/modules/services/home-automation/home-assistant.nix"
+                ];
+              };
+            }
             ./hosts/router
           ];
         };
