@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, pkgs-unstable, ... }:
 
 let
   bluetoothBattery = pkgs.writeShellApplication {
@@ -115,6 +115,7 @@ in
   programs.bash.enable = true;
 
   home.packages = with pkgs; [
+    pkgs-unstable.satty
     prismlauncher
     rofi
     discord
@@ -131,6 +132,22 @@ in
 
   programs.keepassxc.enable = true;
   services.playerctld.enable = true;
+
+  systemd.user.services.screenshot-annotation = {
+    Unit = {
+      Description = "Open Niri screenshots in Satty";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+    Service.ExecStart = pkgs.writeShellScript "screenshot-annotation" ''
+      ${pkgs.niri}/bin/niri msg --json event-stream \
+        | ${pkgs.jq}/bin/jq --unbuffered -r 'select(.ScreenshotCaptured.path != null) | .ScreenshotCaptured.path' \
+        | while IFS= read -r path; do
+            ${pkgs-unstable.satty}/bin/satty --filename "$path" --output-filename "$path" &
+          done
+    '';
+  };
 
   xdg.desktopEntries.spotify = {
     name = "Spotify";
@@ -438,6 +455,11 @@ in
     }
 
     window-rule {
+      match app-id="^com\\.gabm\\.satty$"
+      open-floating true
+    }
+
+    window-rule {
       match app-id="^firefox$" title="^Picture-in-Picture$"
       open-floating true
     }
@@ -476,6 +498,7 @@ in
 
     binds {
       Mod+Shift+Slash { show-hotkey-overlay; }
+      Mod+Shift+S { screenshot; }
       Mod+Space hotkey-overlay-title="Launch an app" { spawn "rofi" "-show" "drun"; }
       Mod+A { spawn "audio-menu"; }
       Mod+Return { spawn "ghostty"; }
