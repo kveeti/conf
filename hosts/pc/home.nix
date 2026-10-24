@@ -598,6 +598,8 @@ in
     x11.enable = true;
   };
 
+  dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+
   gtk = {
     enable = true;
     font = {
@@ -609,7 +611,7 @@ in
       package = pkgs.kdePackages.breeze-icons;
     };
     gtk3.extraConfig = {
-      gtk-application-prefer-dark-theme = false;
+      gtk-application-prefer-dark-theme = true;
       gtk-button-images = true;
       gtk-cursor-blink = true;
       gtk-cursor-blink-time = 1000;
@@ -622,7 +624,7 @@ in
       gtk-xft-dpi = 159744;
     };
     gtk4.extraConfig = {
-      gtk-application-prefer-dark-theme = false;
+      gtk-application-prefer-dark-theme = true;
       gtk-cursor-blink = true;
       gtk-cursor-blink-time = 1000;
       gtk-decoration-layout = "icon:minimize,maximize,close";
