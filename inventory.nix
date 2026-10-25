@@ -190,6 +190,8 @@
         smartctlExporter = 9633;
         bookmarksBackend = 20001;
         bookmarksFrontend = 20002;
+        tasksBackend = 20003;
+        tasksFrontend = 20004;
         victoriametrics = 18428;
         victorialogs = 19428;
         victoriatraces = 19429;
@@ -213,7 +215,6 @@
         initrdSsh = 2222;
         authentikLdap = 3389;
         authentikLdaps = 6636;
-        tasks = 8001;
         money = 8003;
         nginxStatus = 8050;
         keycloak = 8080;

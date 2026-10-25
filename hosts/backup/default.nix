@@ -22,6 +22,7 @@ in {
     ./radicale.nix
     ./restic.nix
     ./rss.nix
+    ./tasks.nix
     ./weather.nix
   ];
 

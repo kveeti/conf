@@ -10,7 +10,6 @@ let
     "internal"
     "modi"
     "money"
-    "tasks"
   ];
 in {
   imports = [
@@ -41,6 +40,10 @@ in {
       rss = {
         clientPasswordFile = config.age.secrets.restic-rss-password.path;
         encryptionPasswordFile = config.age.secrets.restic-rss-password.path;
+      };
+      tasks = {
+        clientPasswordFile = config.age.secrets.restic-tasks-password.path;
+        encryptionPasswordFile = config.age.secrets.restic-tasks-password.path;
       };
       weather = {
         clientPasswordFile = config.age.secrets.restic-weather-password.path;

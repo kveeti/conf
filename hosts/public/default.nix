@@ -25,7 +25,6 @@ in {
     ./money.nix
     ./nginx.nix
     ./secure-boot.nix
-    ./tasks.nix
   ];
 
   age.secrets = {
