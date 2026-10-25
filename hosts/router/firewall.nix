@@ -27,10 +27,18 @@ let
 
   portForwards = [
     {
-      name = "web";
-      destination = "192.168.50.8";
+      name = "public-http";
+      destination = hosts.backup.ipv4;
       protocol = "tcp";
-      ports = [ hosts.public.ports.http hosts.public.ports.https ];
+      ports = [ hosts.public.ports.http ];
+      destinationPort = backupPorts.publicHttp;
+    }
+    {
+      name = "public-https";
+      destination = hosts.backup.ipv4;
+      protocol = "tcp";
+      ports = [ hosts.public.ports.https ];
+      destinationPort = backupPorts.publicHttps;
     }
     {
       name = "minecraft";
@@ -47,9 +55,12 @@ let
       then builtins.head values
       else "{ ${lib.concatStringsSep ", " values} }";
 
+  forwardDestination = forward:
+    forward.destination + lib.optionalString (forward ? destinationPort) ":${toString forward.destinationPort}";
+
   portForwardFilterRules = lib.concatMapStringsSep "\n" (forward: ''
     ip daddr ${forward.destination} ct status dnat \
-      ${forward.protocol} dport ${portMatch forward} \
+      ${forward.protocol} dport ${if forward ? destinationPort then toString forward.destinationPort else portMatch forward} \
       counter accept comment "${forward.name} port forward"
   '') portForwards;
 
@@ -57,11 +68,11 @@ let
     fib daddr type local \
       ${forward.protocol} dport ${portMatch forward} \
       ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } \
-      counter dnat to ${forward.destination}
+      counter dnat to ${forwardDestination forward}
 
     meta nfproto ipv4 iifname "${wan}" \
       ${forward.protocol} dport ${portMatch forward} \
-      counter dnat to ${forward.destination}
+      counter dnat to ${forwardDestination forward}
   '') portForwards;
 in {
   networking.firewall.enable = false;

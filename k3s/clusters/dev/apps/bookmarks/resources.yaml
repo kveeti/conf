@@ -13,8 +13,10 @@ kind: Deployment
 metadata:
   name: bookmarks-backend
   namespace: bookmarks
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: bookmarks-backend
@@ -119,8 +121,10 @@ kind: Deployment
 metadata:
   name: bookmarks-frontend
   namespace: bookmarks
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: bookmarks-frontend

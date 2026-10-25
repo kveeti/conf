@@ -95,7 +95,10 @@ kind: Kustomization
 metadata:
   name: bookmarks
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  suspend: true
   interval: 5m
   dependsOn:
     - name: bookmarks-db
@@ -148,7 +151,10 @@ kind: Kustomization
 metadata:
   name: tasks
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  suspend: true
   interval: 5m
   dependsOn:
     - name: tasks-db
@@ -197,7 +203,10 @@ kind: Kustomization
 metadata:
   name: money
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  suspend: true
   interval: 5m
   dependsOn:
     - name: money-db
@@ -246,7 +255,10 @@ kind: Kustomization
 metadata:
   name: keycloak
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  suspend: true
   interval: 5m
   dependsOn:
     - name: keycloak-db

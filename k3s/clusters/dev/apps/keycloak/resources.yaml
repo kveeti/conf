@@ -3,8 +3,10 @@ kind: Deployment
 metadata:
   name: keycloak
   namespace: keycloak
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
-  replicas: 1
+  replicas: 0
   strategy:
     type: Recreate
   selector:

@@ -12,8 +12,10 @@ kind: Deployment
 metadata:
   name: tasks-backend
   namespace: tasks
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: tasks-backend
@@ -112,8 +114,10 @@ kind: Deployment
 metadata:
   name: tasks-frontend
   namespace: tasks
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: tasks-frontend
