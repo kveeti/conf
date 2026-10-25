@@ -188,6 +188,8 @@
         nodeExporter = 9100;
         blackboxExporter = 9115;
         smartctlExporter = 9633;
+        bookmarksBackend = 20001;
+        bookmarksFrontend = 20002;
         victoriametrics = 18428;
         victorialogs = 19428;
         victoriatraces = 19429;
@@ -212,7 +214,6 @@
         authentikLdap = 3389;
         authentikLdaps = 6636;
         tasks = 8001;
-        bm = 8002;
         money = 8003;
         nginxStatus = 8050;
         keycloak = 8080;

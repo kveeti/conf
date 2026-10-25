@@ -17,7 +17,6 @@ in {
     ../../modules/services/k3s-server.nix
     ../../modules/telemetry/logs.nix
     ./authentik.nix
-    ./bm.nix
     ./containers.nix
     ./disk.nix
     ./hardware.nix

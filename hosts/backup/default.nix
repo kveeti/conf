@@ -14,6 +14,7 @@ in {
     ../../modules/features/secure-boot.nix
     ../../modules/services/k3s-server.nix
     ./archive-disk.nix
+    ./bookmarks.nix
     ./disk.nix
     ./hardware.nix
     ./keycloak.nix
