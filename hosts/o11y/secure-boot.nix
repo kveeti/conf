@@ -2,11 +2,11 @@
 
 let
   finishPublicSecureBoot = pkgs.writeShellApplication {
-    name = "finish-public-secure-boot";
+    name = "finish-o11y-secure-boot";
     runtimeInputs = [ pkgs.jq pkgs.sbctl pkgs.systemd ];
     text = ''
       if [[ "$EUID" -ne 0 ]]; then
-        echo "Run this command with sudo: sudo finish-public-secure-boot" >&2
+        echo "Run this command with sudo: sudo finish-o11y-secure-boot" >&2
         exit 1
       fi
 

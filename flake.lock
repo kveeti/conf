@@ -602,10 +602,10 @@
         "secrets-atx": [
           "secrets"
         ],
-        "secrets-pc": [
+        "secrets-o11y": [
           "secrets"
         ],
-        "secrets-public": [
+        "secrets-pc": [
           "secrets"
         ],
         "secrets-router": [
@@ -663,11 +663,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1792958360,
-        "narHash": "sha256-75Lhd/sPR1PEd11EFl0ueiQC0w0/k6hJXbCcuViA3fQ=",
+        "lastModified": 1792961724,
+        "narHash": "sha256-UuAyBngQcwoxyH94Z6IK6doU9EgjWYAtj7dKdFtTbUA=",
         "ref": "refs/heads/master",
-        "rev": "85c00d35245efda97ad9ffbe4e6400e0ae82fdc3",
-        "revCount": 68,
+        "rev": "a9629408514dee4fc217e903fffd62e012af14b6",
+        "revCount": 69,
         "type": "git",
         "url": "file:///home/veeti/code/secrets"
       },

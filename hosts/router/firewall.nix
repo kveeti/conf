@@ -30,14 +30,14 @@ let
       name = "public-http";
       destination = hosts.worker.ipv4;
       protocol = "tcp";
-      ports = [ hosts.public.ports.http ];
+      ports = [ 80 ];
       destinationPort = workerPorts.publicHttp;
     }
     {
       name = "public-https";
       destination = hosts.worker.ipv4;
       protocol = "tcp";
-      ports = [ hosts.public.ports.https ];
+      ports = [ 443 ];
       destinationPort = workerPorts.publicHttps;
     }
     {
@@ -148,10 +148,6 @@ in {
         chain forward {
           type filter hook forward priority filter; policy drop;
 
-          iifname "${networks.dmz.interface}" \
-            ip saddr != ${hosts.public.ipv4} \
-            counter drop comment "public host anti-spoof"
-
           iifname "${networks.minecraft.interface}" \
             ip saddr != ${hosts.minecraft.ipv4} \
             counter drop comment "minecraft anti-spoof"
@@ -170,16 +166,6 @@ in {
           iifname "${sixRd}" ct state { new, untracked } counter drop
 
           iifname "${networks.servers.interface}" oifname "${networks.servers.interface}" accept
-          iifname "${networks.dmz.interface}" \
-            oifname "${networks.servers.interface}" \
-            ip saddr ${hosts.public.ipv4} ip daddr ${hosts.worker.ipv4} \
-            tcp dport ${toString workerPorts.https} accept comment "public -> worker"
-
-          iifname "${networks.dmz.interface}" \
-            oifname "${networks.servers.interface}" \
-            ip saddr ${hosts.public.ipv4} ip daddr ${hosts.backup-vm.ipv4} \
-            tcp dport ${toString hosts.backup-vm.ports.restic} accept
-
           iifname "${iotInterface}" \
             oifname "${networks.servers.interface}" \
             ip saddr ${hosts.home-assistant.ipv4} ip daddr ${hosts.backup-vm.ipv4} \
@@ -187,25 +173,13 @@ in {
 
           iifname "${networks.minecraft.interface}" \
             oifname "${networks.servers.interface}" \
-            ip saddr ${hosts.minecraft.ipv4} ip daddr ${hosts.worker.ipv4} \
-            tcp dport ${toString workerPorts.https} accept comment "minecraft -> worker"
+            ip saddr ${hosts.minecraft.ipv4} ip daddr { ${hosts.worker.ipv4}, ${hosts.o11y.ipv4} } \
+            tcp dport ${toString workerPorts.https} accept comment "minecraft -> services and telemetry"
 
           iifname "${iotInterface}" \
             oifname "${networks.servers.interface}" \
-            ip saddr ${hosts.home-assistant.ipv4} ip daddr ${hosts.worker.ipv4} \
-            tcp dport ${toString workerPorts.https} accept comment "home assistant -> worker"
-
-          iifname "${networks.servers.interface}" \
-            ip saddr ${hosts.atx-internal.ipv4} \
-            oifname "${networks.dmz.interface}" \
-            ip daddr ${hosts.public.ipv4} tcp dport ${toString hosts.public.ports.https} \
-            accept comment "internal apps -> public identity"
-
-          iifname "${networks.servers.interface}" \
-            oifname "${networks.dmz.interface}" \
-            ip saddr ${hosts.worker.ipv4} ip daddr ${hosts.public.ipv4} \
-            tcp dport ${toString hosts.public.ports.https} \
-            accept comment "worker -> public probes"
+            ip saddr ${hosts.home-assistant.ipv4} ip daddr { ${hosts.worker.ipv4}, ${hosts.o11y.ipv4} } \
+            tcp dport ${toString workerPorts.https} accept comment "home assistant -> services and telemetry"
 
           iifname "${iotInterface}" \
             oifname "${networks.media.interface}" \

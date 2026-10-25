@@ -1,7 +1,7 @@
 { config, inventory, lib, pkgs, ... }:
 
 let
-  publicIp = inventory.hosts.public.ipv4;
+  ingress = inventory.hosts.worker;
   ports = config.homelab.ports;
 
   publicProbes = [
@@ -58,7 +58,7 @@ let
     job_name = "blackbox-lan-${builtins.replaceStrings [ "." ] [ "-" ] probe.host}";
     metrics_path = "/probe";
     params.module = [ (moduleName probe.host) ];
-    static_configs = [{ targets = [ "https://${publicIp}${probe.path}" ]; }];
+    static_configs = [{ targets = [ "https://${ingress.ipv4}:${toString ingress.ports.publicHttps}${probe.path}" ]; }];
     relabel_configs = [
       { source_labels = [ "__address__" ]; target_label = "__param_target"; }
       { target_label = "instance"; replacement = "https://${probe.host}${probe.path}"; }

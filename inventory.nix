@@ -32,12 +32,6 @@
       router4 = "192.168.40.1";
     };
 
-    dmz = {
-      vlan = 66;
-      cidr4 = "192.168.66.0/29";
-      router4 = "192.168.66.1";
-    };
-
     minecraft = {
       vlan = 76;
       cidr4 = "192.168.76.0/30";
@@ -156,7 +150,6 @@
         keycloakManagement = 9000;
         vmagent = 8429;
         nodeExporter = 9100;
-        blackboxExporter = 9115;
         smartctlExporter = 9633;
         bookmarksBackend = 20001;
         bookmarksFrontend = 20002;
@@ -165,41 +158,30 @@
         money = 20005;
         papra = 20008;
         mongo = 27017;
+      };
+    };
+
+    o11y = {
+      hostname = "o11y";
+      mac = "e8:6a:64:99:a8:76";
+      network = "servers";
+      ipv4 = "192.168.40.13";
+      ports = {
+        ssh = 22;
+        https = 443;
+        initrdSsh = 2222;
+        nginxStatus = 8050;
+        vmagent = 8429;
+        nodeExporter = 9100;
+        nginxExporter = 9113;
+        blackboxExporter = 9115;
+        smartctlExporter = 9633;
         victoriametrics = 18428;
         victorialogs = 19428;
         victoriatraces = 19429;
         victoriatracesOtlp = 14317;
         otelCollector = 14318;
         otelCollectorMetrics = 18888;
-      };
-    };
-
-    public = {
-      hostname = "public";
-      mac = "e8:6a:64:99:a8:76";
-      network = "dmz";
-      ipv4 = "192.168.66.2";
-      ports = {
-        ssh = 22;
-        http = 80;
-        https = 443;
-        authentikRadius = 1812;
-        initrdSsh = 2222;
-        authentikLdap = 3389;
-        authentikLdaps = 6636;
-        nginxStatus = 8050;
-        keycloak = 8080;
-        authentik = 8081;
-        vmagent = 8429;
-        keycloakManagement = 9000;
-        nodeExporter = 9100;
-        nginxExporter = 9113;
-        postgresqlExporter = 9187;
-        authentikMetrics = 9300;
-        keycloakAdminHttps = 9443;
-        smartctlExporter = 9633;
-        authentikDebug = 9900;
-        authentikDebugPython = 9901;
       };
     };
 

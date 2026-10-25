@@ -1,8 +1,10 @@
-{ config, pkgs, mkNginxInternal, ... }:
+{ config, inventory, pkgs, mkNginxInternal, ... }:
 
 let
   domain = "grafana.internal.veetik.com";
   ports = config.homelab.ports;
+  victoria = inventory.hosts.o11y;
+  victoriaHost = "${victoria.hostname}.internal.veetik.com";
 in {
   imports = [ ../tls.nix ];
 
@@ -50,7 +52,7 @@ in {
           name = "VictoriaMetrics";
           type = "prometheus";
           uid = "victoriametrics";
-          url = "http://127.0.0.1:${toString ports.victoriametrics}";
+          url = "http://${victoriaHost}:${toString victoria.ports.victoriametrics}";
           # Match vmagent's default scrape interval so $__rate_interval covers
           # enough samples, including when zooming in on process CPU/I/O.
           jsonData.timeInterval = "30s";
@@ -60,13 +62,13 @@ in {
           name = "VictoriaLogs";
           type = "victoriametrics-logs-datasource";
           uid = "victorialogs";
-          url = "http://127.0.0.1:${toString ports.victorialogs}";
+          url = "http://${victoriaHost}:${toString victoria.ports.victorialogs}";
         }
         {
           name = "VictoriaTraces";
           type = "jaeger";
           uid = "victoriatraces";
-          url = "http://127.0.0.1:${toString ports.victoriatraces}/select/jaeger";
+          url = "http://${victoriaHost}:${toString victoria.ports.victoriatraces}/select/jaeger";
         }
       ];
       dashboards.settings.providers = [{

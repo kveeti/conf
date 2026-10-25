@@ -31,7 +31,7 @@ let
   dhcpHosts = map (name:
     let host = hosts.${name};
     in "${host.mac},${host.hostname},${host.ipv4}"
-  ) [ "atx" "worker" "public" "slzb-06" "apple-tv" ];
+  ) [ "atx" "worker" "o11y" "slzb-06" "apple-tv" ];
 
   mdnsInterfaces = map (name: networks.${name}.interface) policy.mdnsNetworks;
 in {
@@ -103,16 +103,16 @@ in {
         ];
         local-data = [
           ''"ui.internal.veetik.com. IN A ${hosts.router.ipv4}"''
-          ''"authadmin.veetik.com. IN A ${hosts.public.ipv4}"''
           ''"mc.veetik.com. IN CNAME oul-1.veetik.com."''
           ''"ha.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"worker.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
           ''"restic.internal.veetik.com. IN A ${hosts.backup-vm.ipv4}"''
           ''"grafana.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
-          ''"logs.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
-          ''"metrics.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
-          ''"traces.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
+          ''"o11y.internal.veetik.com. IN A ${hosts.o11y.ipv4}"''
+          ''"logs.internal.veetik.com. IN A ${hosts.o11y.ipv4}"''
+          ''"metrics.internal.veetik.com. IN A ${hosts.o11y.ipv4}"''
+          ''"traces.internal.veetik.com. IN A ${hosts.o11y.ipv4}"''
           ''"media.lan. IN A ${hosts.media.ipv4}"''
           ''"jellyfin.media.lan. IN A ${hosts.jellyfin.ipv4}"''
           ''"dav.internal.veetik.com. IN A ${hosts.worker.ipv4}"''

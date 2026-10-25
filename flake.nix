@@ -43,11 +43,11 @@
     secrets.url = "git+file:///home/veeti/code/secrets";
     secrets-worker.follows = "secrets";
     secrets-atx.follows = "secrets";
-    secrets-public.follows = "secrets";
+    secrets-o11y.follows = "secrets";
     secrets-router.follows = "secrets";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixvim, disko, lanzaboote, money, food, rss, weather, microvm, home-manager, secrets, secrets-atx, secrets-worker, secrets-public, secrets-router, secrets-pc, mac }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixvim, disko, lanzaboote, money, food, rss, weather, microvm, home-manager, secrets, secrets-atx, secrets-worker, secrets-o11y, secrets-router, secrets-pc, mac }:
     let
       inventory = import ./inventory.nix;
       routerInventory = import ./hosts/router/inventory.nix { inherit inventory; lib = nixpkgs.lib; };
@@ -171,17 +171,16 @@
           };
         };
 
-        public = mkHost {
-          hostName = "public";
+        o11y = mkHost {
+          hostName = "o11y";
           specialArgs = {
-            adminKeys = (import secrets-public).keys.admins;
-            inherit money;
+            adminKeys = (import secrets-o11y).keys.admins;
           };
           modules = [
             disko.nixosModules.disko
             lanzaboote.nixosModules.lanzaboote
-            secrets-public.nixosModules.public
-            ./hosts/public
+            secrets-o11y.nixosModules.o11y
+            ./hosts/o11y
           ];
         };
       };

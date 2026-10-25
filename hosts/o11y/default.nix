@@ -1,9 +1,8 @@
 { config, adminKeys, inventory, pkgs, ... }:
 
 let
-  host = inventory.hosts.public;
+  host = inventory.hosts.o11y;
   network = inventory.networks.${host.network};
-  worker = inventory.hosts.worker;
   ports = config.homelab.ports;
 in {
   imports = [
@@ -11,13 +10,9 @@ in {
     ../../modules/profiles/server.nix
     ../../modules/features/disk-health.nix
     ../../modules/features/port-registry.nix
-    ../../modules/services/postgresql.nix
-    ../../modules/telemetry/logs.nix
-    ./authentik.nix
-    ./containers.nix
     ./disk.nix
     ./hardware.nix
-    ./nginx.nix
+    ./monitoring
     ./secure-boot.nix
   ];
 
@@ -64,10 +59,10 @@ in {
   systemd.network = {
     enable = true;
     networks = {
-      "10-dmz" = {
+      "10-lan" = {
         matchConfig.Name = "en*";
         linkConfig.RequiredForOnline = "routable";
-        address = [ "${host.ipv4}/29" ];
+        address = [ "${host.ipv4}/24" ];
         routes = [{
           Gateway = network.router4;
           PreferredSource = host.ipv4;
@@ -80,15 +75,9 @@ in {
     };
   };
 
-  networking.firewall.extraInputRules = ''
-    ip saddr { ${inventory.networks.trusted.cidr4}, ${inventory.networks.wireguard.cidr4} } \
-      tcp dport ${toString ports.keycloakAdminHttps} accept
-  '';
-
   services = {
     openssh.listenAddresses = [{ addr = host.ipv4; port = ports.ssh; }];
     prometheus.exporters = {
-      postgres.port = ports.postgresqlExporter;
       smartctl.port = ports.smartctlExporter;
     };
     zfs = {
@@ -103,28 +92,11 @@ in {
   };
 
   homelab = {
-    backups.serverUrl = "https://restic.internal.veetik.com:${toString inventory.hosts.backup-vm.ports.restic}";
-
     nginxMetrics = {
       statusPort = ports.nginxStatus;
       exporterPort = ports.nginxExporter;
     };
 
-    metrics = {
-      enable = true;
-      listenAddress = "127.0.0.1:${toString ports.vmagent}";
-      nodeExporter.port = ports.nodeExporter;
-      remoteWriteUrl = "https://metrics.internal.veetik.com/api/v1/write";
-      username = "telemetry";
-      passwordFile = config.age.secrets.telemetry-pass.path;
-    };
-
-    logs = {
-      enable = true;
-      url = "https://logs.internal.veetik.com";
-      username = "telemetry";
-      passwordFile = config.age.secrets.telemetry-pass.path;
-    };
   };
 
   environment.systemPackages = [ pkgs.dnsutils ];

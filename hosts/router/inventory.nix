@@ -51,12 +51,6 @@ inventory // {
         end = "192.168.40.254";
         lease = "24h";
       };
-      dmz = {
-        start = "192.168.66.2";
-        end = "192.168.66.2";
-        lease = "24h";
-        netmask = "255.255.255.248";
-      };
       media = {
         start = "192.168.111.8";
         end = "192.168.111.8";
@@ -71,11 +65,10 @@ inventory // {
       "iot"
       "untrusted"
       "servers"
-      "dmz"
       "minecraft"
       "unifi"
     ];
-    internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dmz" "minecraft" ];
+    internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "minecraft" ];
     mdnsNetworks = [ "trusted" "iot" "untrusted" "servers" ];
   };
 }

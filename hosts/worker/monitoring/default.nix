@@ -8,27 +8,22 @@ in {
     ../../../modules/telemetry/logs.nix
     ../../../modules/telemetry/metrics.nix
     ./grafana.nix
-    ./ingest.nix
-    ./probes.nix
-    ./storage.nix
-    ./tracing.nix
   ];
 
   homelab.logs = {
     enable = true;
-    url = "http://127.0.0.1:${toString ports.victorialogs}";
+    url = "https://logs.internal.veetik.com";
+    username = "telemetry";
+    passwordFile = config.age.secrets.telemetry-pass.path;
   };
 
   homelab.metrics = {
     enable = true;
     listenAddress = "127.0.0.1:${toString ports.vmagent}";
     nodeExporter.port = ports.nodeExporter;
-    remoteWriteUrl = "http://127.0.0.1:${toString ports.victoriametrics}/api/v1/write";
-    scrapes = {
-      victoriametrics.targets = [ "127.0.0.1:${toString ports.victoriametrics}" ];
-      vmagent.targets = [ "127.0.0.1:${toString ports.vmagent}" ];
-      opentelemetry.targets = [ "127.0.0.1:${toString ports.otelCollectorMetrics}" ];
-      victoriatraces.targets = [ "127.0.0.1:${toString ports.victoriatraces}" ];
-    };
+    remoteWriteUrl = "https://metrics.internal.veetik.com/api/v1/write";
+    username = "telemetry";
+    passwordFile = config.age.secrets.telemetry-pass.path;
+    scrapes.vmagent.targets = [ "127.0.0.1:${toString ports.vmagent}" ];
   };
 }
