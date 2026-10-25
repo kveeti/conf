@@ -3,8 +3,6 @@
 let
   host = inventory.hosts.backup;
   network = inventory.networks.${host.network};
-  kubeNetwork = inventory.networks.kube;
-  kubeInterface = "vlan${toString kubeNetwork.vlan}";
   ports = config.homelab.ports;
 in {
   imports = [
@@ -12,7 +10,6 @@ in {
     ../../modules/profiles/server.nix
     ../../modules/features/port-registry.nix
     ../../modules/features/secure-boot.nix
-    ../../modules/services/k3s-server.nix
     ./archive-disk.nix
     ./bookmarks.nix
     ./disk.nix
@@ -22,7 +19,7 @@ in {
     ./money.nix
     ./papra.nix
     ./radicale.nix
-    ./restic.nix
+    ./tls.nix
     ./rss.nix
     ./tasks.nix
     ./weather.nix
@@ -63,50 +60,26 @@ in {
     hostId = "ba61c0d5";
     useDHCP = false;
     useNetworkd = true;
+    nftables.enable = true;
     firewall.allowedTCPPorts = [ ports.ssh ];
   };
 
   systemd.network = {
     enable = true;
-    netdevs."20-kube" = {
-      netdevConfig = {
-        Kind = "vlan";
-        Name = kubeInterface;
-      };
-      vlanConfig.Id = kubeNetwork.vlan;
-    };
     networks = {
       "10-lan" = {
         matchConfig.Name = "en*";
         address = [ "${host.ipv4}/24" ];
-        vlan = [ kubeInterface ];
         routes = [{ Gateway = network.router4; }];
         networkConfig = {
           DHCP = "no";
           DNS = [ network.router4 ];
         };
       };
-      "20-kube" = {
-        matchConfig.Name = kubeInterface;
-        address = [ "${host.kubeIpv4}/24" ];
-        networkConfig = {
-          DHCP = "no";
-          LinkLocalAddressing = "no";
-        };
-      };
     };
   };
 
   services = {
-    k3s = {
-      nodeName = "control2";
-      serverAddr = "https://${inventory.hosts.public.kubeIpv4}:6443";
-      tokenFile = "/var/lib/rancher/k3s/join-token";
-    };
-    openiscsi = {
-      enable = true;
-      name = "iqn.2026-09.com.veetik:control2";
-    };
     openssh.ports = [ ports.ssh ];
     prometheus.exporters.smartctl.port = ports.smartctlExporter;
     zfs = {
@@ -114,14 +87,6 @@ in {
       trim.enable = true;
     };
   };
-
-  systemd.tmpfiles.rules = [
-    "d /lib 0755 root root -"
-    "L /lib/modules - - - - /run/current-system/kernel-modules/lib/modules"
-    "d /var/lib/iscsi 0755 root root -"
-  ];
-
-  systemd.services.k3s.unitConfig.ConditionPathExists = config.services.k3s.tokenFile;
 
   system.stateVersion = "25.11";
 }

@@ -1,4 +1,4 @@
-{ config, lib, pkgs, mkNginxInternal, ... }:
+{ config, lib, pkgs, inventory, mkNginxInternal, ... }:
 
 let
   state = "/var/lib/radicale";
@@ -57,7 +57,7 @@ in {
   };
 
   homelab.backups = {
-    serverUrl = "https://backup.internal.veetik.com:8000";
+    serverUrl = "https://restic.internal.veetik.com:${toString inventory.hosts.backup-vm.ports.restic}";
     instances.radicale = {
       passwordFile = config.age.secrets.restic-radicale-password.path;
       paths = [ state ];

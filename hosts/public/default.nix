@@ -3,8 +3,6 @@
 let
   host = inventory.hosts.public;
   network = inventory.networks.${host.network};
-  kubeNetwork = inventory.networks.kube;
-  kubeInterface = "vlan${toString kubeNetwork.vlan}";
   backup = inventory.hosts.backup;
   ports = config.homelab.ports;
 in {
@@ -14,13 +12,11 @@ in {
     ../../modules/features/disk-health.nix
     ../../modules/features/port-registry.nix
     ../../modules/services/postgresql.nix
-    ../../modules/services/k3s-server.nix
     ../../modules/telemetry/logs.nix
     ./authentik.nix
     ./containers.nix
     ./disk.nix
     ./hardware.nix
-    ./keycloak.nix
     ./modi.nix
     ./nginx.nix
     ./secure-boot.nix
@@ -62,24 +58,17 @@ in {
     hostId = "6f1e923a";
     useDHCP = false;
     useNetworkd = true;
+    nftables.enable = true;
     firewall.allowedTCPPorts = [ ports.ssh ];
   };
 
   systemd.network = {
     enable = true;
-    netdevs."20-kube" = {
-      netdevConfig = {
-        Kind = "vlan";
-        Name = kubeInterface;
-      };
-      vlanConfig.Id = kubeNetwork.vlan;
-    };
     networks = {
       "10-dmz" = {
         matchConfig.Name = "en*";
         linkConfig.RequiredForOnline = "routable";
         address = [ "${host.ipv4}/29" ];
-        vlan = [ kubeInterface ];
         routes = [{
           Gateway = network.router4;
           PreferredSource = host.ipv4;
@@ -87,14 +76,6 @@ in {
         networkConfig = {
           DHCP = "no";
           DNS = [ network.router4 ];
-        };
-      };
-      "20-kube" = {
-        matchConfig.Name = kubeInterface;
-        address = [ "${host.kubeIpv4}/24" ];
-        networkConfig = {
-          DHCP = "no";
-          LinkLocalAddressing = "no";
         };
       };
     };
@@ -106,14 +87,6 @@ in {
   '';
 
   services = {
-    k3s = {
-      clusterInit = true;
-      nodeName = "control1";
-    };
-    openiscsi = {
-      enable = true;
-      name = "iqn.2026-09.com.veetik:control1";
-    };
     openssh.listenAddresses = [{ addr = host.ipv4; port = ports.ssh; }];
     prometheus.exporters = {
       postgres.port = ports.postgresqlExporter;
@@ -125,19 +98,13 @@ in {
     };
   };
 
-  systemd.tmpfiles.rules = [
-    "d /lib 0755 root root -"
-    "L /lib/modules - - - - /run/current-system/kernel-modules/lib/modules"
-    "d /var/lib/iscsi 0755 root root -"
-  ];
-
   systemd.services.sshd = {
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
   };
 
   homelab = {
-    backups.serverUrl = "https://backup.internal.veetik.com:8000";
+    backups.serverUrl = "https://restic.internal.veetik.com:${toString inventory.hosts.backup-vm.ports.restic}";
 
     nginxMetrics = {
       statusPort = ports.nginxStatus;

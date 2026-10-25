@@ -196,7 +196,7 @@ in {
     };
 
     system.activationScripts.restic-htpasswd = {
-      deps = [ "agenix" "users" ];
+      deps = [ "users" ] ++ lib.optional (config ? age) "agenix";
       text = ''
         install -d -m 0750 -o restic -g restic ${cfg.dataDir}
         tmp=$(mktemp ${cfg.dataDir}/.htpasswd.XXXXXX)

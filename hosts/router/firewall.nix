@@ -184,10 +184,17 @@ in {
           iifname "${networks.dmz.interface}" \
             oifname "${networks.servers.interface}" \
             ip saddr ${hosts.public.ipv4} ip daddr ${hosts.backup.ipv4} \
-            tcp dport {
-              ${toString backupPorts.https},
-              ${toString backupPorts.restic}
-            } accept comment "public -> backup"
+            tcp dport ${toString backupPorts.https} accept comment "public -> backup"
+
+          iifname "${networks.dmz.interface}" \
+            oifname "${networks.servers.interface}" \
+            ip saddr ${hosts.public.ipv4} ip daddr ${hosts.backup-vm.ipv4} \
+            tcp dport ${toString hosts.backup-vm.ports.restic} accept
+
+          iifname "${iotInterface}" \
+            oifname "${networks.servers.interface}" \
+            ip saddr ${hosts.home-assistant.ipv4} ip daddr ${hosts.backup-vm.ipv4} \
+            tcp dport ${toString hosts.backup-vm.ports.restic} accept
 
           iifname "${networks.minecraft.interface}" \
             oifname "${networks.servers.interface}" \
@@ -197,10 +204,7 @@ in {
           iifname "${iotInterface}" \
             oifname "${networks.servers.interface}" \
             ip saddr ${hosts.home-assistant.ipv4} ip daddr ${hosts.backup.ipv4} \
-            tcp dport {
-              ${toString backupPorts.https},
-              ${toString backupPorts.restic}
-            } accept comment "home assistant -> backup"
+            tcp dport ${toString backupPorts.https} accept comment "home assistant -> backup"
 
           iifname "${networks.servers.interface}" \
             ip saddr ${hosts.atx-internal.ipv4} \

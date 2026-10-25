@@ -123,6 +123,7 @@ let
   restoreServices = lib.mapAttrs' (name: instance:
     lib.nameValuePair "restore-${name}" {
       description = "Restore ${name} when its state is empty";
+      restartIfChanged = false;
       inherit (instance) before requiredBy;
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ] ++ instance.after;

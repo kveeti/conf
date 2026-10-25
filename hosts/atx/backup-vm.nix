@@ -6,6 +6,12 @@ let
   host = inventory.hosts.${name};
   network = inventory.networks.${host.network};
   secretDir = "${stateRoot}/secrets";
+  legacyRepositories = [ "auth" "authentik" "bm" "ha" "internal" "modi" ];
+  appRepositories = [ "bookmarks" "keycloak" "money" "papra" "radicale" "rss" "tasks" "weather" ];
+  passwordNames = lib.concatMap (repository: [
+    "restic-${repository}-rest-pass"
+    "restic-${repository}-encryption-pass"
+  ]) legacyRepositories ++ map (repository: "restic-${repository}-password") appRepositories;
 in {
   system.activationScripts.backup-vm-files = {
     deps = [ "agenix" ];
@@ -13,6 +19,10 @@ in {
       install -d -m 0755 ${stateRoot}/ssh
       install -d -m 0711 ${secretDir}
       install -m 0400 ${config.age.secrets.telemetry-pass.path} ${secretDir}/telemetry-pass
+      install -m 0400 ${config.age.secrets.cloudflare-env-file.path} ${secretDir}/cloudflare-env-file
+      ${lib.concatMapStringsSep "\n" (password: ''
+        install -m 0400 ${config.age.secrets.${password}.path} ${secretDir}/${password}
+      '') passwordNames}
     '';
   };
 
@@ -23,49 +33,58 @@ in {
 
   microvm.vms.backup-vm = {
     specialArgs = { inherit adminKeys inventory; };
-    config = { pkgs, ... }: {
-      imports = [ ../../modules/profiles/microvm.nix ];
+    config = { ... }: {
+      imports = [
+        ../../modules/profiles/microvm.nix
+        ../../modules/services/restic-server.nix
+      ];
+
+      fileSystems."/run/secrets".neededForBoot = true;
+      fileSystems."/var/lib/restic".neededForBoot = true;
 
       networking.hostName = host.hostname;
       networking.nftables.enable = true;
-      networking.firewall.extraInputRules = ''
-        ip saddr { ${inventory.hosts.public.kubeIpv4}, ${inventory.hosts.backup.kubeIpv4} } tcp dport ${toString host.ports.s3} accept
-      '';
+      networking.firewall.allowedTCPPorts = [ host.ports.restic ];
 
-      users.groups.garage = {};
-      users.users.garage = {
-        isSystemUser = true;
-        group = "garage";
+      homelab.resticServer = {
+        enable = true;
+        listenAddress = "127.0.0.1:${toString host.ports.restServer}";
+        repositories = lib.genAttrs legacyRepositories (repository: {
+          clientPasswordFile = "/run/secrets/restic-${repository}-rest-pass";
+          encryptionPasswordFile = "/run/secrets/restic-${repository}-encryption-pass";
+        }) // lib.genAttrs appRepositories (repository: {
+          clientPasswordFile = "/run/secrets/restic-${repository}-password";
+          encryptionPasswordFile = "/run/secrets/restic-${repository}-password";
+        });
       };
 
-      services.garage = {
+      services.nginx = {
         enable = true;
-        package = pkgs.garage;
-        settings = {
-          replication_factor = 1;
-          rpc_bind_addr = "127.0.0.1:3901";
-          rpc_public_addr = "127.0.0.1:3901";
-          rpc_secret_file = "/var/lib/garage/rpc-secret";
-          s3_api = {
-            s3_region = "garage";
-            api_bind_addr = "${host.ipv4}:${toString host.ports.s3}";
+        recommendedProxySettings = true;
+        virtualHosts."restic.internal.veetik.com" = {
+          onlySSL = true;
+          enableACME = true;
+          acmeRoot = null;
+          listen = [{ addr = "0.0.0.0"; port = host.ports.restic; ssl = true; }];
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:${toString host.ports.restServer}";
+            extraConfig = ''
+              client_max_body_size 0;
+              proxy_request_buffering off;
+            '';
           };
         };
       };
 
-      systemd.services.garage = {
-        unitConfig.RequiresMountsFor = "/var/lib/garage";
-        serviceConfig = {
-          DynamicUser = lib.mkForce false;
-          User = "garage";
-          Group = "garage";
+      security.acme = {
+        acceptTerms = true;
+        defaults = {
+          email = "security@veetik.com";
+          server = "https://acme-v02.api.letsencrypt.org/directory";
+          dnsProvider = "cloudflare";
+          dnsResolver = "1.1.1.1";
+          environmentFile = "/run/secrets/cloudflare-env-file";
         };
-        preStart = ''
-          if [ ! -e /var/lib/garage/rpc-secret ]; then
-            umask 077
-            ${pkgs.openssl}/bin/openssl rand -hex 32 > /var/lib/garage/rpc-secret
-          fi
-        '';
       };
 
       microvm = {
@@ -97,10 +116,10 @@ in {
             size = 8192;
           }
           {
-            image = "${stateRoot}/garage.img";
-            mountPoint = "/var/lib/garage";
-            label = "garage-data";
-            size = 262144;
+            image = "${stateRoot}/restic.img";
+            mountPoint = "/var/lib/restic";
+            label = "restic-data";
+            size = 65536;
           }
         ];
       };

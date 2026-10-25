@@ -13,7 +13,6 @@ in {
     ../../modules/telemetry/metrics.nix
     ./certificates.nix
     ./backup-vm.nix
-    ./control3.nix
     ./disk.nix
     ./hardware.nix
     ./media-certificate.nix
@@ -21,7 +20,6 @@ in {
     ./minecraft/default.nix
     ./network.nix
     ./storage.nix
-    ./storage-vm.nix
   ];
 
   age.secrets = {

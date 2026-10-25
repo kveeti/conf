@@ -106,7 +106,7 @@ in {
           };
         };
         backups = {
-          serverUrl = "https://backup.internal.veetik.com:${toString inventory.hosts.backup.ports.restic}";
+          serverUrl = "https://restic.internal.veetik.com:${toString inventory.hosts.backup-vm.ports.restic}";
           instances = {
             hass = {
               repository = "ha";

@@ -128,11 +128,12 @@
 
     backup-vm = {
       hostname = "backup-vm";
-      network = "kube";
-      ipv4 = "192.168.50.4";
+      network = "servers";
+      ipv4 = "192.168.40.12";
       ports = {
         ssh = 22;
-        s3 = 3900;
+        restic = 8000;
+        restServer = 8001;
         vmagent = 8429;
         nodeExporter = 9100;
       };
@@ -179,8 +180,6 @@
         https = 443;
         initrdSsh = 2222;
         grafana = 3000;
-        restic = 8000;
-        restServer = 8001;
         publicHttp = 8080;
         publicHttps = 8443;
         keycloak = 20007;

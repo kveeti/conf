@@ -108,6 +108,7 @@ in {
           ''"ha.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"backup.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
+          ''"restic.internal.veetik.com. IN A ${hosts.backup-vm.ipv4}"''
           ''"grafana.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
           ''"logs.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
           ''"metrics.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
@@ -123,7 +124,7 @@ in {
           ''"bookmarks.internal.veetik.com. IN A 192.168.50.9"''
           ''"tasks.internal.veetik.com. IN A 192.168.50.9"''
           ''"money.internal.veetik.com. IN A 192.168.50.9"''
-          ''"authadmin.internal.veetik.com. IN A 192.168.50.9"''
+          ''"authadmin.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
         ];
       };
 
