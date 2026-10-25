@@ -1,4 +1,4 @@
-{ config, weather, ... }:
+{ config, weather, mkNginxInternal, ... }:
 
 let
   state = "/var/lib/weather";
@@ -18,10 +18,7 @@ in {
     };
   };
 
-  services.nginx.virtualHosts."weather.internal.veetik.com" = {
-    onlySSL = true;
-    useACMEHost = "internal.veetik.com";
-    listen = [{ addr = "0.0.0.0"; port = config.homelab.ports.https; ssl = true; }];
+  services.nginx.virtualHosts."weather.internal.veetik.com" = mkNginxInternal {
     locations."/".proxyPass = "http://127.0.0.1:${toString port}";
   };
 

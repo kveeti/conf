@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, mkNginxInternal, ... }:
 
 let
   htpasswdFile = "/var/lib/nginx/telemetry.htpasswd";
@@ -23,11 +23,8 @@ in {
   };
 
   services.nginx.virtualHosts = {
-    "backup-metrics" = {
+    "backup-metrics" = mkNginxInternal {
       serverName = "metrics.internal.veetik.com";
-      onlySSL = true;
-      useACMEHost = "internal.veetik.com";
-      listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
       locations = {
         "= /api/v1/write" = {
           proxyPass = "http://127.0.0.1:${toString ports.victoriametrics}";
@@ -43,11 +40,8 @@ in {
       };
     };
 
-    "backup-traces" = {
+    "backup-traces" = mkNginxInternal {
       serverName = "traces.internal.veetik.com";
-      onlySSL = true;
-      useACMEHost = "internal.veetik.com";
-      listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
       locations."/" = {
         basicAuthFile = traceHtpasswdFile;
         extraConfig = ''
@@ -60,11 +54,8 @@ in {
       };
     };
 
-    "backup-logs" = {
+    "backup-logs" = mkNginxInternal {
       serverName = "logs.internal.veetik.com";
-      onlySSL = true;
-      useACMEHost = "internal.veetik.com";
-      listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
       locations = {
         "= /insert/elasticsearch/_bulk" = {
           proxyPass = "http://127.0.0.1:${toString ports.victorialogs}";

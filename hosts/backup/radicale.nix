@@ -1,7 +1,6 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, mkNginxInternal, ... }:
 
 let
-  ports = config.homelab.ports;
   state = "/var/lib/radicale";
   authFile = config.age.secrets.radicale-users.path;
   python = pkgs.python3.withPackages (packages: with packages; [ python-dateutil vobject ]);
@@ -46,10 +45,7 @@ in {
     };
   };
 
-  services.nginx.virtualHosts."dav.internal.veetik.com" = {
-    onlySSL = true;
-    useACMEHost = "internal.veetik.com";
-    listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
+  services.nginx.virtualHosts."dav.internal.veetik.com" = mkNginxInternal {
     locations."/".proxyPass = "http://127.0.0.1:5232";
   };
 

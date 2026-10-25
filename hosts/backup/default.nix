@@ -16,6 +16,7 @@ in {
     ./archive-disk.nix
     ./disk.nix
     ./hardware.nix
+    ./keycloak.nix
     ./monitoring
     ./radicale.nix
     ./restic.nix

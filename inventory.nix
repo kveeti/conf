@@ -181,6 +181,9 @@
         grafana = 3000;
         restic = 8000;
         restServer = 8001;
+        keycloak = 8080;
+        publicHttps = 8443;
+        keycloakManagement = 9000;
         vmagent = 8429;
         nodeExporter = 9100;
         blackboxExporter = 9115;

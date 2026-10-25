@@ -1,4 +1,4 @@
-{ config, rss, ... }:
+{ config, rss, mkNginxInternal, ... }:
 
 let
   port = 20000;
@@ -21,10 +21,7 @@ in {
     passwordFile = config.age.secrets.restic-rss-password.path;
   };
 
-  services.nginx.virtualHosts."rss.internal.veetik.com" = {
-    onlySSL = true;
-    useACMEHost = "internal.veetik.com";
-    listen = [{ addr = "0.0.0.0"; port = config.homelab.ports.https; ssl = true; }];
+  services.nginx.virtualHosts."rss.internal.veetik.com" = mkNginxInternal {
     locations."/".proxyPass = "http://127.0.0.1:${toString port}";
   };
 }

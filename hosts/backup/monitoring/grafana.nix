@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, mkNginxInternal, ... }:
 
 let
   domain = "grafana.internal.veetik.com";
@@ -76,10 +76,7 @@ in {
     };
   };
 
-  services.nginx.virtualHosts.${domain} = {
-    onlySSL = true;
-    useACMEHost = "internal.veetik.com";
-    listen = [{ addr = "0.0.0.0"; port = ports.https; ssl = true; }];
+  services.nginx.virtualHosts.${domain} = mkNginxInternal {
     locations."/" = {
       proxyPass = "http://127.0.0.1:${toString ports.grafana}";
       proxyWebsockets = true;

@@ -26,6 +26,10 @@ in {
       clientPasswordFile = config.age.secrets."restic-${name}-rest-pass".path;
       encryptionPasswordFile = config.age.secrets."restic-${name}-encryption-pass".path;
     }) // {
+      keycloak = {
+        clientPasswordFile = config.age.secrets.restic-keycloak-password.path;
+        encryptionPasswordFile = config.age.secrets.restic-keycloak-password.path;
+      };
       radicale = {
         clientPasswordFile = config.age.secrets.restic-radicale-password.path;
         encryptionPasswordFile = config.age.secrets.restic-radicale-password.path;
