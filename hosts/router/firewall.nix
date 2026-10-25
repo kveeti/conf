@@ -7,7 +7,7 @@ let
   hosts = inventory.hosts;
   networks = inventory.networks;
   ports = config.homelab.ports;
-  backupPorts = hosts.backup.ports;
+  workerPorts = hosts.worker.ports;
   unifiPorts = hosts.unifi.ports;
   policy = inventory.router;
   iotInterface = networks.iot.interface;
@@ -28,17 +28,17 @@ let
   portForwards = [
     {
       name = "public-http";
-      destination = hosts.backup.ipv4;
+      destination = hosts.worker.ipv4;
       protocol = "tcp";
       ports = [ hosts.public.ports.http ];
-      destinationPort = backupPorts.publicHttp;
+      destinationPort = workerPorts.publicHttp;
     }
     {
       name = "public-https";
-      destination = hosts.backup.ipv4;
+      destination = hosts.worker.ipv4;
       protocol = "tcp";
       ports = [ hosts.public.ports.https ];
-      destinationPort = backupPorts.publicHttps;
+      destinationPort = workerPorts.publicHttps;
     }
     {
       name = "minecraft";
@@ -176,15 +176,15 @@ in {
 
           iifname "${networks.kube.interface}" \
             oifname "${networks.servers.interface}" \
-            ip saddr { ${hosts.public.kubeIpv4}, ${hosts.backup.kubeIpv4}, ${hosts.control3.ipv4} } \
-            ip daddr ${hosts.backup.ipv4} \
-            tcp dport ${toString backupPorts.https} accept comment "control nodes -> backup telemetry"
+            ip saddr { ${hosts.public.kubeIpv4}, ${hosts.worker.kubeIpv4}, ${hosts.control3.ipv4} } \
+            ip daddr ${hosts.worker.ipv4} \
+            tcp dport ${toString workerPorts.https} accept comment "control nodes -> worker telemetry"
 
           iifname "${networks.servers.interface}" oifname "${networks.servers.interface}" accept
           iifname "${networks.dmz.interface}" \
             oifname "${networks.servers.interface}" \
-            ip saddr ${hosts.public.ipv4} ip daddr ${hosts.backup.ipv4} \
-            tcp dport ${toString backupPorts.https} accept comment "public -> backup"
+            ip saddr ${hosts.public.ipv4} ip daddr ${hosts.worker.ipv4} \
+            tcp dport ${toString workerPorts.https} accept comment "public -> worker"
 
           iifname "${networks.dmz.interface}" \
             oifname "${networks.servers.interface}" \
@@ -198,13 +198,13 @@ in {
 
           iifname "${networks.minecraft.interface}" \
             oifname "${networks.servers.interface}" \
-            ip saddr ${hosts.minecraft.ipv4} ip daddr ${hosts.backup.ipv4} \
-            tcp dport ${toString backupPorts.https} accept comment "minecraft -> backup"
+            ip saddr ${hosts.minecraft.ipv4} ip daddr ${hosts.worker.ipv4} \
+            tcp dport ${toString workerPorts.https} accept comment "minecraft -> worker"
 
           iifname "${iotInterface}" \
             oifname "${networks.servers.interface}" \
-            ip saddr ${hosts.home-assistant.ipv4} ip daddr ${hosts.backup.ipv4} \
-            tcp dport ${toString backupPorts.https} accept comment "home assistant -> backup"
+            ip saddr ${hosts.home-assistant.ipv4} ip daddr ${hosts.worker.ipv4} \
+            tcp dport ${toString workerPorts.https} accept comment "home assistant -> worker"
 
           iifname "${networks.servers.interface}" \
             ip saddr ${hosts.atx-internal.ipv4} \
@@ -220,9 +220,9 @@ in {
 
           iifname "${networks.servers.interface}" \
             oifname "${networks.dmz.interface}" \
-            ip saddr ${hosts.backup.ipv4} ip daddr ${hosts.public.ipv4} \
+            ip saddr ${hosts.worker.ipv4} ip daddr ${hosts.public.ipv4} \
             tcp dport ${toString hosts.public.ports.https} \
-            accept comment "backup -> public probes"
+            accept comment "worker -> public probes"
 
           iifname "${iotInterface}" \
             oifname "${networks.media.interface}" \

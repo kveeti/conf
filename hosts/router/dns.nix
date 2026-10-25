@@ -31,7 +31,7 @@ let
   dhcpHosts = map (name:
     let host = hosts.${name};
     in "${host.mac},${host.hostname},${host.ipv4}"
-  ) [ "atx" "backup" "public" "slzb-06" "apple-tv" ];
+  ) [ "atx" "worker" "public" "slzb-06" "apple-tv" ];
 
   mdnsInterfaces = map (name: networks.${name}.interface) policy.mdnsNetworks;
 in {
@@ -107,24 +107,24 @@ in {
           ''"mc.veetik.com. IN CNAME oul-1.veetik.com."''
           ''"ha.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
-          ''"backup.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
+          ''"worker.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
           ''"restic.internal.veetik.com. IN A ${hosts.backup-vm.ipv4}"''
-          ''"grafana.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
-          ''"logs.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
-          ''"metrics.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
-          ''"traces.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
+          ''"grafana.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
+          ''"logs.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
+          ''"metrics.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
+          ''"traces.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
           ''"media.lan. IN A ${hosts.media.ipv4}"''
           ''"jellyfin.media.lan. IN A ${hosts.jellyfin.ipv4}"''
-          ''"dav.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
-          ''"docs.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
+          ''"dav.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
+          ''"docs.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
           ''"food.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
-          ''"weather.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
+          ''"weather.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
           ''"p.internal.veetik.com. IN A ${hosts.atx-internal.ipv4}"''
-          ''"rss.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
+          ''"rss.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
           ''"bookmarks.internal.veetik.com. IN A 192.168.50.9"''
           ''"tasks.internal.veetik.com. IN A 192.168.50.9"''
           ''"money.internal.veetik.com. IN A 192.168.50.9"''
-          ''"authadmin.internal.veetik.com. IN A ${hosts.backup.ipv4}"''
+          ''"authadmin.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
         ];
       };
 

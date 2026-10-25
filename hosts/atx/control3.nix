@@ -30,7 +30,7 @@ in {
       ];
 
       networking.hostName = host.hostname;
-      networking.hosts.${inventory.hosts.backup.kubeIpv4} = [
+      networking.hosts.${inventory.hosts.worker.kubeIpv4} = [
         "metrics.internal.veetik.com"
         "logs.internal.veetik.com"
       ];

@@ -8,7 +8,7 @@ public port or firewall changes.
 - Logs/process, saved player stats and backup-attempt status: refreshed every 10s.
 - Allocated disk space (including BlueMap) and Restic snapshot metadata: refreshed every 5m, outside the HTTP
   request path. External commands have timeouts. Unchanged log archives are cached.
-- Grafana: **Minecraft · servu**, provisioned on the backup host.
+- Grafana: **Minecraft · servu**, provisioned on the worker host.
 
 ## Deployment
 
@@ -16,7 +16,7 @@ From the repository root, using the existing deployment helper:
 
 ```sh
 ./deploy atx 192.168.40.10
-./deploy backup backup.internal.veetik.com
+./deploy worker worker.internal.veetik.com
 ```
 
 Updating ATX changes the Minecraft microVM generation. Verify the guest actually
@@ -49,10 +49,10 @@ verified to use UTC. Do not substitute your browser's timezone for the log timez
 
 The authenticated public metrics endpoint only accepts remote-write requests,
 not historical imports. Open a temporary SSH tunnel to VictoriaMetrics on the
-backup host instead, in another terminal:
+worker host instead, in another terminal:
 
 ```sh
-ssh -N -L 18428:127.0.0.1:18428 veeti@backup.internal.veetik.com
+ssh -N -L 18428:127.0.0.1:18428 veeti@worker.internal.veetik.com
 ```
 
 Inspect the generated JSON first, then explicitly import:

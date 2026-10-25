@@ -6,7 +6,7 @@
 | Kubernetes node | Hostname | Cluster IP | Where it runs / config |
 | --- | --- | --- | --- |
 | control1 | public | 192.168.50.5 | Physical host; `hosts/public/` |
-| control2 | backup | 192.168.50.6 | Physical host; `hosts/backup/` |
+| control2 | worker (formerly backup) | 192.168.50.6 | Physical host; `hosts/worker/` |
 | control3 | control3 | 192.168.50.7 | MicroVM on ATX; `hosts/atx/control3.nix` |
 
 - Apps run on control1/control2. Control3 is tainted against normal workloads.

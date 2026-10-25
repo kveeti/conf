@@ -23,7 +23,7 @@ in {
   };
 
   services.nginx.virtualHosts = {
-    "backup-metrics" = mkNginxInternal {
+    "worker-metrics" = mkNginxInternal {
       serverName = "metrics.internal.veetik.com";
       locations = {
         "= /api/v1/write" = {
@@ -40,7 +40,7 @@ in {
       };
     };
 
-    "backup-traces" = mkNginxInternal {
+    "worker-traces" = mkNginxInternal {
       serverName = "traces.internal.veetik.com";
       locations."/" = {
         basicAuthFile = traceHtpasswdFile;
@@ -54,7 +54,7 @@ in {
       };
     };
 
-    "backup-logs" = mkNginxInternal {
+    "worker-logs" = mkNginxInternal {
       serverName = "logs.internal.veetik.com";
       locations = {
         "= /insert/elasticsearch/_bulk" = {

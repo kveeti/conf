@@ -103,7 +103,7 @@ in {
           owner = "postgres";
           mode = "0750";
         };
-        backups.serverUrl = "https://backup.internal.veetik.com:${toString inventory.hosts.backup.ports.restic}";
+        backups.serverUrl = "https://restic.internal.veetik.com:${toString inventory.hosts.backup-vm.ports.restic}";
         nginxMetrics = {
           statusPort = config.homelab.ports.nginxStatus;
           exporterPort = config.homelab.ports.nginxExporter;

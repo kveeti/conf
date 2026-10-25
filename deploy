@@ -17,7 +17,7 @@ host=$1
 target=$2
 
 case "$host" in
-  atx | backup | public | router | pc) ;;
+  atx | worker | public | router | pc) ;;
   *)
     echo "unknown host: $host" >&2
     exit 1

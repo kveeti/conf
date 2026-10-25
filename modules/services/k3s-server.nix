@@ -7,7 +7,7 @@ let
   kubeReservedRange = "192.168.50.0/27";
   etcdPeerIps = [
     inventory.hosts.public.kubeIpv4
-    inventory.hosts.backup.kubeIpv4
+    inventory.hosts.worker.kubeIpv4
     inventory.hosts.control3.ipv4
   ];
 in {

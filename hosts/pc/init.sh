@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# First-install bootstrap for pc. Mirrors atx/backup: stage the ephemeral host +
+# First-install bootstrap for pc. Mirrors atx/worker: stage the ephemeral host +
 # initrd-unlock SSH keys, then nixos-anywhere. Generate ./keys/ right before
 # running this and delete them after (never persisted):
 #   ssh-keygen -t ed25519 -N "" -f ./keys/ssh_host_ed25519_key

@@ -53,7 +53,7 @@ in {
       environment.systemPackages = [ pkgs.targetcli-fb ];
       networking.nftables.enable = true;
       networking.firewall.extraInputRules = ''
-        ip saddr { ${inventory.hosts.public.kubeIpv4}, ${inventory.hosts.backup.kubeIpv4} } tcp dport ${toString host.ports.iscsi} accept
+        ip saddr { ${inventory.hosts.public.kubeIpv4}, ${inventory.hosts.worker.kubeIpv4} } tcp dport ${toString host.ports.iscsi} accept
       '';
 
       system.activationScripts.iscsi-target-state = {

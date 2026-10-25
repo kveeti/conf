@@ -1,7 +1,7 @@
 { config, lib, adminKeys, inventory, ... }:
 
 let
-  host = inventory.hosts.backup;
+  host = inventory.hosts.worker;
   network = inventory.networks.${host.network};
   ports = config.homelab.ports;
 in {

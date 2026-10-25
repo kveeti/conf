@@ -602,9 +602,6 @@
         "secrets-atx": [
           "secrets"
         ],
-        "secrets-backup": [
-          "secrets"
-        ],
         "secrets-pc": [
           "secrets"
         ],
@@ -612,6 +609,9 @@
           "secrets"
         ],
         "secrets-router": [
+          "secrets"
+        ],
+        "secrets-worker": [
           "secrets"
         ],
         "weather": "weather"
@@ -663,11 +663,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1792957078,
-        "narHash": "sha256-rBqsbxzKLBNbGEz7noYTjnCvp7BizUORIlpRtVpuW9I=",
+        "lastModified": 1792958360,
+        "narHash": "sha256-75Lhd/sPR1PEd11EFl0ueiQC0w0/k6hJXbCcuViA3fQ=",
         "ref": "refs/heads/master",
-        "rev": "aa259c864969bc5201eaddea374b60b19139b5cb",
-        "revCount": 67,
+        "rev": "85c00d35245efda97ad9ffbe4e6400e0ae82fdc3",
+        "revCount": 68,
         "type": "git",
         "url": "file:///home/veeti/code/secrets"
       },

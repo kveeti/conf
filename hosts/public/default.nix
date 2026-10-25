@@ -3,7 +3,7 @@
 let
   host = inventory.hosts.public;
   network = inventory.networks.${host.network};
-  backup = inventory.hosts.backup;
+  worker = inventory.hosts.worker;
   ports = config.homelab.ports;
 in {
   imports = [

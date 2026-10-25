@@ -169,8 +169,8 @@
       };
     };
 
-    backup = {
-      hostname = "backup";
+    worker = {
+      hostname = "worker";
       mac = "e8:6a:64:e5:e5:56";
       network = "servers";
       ipv4 = "192.168.40.9";
