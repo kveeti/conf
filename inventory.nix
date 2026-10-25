@@ -194,6 +194,7 @@
         tasksFrontend = 20004;
         money = 20005;
         papra = 20008;
+        mongo = 27017;
         victoriametrics = 18428;
         victorialogs = 19428;
         victoriatraces = 19429;
@@ -230,7 +231,6 @@
         smartctlExporter = 9633;
         authentikDebug = 9900;
         authentikDebugPython = 9901;
-        mongo = 27017;
       };
     };
 

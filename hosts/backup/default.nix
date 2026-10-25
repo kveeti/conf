@@ -17,6 +17,7 @@ in {
     ./keycloak.nix
     ./monitoring
     ./money.nix
+    ./modi.nix
     ./papra.nix
     ./radicale.nix
     ./tls.nix

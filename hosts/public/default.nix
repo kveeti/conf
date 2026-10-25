@@ -17,7 +17,6 @@ in {
     ./containers.nix
     ./disk.nix
     ./hardware.nix
-    ./modi.nix
     ./nginx.nix
     ./secure-boot.nix
   ];
