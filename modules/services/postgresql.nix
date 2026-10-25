@@ -105,7 +105,7 @@ in {
           pg_dump -U root -Fc --no-owner --no-acl ${name} > ${dump}.tmp
           mv ${dump}.tmp ${dump}
         '';
-        restorePath = directory;
+        restoreDirectory = directory;
         preRestoreScript = lib.optionalString (database.services != []) ''
           systemctl stop ${units}
         '';

@@ -21,6 +21,6 @@ export RESTIC_PASSWORD_FILE="$restorePasswordFile"
 
 preRestore
 restic --no-cache restore "${1:-latest}" --target / \
-  --path "$restorePath" --include "$restorePath" \
+  --path "$restoreDirectory" --include "$restoreDirectory" \
   "${restoreTagArgs[@]}" --verify
 postRestore

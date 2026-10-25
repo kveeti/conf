@@ -3,6 +3,7 @@
 let
   ports = config.homelab.ports;
   state = "/var/lib/mongo";
+  backupDirectory = "/var/lib/modi-backups";
 
   waitForMongo = pkgs.writeShellScript "wait-for-modi-mongo" ''
     ready=false
@@ -64,27 +65,26 @@ in {
 
   homelab.backups.instances.modi = {
     passwordFile = config.age.secrets.restic-modi-password.path;
-    paths = [ "/tmp/modi.archive" ];
-    restorePath = "/tmp/modi.archive";
+    paths = [ backupDirectory ];
+    restoreDirectory = backupDirectory;
     preRestoreScript = ''
       systemctl stop podman-modi.service
       systemctl start podman-modi-mongo.service
       ${waitForMongo}
     '';
     extraPackages = [ pkgs.mongodb-tools ];
-    prepare = ''
+    preBackupScript = ''
+      install -d -m 0700 ${backupDirectory}
       ${waitForMongo}
       mongodump \
         --uri="mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin" \
-        --archive=/tmp/modi.archive
+        --archive=${backupDirectory}/database.archive
     '';
-    cleanup = "rm -f /tmp/modi.archive";
     postRestoreScript = ''
       mongorestore \
         --uri="mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin" \
         --drop \
-        --archive=/tmp/modi.archive
-      rm -f /tmp/modi.archive
+        --archive=${backupDirectory}/database.archive
       systemctl start podman-modi.service
     '';
   };

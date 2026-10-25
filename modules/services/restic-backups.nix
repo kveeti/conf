@@ -38,7 +38,7 @@ let
       runtimeInputs = [ pkgs.restic pkgs.coreutils pkgs.util-linux pkgs.systemd ] ++ instance.extraPackages;
       text = ''
         restoreName=${lib.escapeShellArg name}
-        restorePath=${lib.escapeShellArg instance.restorePath}
+        restoreDirectory=${lib.escapeShellArg instance.restoreDirectory}
         restoreTagArgs=(${tagArgs instance})
         restoreLock=/run/backup-${name}.lock
         restoreRepository=${lib.escapeShellArg "rest:${cfg.serverUrl}/${instance.repository}"}
@@ -52,7 +52,7 @@ let
           ${instance.postRestoreScript}
           :
         }
-        ${builtins.readFile ./restore-path.sh}
+        ${builtins.readFile ./restore-directory.sh}
       '';
     }
   ) cfg.instances;
@@ -168,9 +168,9 @@ in {
             description = "Commands run after a successful backup.";
           };
 
-          restorePath = lib.mkOption {
+          restoreDirectory = lib.mkOption {
             type = lib.types.str;
-            description = "File or directory restored in place by restore-<name>. Files absent from the snapshot are not deleted.";
+            description = "Directory restored in place by restore-<name>. Files absent from the snapshot are not deleted.";
           };
 
           preRestoreScript = lib.mkOption {
@@ -209,10 +209,10 @@ in {
 
   config = lib.mkIf (cfg.instances != {}) {
     assertions = lib.mapAttrsToList (name: instance: {
-      assertion = lib.hasPrefix "/" instance.restorePath
-        && instance.restorePath != "/"
-        && lib.elem instance.restorePath instance.paths;
-      message = "Backup ${name} needs an absolute restore path included in its backup paths.";
+      assertion = lib.hasPrefix "/" instance.restoreDirectory
+        && instance.restoreDirectory != "/"
+        && lib.elem instance.restoreDirectory instance.paths;
+      message = "Backup ${name} needs an absolute restore directory included in its backup paths.";
     }) cfg.instances;
 
     environment.systemPackages = restoreCommands;

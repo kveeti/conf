@@ -1,7 +1,8 @@
 # Backups and recovery
 
 Each repository uses one password for REST access and encryption. The six legacy
-repositories keep their original encryption passwords, IDs, and snapshot history.
+repositories keep their original encryption passwords and IDs. Modi's old file
+snapshots were discarded after a verified directory backup; other history stays.
 HA and Zigbee still share the `ha` repository, with separate snapshot tags.
 
 Recovery is manual:
@@ -16,10 +17,10 @@ it only on success. A failure stops the command; there is no rollback. Directory
 restores keep files which are absent from the snapshot. Nothing restores data
 on service startup.
 
-The shared backup module requires a `passwordFile` and an absolute `restorePath`
-included in `paths`. The restore path can be a file, such as Modi's MongoDB
-archive, or a directory. PostgreSQL backups use online logical dumps and explicit
-restore commands.
+The shared backup module requires a `passwordFile` and an absolute
+`restoreDirectory` included in `paths`. All active backups restore directories.
+Modi dumps MongoDB to `/var/lib/modi-backups/database.archive`; PostgreSQL uses
+online logical dumps. Both import the dump after restoring its directory.
 
 ## Retired backups
 

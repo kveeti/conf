@@ -113,7 +113,7 @@ in {
               tag = "hass";
               passwordFile = "/run/secrets/restic-ha-password";
               paths = [ hassState ];
-              restorePath = hassState;
+              restoreDirectory = hassState;
               excludes = [
                 "${hassState}/home-assistant_v2.db"
                 "${hassState}/home-assistant_v2.db-shm"
@@ -128,7 +128,7 @@ in {
               tag = "zigbee2mqtt";
               passwordFile = "/run/secrets/restic-ha-password";
               paths = [ zigbee2mqttState ];
-              restorePath = zigbee2mqttState;
+              restoreDirectory = zigbee2mqttState;
               preRestoreScript = "systemctl stop zigbee2mqtt.service";
               postRestoreScript = "systemctl start zigbee2mqtt.service";
             };

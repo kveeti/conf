@@ -65,7 +65,7 @@ in {
         exec 9<${state}/.Radicale.lock
         flock --exclusive 9
       '';
-      restorePath = state;
+      restoreDirectory = state;
       preRestoreScript = ''
         systemctl stop radicale.service
       '';
