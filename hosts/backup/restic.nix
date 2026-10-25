@@ -36,6 +36,10 @@ in {
         clientPasswordFile = config.age.secrets.restic-money-password.path;
         encryptionPasswordFile = config.age.secrets.restic-money-password.path;
       };
+      papra = {
+        clientPasswordFile = config.age.secrets.restic-papra-password.path;
+        encryptionPasswordFile = config.age.secrets.restic-papra-password.path;
+      };
       radicale = {
         clientPasswordFile = config.age.secrets.restic-radicale-password.path;
         encryptionPasswordFile = config.age.secrets.restic-radicale-password.path;

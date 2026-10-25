@@ -3,7 +3,10 @@ kind: ReplicationSource
 metadata:
   name: papra
   namespace: papra
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  paused: true
   sourcePVC: papra-data
   trigger:
     schedule: "0 3 * * *"

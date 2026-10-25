@@ -20,6 +20,7 @@ in {
     ./keycloak.nix
     ./monitoring
     ./money.nix
+    ./papra.nix
     ./radicale.nix
     ./restic.nix
     ./rss.nix

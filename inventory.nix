@@ -194,6 +194,7 @@
         tasksBackend = 20003;
         tasksFrontend = 20004;
         money = 20005;
+        papra = 20008;
         victoriametrics = 18428;
         victorialogs = 19428;
         victoriatraces = 19429;

@@ -337,7 +337,10 @@ kind: Kustomization
 metadata:
   name: papra
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  suspend: true
   interval: 5m
   dependsOn:
     - name: democratic-csi
