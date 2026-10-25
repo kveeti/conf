@@ -10,6 +10,7 @@ in {
     ../../../modules/telemetry/metrics.nix
     ./ingest.nix
     ./probes.nix
+    ./query.nix
     ./storage.nix
     ./tracing.nix
   ];

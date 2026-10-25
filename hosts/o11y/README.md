@@ -9,7 +9,7 @@ The former `public` host now runs the monitoring stack at `192.168.40.13` on the
 
 Clients still use `metrics.internal.veetik.com`, `logs.internal.veetik.com`, and `traces.internal.veetik.com` over HTTPS on port 443, with the same credentials.
 
-Grafana stays on `worker`. Its datasource UIDs and dashboards are unchanged. It reaches Victoria's HTTP APIs on ports 18428, 19428, and 19429; the host firewall allows only `worker` to reach those ports. The collector and OTLP storage receiver remain on loopback.
+Grafana stays on `worker`. Its datasource UIDs and dashboards are unchanged. It uses `https://o11y.internal.veetik.com/metrics`, `/logs`, and `/traces/select/jaeger` with separate read-only credentials. Nginx allows only query routes and methods; write, delete, and admin routes are not exposed. All Victoria APIs, the collector, and the OTLP storage receiver bind only to loopback.
 
 The move kept all Victoria history. The stopped source directories remain under `/var/lib/private/victoria*` on `worker`; migration manifests and private checks live under `/var/lib/o11y-migration` on both hosts.
 

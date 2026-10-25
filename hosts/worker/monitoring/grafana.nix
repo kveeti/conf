@@ -9,6 +9,9 @@ in {
   imports = [ ../tls.nix ];
 
   age.secrets.oidc-grafana-client-secret.owner = "grafana";
+  age.secrets.victoria-query-env = {};
+
+  systemd.services.grafana.serviceConfig.EnvironmentFile = config.age.secrets.victoria-query-env.path;
 
   services.grafana = {
     enable = true;
@@ -52,7 +55,10 @@ in {
           name = "VictoriaMetrics";
           type = "prometheus";
           uid = "victoriametrics";
-          url = "http://${victoriaHost}:${toString victoria.ports.victoriametrics}";
+          url = "https://${victoriaHost}/metrics";
+          basicAuth = true;
+          basicAuthUser = "grafana";
+          secureJsonData.basicAuthPassword = "$VICTORIA_QUERY_PASSWORD";
           # Match vmagent's default scrape interval so $__rate_interval covers
           # enough samples, including when zooming in on process CPU/I/O.
           jsonData.timeInterval = "30s";
@@ -62,13 +68,19 @@ in {
           name = "VictoriaLogs";
           type = "victoriametrics-logs-datasource";
           uid = "victorialogs";
-          url = "http://${victoriaHost}:${toString victoria.ports.victorialogs}";
+          url = "https://${victoriaHost}/logs";
+          basicAuth = true;
+          basicAuthUser = "grafana";
+          secureJsonData.basicAuthPassword = "$VICTORIA_QUERY_PASSWORD";
         }
         {
           name = "VictoriaTraces";
           type = "jaeger";
           uid = "victoriatraces";
-          url = "http://${victoriaHost}:${toString victoria.ports.victoriatraces}/select/jaeger";
+          url = "https://${victoriaHost}/traces/select/jaeger";
+          basicAuth = true;
+          basicAuthUser = "grafana";
+          secureJsonData.basicAuthPassword = "$VICTORIA_QUERY_PASSWORD";
         }
       ];
       dashboards.settings.providers = [{
