@@ -38,7 +38,6 @@ in {
   };
 
   homelab.postgresql.databases.keycloak.backup = {
-    manualRestore = true;
     passwordFile = config.age.secrets.restic-keycloak-password.path;
   };
 

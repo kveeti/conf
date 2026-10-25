@@ -3,7 +3,6 @@
 let
   cfg = config.homelab.postgresql;
   databaseNames = lib.attrNames cfg.databases;
-  dumpPath = database: "/tmp/pg-${database}.dump";
 in {
   imports = [ ./restic-backups.nix ];
 
@@ -17,7 +16,7 @@ in {
     databases = lib.mkOption {
       default = {};
       description = "Service databases keyed by database name.";
-      type = lib.types.attrsOf (lib.types.submodule ({ name, config, ... }: {
+      type = lib.types.attrsOf (lib.types.submodule ({ name, ... }: {
         options = {
           services = lib.mkOption {
             type = lib.types.listOf lib.types.str;
@@ -26,15 +25,8 @@ in {
           };
 
           backup = {
-            manualRestore = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
-              description = "Use an explicit restore command instead of automatic startup recovery.";
-            };
-
             passwordFile = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
+              type = lib.types.str;
               description = "Password file for both REST access and repository encryption.";
             };
 
@@ -48,20 +40,6 @@ in {
               type = lib.types.nullOr lib.types.str;
               default = null;
               description = "Optional snapshot tag for a shared repository.";
-            };
-
-            restPasswordFile = lib.mkOption {
-              type = lib.types.str;
-              default = if config.backup.passwordFile != null then config.backup.passwordFile
-                else throw "Database ${name}: set passwordFile or restPasswordFile.";
-              description = "REST password file. Defaults to passwordFile.";
-            };
-
-            encryptionPasswordFile = lib.mkOption {
-              type = lib.types.str;
-              default = if config.backup.passwordFile != null then config.backup.passwordFile
-                else throw "Database ${name}: set passwordFile or encryptionPasswordFile.";
-              description = "Repository encryption password file. Defaults to passwordFile.";
             };
           };
         };
@@ -119,17 +97,15 @@ in {
       in {
         repository = database.backup.repository;
         tag = database.backup.tag;
-        restPasswordFile = database.backup.restPasswordFile;
-        encryptionPasswordFile = database.backup.encryptionPasswordFile;
+        passwordFile = database.backup.passwordFile;
         extraPackages = [ cfg.package ];
-      } // (if database.backup.manualRestore then {
         paths = [ directory ];
         preBackupScript = ''
           install -d -m 0700 ${directory}
           pg_dump -U root -Fc --no-owner --no-acl ${name} > ${dump}.tmp
           mv ${dump}.tmp ${dump}
         '';
-        restoreDirectory = directory;
+        restorePath = directory;
         preRestoreScript = lib.optionalString (database.services != []) ''
           systemctl stop ${units}
         '';
@@ -138,26 +114,7 @@ in {
             -U root -d ${name} ${dump}
           ${lib.optionalString (database.services != []) "systemctl start ${units}"}
         '';
-      } else {
-        paths = [ (dumpPath name) ];
-        prepare = ''
-          rm -f ${dumpPath name}
-          ${cfg.package}/bin/pg_dump -Fc --no-owner --no-acl ${name} > ${dumpPath name}
-        '';
-        cleanup = "rm -f ${dumpPath name}";
-        before = map (service: "${service}.service") database.services;
-        requiredBy = map (service: "${service}.service") database.services;
-        after = [ "postgresql-setup.service" ];
-        hasData = ''
-          [ "$(psql -U root -d ${name} -tAc "select count(*) from information_schema.tables where table_schema='public'")" -ne 0 ]
-        '';
-        restore = ''
-          restic dump ${lib.optionalString (database.backup.tag != null) "--tag ${lib.escapeShellArg database.backup.tag}"} latest ${dumpPath name} > ${dumpPath name}
-          pg_restore --single-transaction --no-owner --role=${name} --clean --if-exists \
-            -U root -d ${name} ${dumpPath name}
-          rm -f ${dumpPath name}
-        '';
-      })
+      }
     ) cfg.databases;
 
     systemd.services = lib.mkMerge (lib.mapAttrsToList (_: database:

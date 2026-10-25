@@ -22,17 +22,9 @@ let
     fi
   '';
 
-  mongoHasData = pkgs.writeShellScript "modi-mongo-has-data" ''
-    ${waitForMongo}
-    count=$(${pkgs.podman}/bin/podman exec modi-mongo mongosh \
-      "mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin" \
-      --quiet --eval 'db.getCollectionNames().length')
-    [ "$count" != "0" ]
-  '';
 in {
   age.secrets.modi-env = {};
-  age.secrets.restic-modi-rest-pass = {};
-  age.secrets.restic-modi-encryption-pass = {};
+  age.secrets.restic-modi-password = {};
 
   systemd.tmpfiles.rules = [ "d ${state} 0755 root root -" ];
 
@@ -71,12 +63,14 @@ in {
   };
 
   homelab.backups.instances.modi = {
-    restPasswordFile = config.age.secrets.restic-modi-rest-pass.path;
-    encryptionPasswordFile = config.age.secrets.restic-modi-encryption-pass.path;
+    passwordFile = config.age.secrets.restic-modi-password.path;
     paths = [ "/tmp/modi.archive" ];
-    before = [ "podman-modi.service" ];
-    requiredBy = [ "podman-modi.service" ];
-    after = [ "podman-modi-mongo.service" ];
+    restorePath = "/tmp/modi.archive";
+    preRestoreScript = ''
+      systemctl stop podman-modi.service
+      systemctl start podman-modi-mongo.service
+      ${waitForMongo}
+    '';
     extraPackages = [ pkgs.mongodb-tools ];
     prepare = ''
       ${waitForMongo}
@@ -85,15 +79,13 @@ in {
         --archive=/tmp/modi.archive
     '';
     cleanup = "rm -f /tmp/modi.archive";
-    restoreMarker = "${state}/.restore-in-progress";
-    hasData = "${mongoHasData}";
-    restore = ''
-      restic dump latest /tmp/modi.archive > /tmp/modi.archive.restore
+    postRestoreScript = ''
       mongorestore \
         --uri="mongodb://mongo:mongo@127.0.0.1:${toString ports.mongo}/modi?authSource=admin" \
         --drop \
-        --archive=/tmp/modi.archive.restore
-      rm -f /tmp/modi.archive.restore
+        --archive=/tmp/modi.archive
+      rm -f /tmp/modi.archive
+      systemctl start podman-modi.service
     '';
   };
 

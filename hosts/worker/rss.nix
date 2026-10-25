@@ -17,7 +17,6 @@ in {
   };
 
   homelab.postgresql.databases.rss.backup = {
-    manualRestore = true;
     passwordFile = config.age.secrets.restic-rss-password.path;
   };
 

@@ -20,8 +20,7 @@ let
     telemetry-pass = { source = "telemetry-pass"; mode = "0400"; };
     wg-iot-priv = { source = "wg-iot-priv"; mode = "0400"; };
     wg-iot-psk = { source = "wg-iot-psk"; mode = "0400"; };
-    restic-ha-rest-pass = { source = "restic-ha-rest-pass"; mode = "0400"; };
-    restic-ha-encryption-pass = { source = "restic-ha-encryption-pass"; mode = "0400"; };
+    restic-ha-password = { source = "restic-ha-password"; mode = "0400"; };
   };
 
   copySecret = destination: secret: ''
@@ -112,38 +111,26 @@ in {
               repository = "ha";
               username = "ha";
               tag = "hass";
-              restPasswordFile = "/run/secrets/restic-ha-rest-pass";
-              encryptionPasswordFile = "/run/secrets/restic-ha-encryption-pass";
+              passwordFile = "/run/secrets/restic-ha-password";
               paths = [ hassState ];
+              restorePath = hassState;
               excludes = [
                 "${hassState}/home-assistant_v2.db"
                 "${hassState}/home-assistant_v2.db-shm"
                 "${hassState}/home-assistant_v2.db-wal"
               ];
-              after = [ "var-lib-hass.mount" ];
-              before = [ "home-assistant.service" ];
-              requiredBy = [ "home-assistant.service" ];
-              restoreMarker = "${hassState}/.restore-in-progress";
-              hasData = ''[ -n "$(ls -A ${hassState} 2>/dev/null)" ]'';
-              restore = ''
-                restic restore --tag hass latest --target / --include ${hassState}
-                chown -R hass:hass ${hassState}
-              '';
+              preRestoreScript = "systemctl stop home-assistant.service";
+              postRestoreScript = "systemctl start home-assistant.service";
             };
             zigbee2mqtt = {
               repository = "ha";
               username = "ha";
               tag = "zigbee2mqtt";
-              restPasswordFile = "/run/secrets/restic-ha-rest-pass";
-              encryptionPasswordFile = "/run/secrets/restic-ha-encryption-pass";
+              passwordFile = "/run/secrets/restic-ha-password";
               paths = [ zigbee2mqttState ];
-              after = [ "var-lib-zigbee2mqtt.mount" ];
-              restoreMarker = "${zigbee2mqttState}/.restore-in-progress";
-              hasData = ''[ -n "$(ls -A ${zigbee2mqttState} 2>/dev/null)" ]'';
-              restore = ''
-                restic restore --tag zigbee2mqtt latest --target / --include ${zigbee2mqttState}
-                chown -R zigbee2mqtt:zigbee2mqtt ${zigbee2mqttState}
-              '';
+              restorePath = zigbee2mqttState;
+              preRestoreScript = "systemctl stop zigbee2mqtt.service";
+              postRestoreScript = "systemctl start zigbee2mqtt.service";
             };
           };
         };
@@ -152,6 +139,11 @@ in {
           authorizationFile = "/run/credentials/vmagent.service/prometheus-token";
           targets = [ "127.0.0.1:${toString config.homelab.ports.homeAssistant}" ];
         };
+      };
+
+      systemd.services = {
+        backup-hass.unitConfig.RequiresMountsFor = [ hassState ];
+        backup-zigbee2mqtt.unitConfig.RequiresMountsFor = [ zigbee2mqttState ];
       };
 
       networking = {

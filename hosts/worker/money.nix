@@ -49,7 +49,6 @@ in {
   homelab.postgresql.databases.money = {
     services = [ "podman-money" ];
     backup = {
-      manualRestore = true;
       passwordFile = config.age.secrets.restic-money-password.path;
     };
   };

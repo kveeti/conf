@@ -15,12 +15,12 @@ flock -n 8
 
 export RESTIC_REPOSITORY="$restoreRepository"
 export RESTIC_REST_USERNAME="$restoreUsername"
-RESTIC_REST_PASSWORD=$(< "$restoreRestPasswordFile")
+RESTIC_REST_PASSWORD=$(< "$restorePasswordFile")
 export RESTIC_REST_PASSWORD
-export RESTIC_PASSWORD_FILE="$restoreEncryptionPasswordFile"
+export RESTIC_PASSWORD_FILE="$restorePasswordFile"
 
 preRestore
 restic --no-cache restore "${1:-latest}" --target / \
-  --path "$restoreDirectory" --include "$restoreDirectory" \
+  --path "$restorePath" --include "$restorePath" \
   "${restoreTagArgs[@]}" --verify
 postRestore

@@ -6,12 +6,11 @@ let
   host = inventory.hosts.${name};
   network = inventory.networks.${host.network};
   secretDir = "${stateRoot}/secrets";
-  legacyRepositories = [ "auth" "authentik" "bm" "ha" "internal" "modi" ];
-  appRepositories = [ "bookmarks" "keycloak" "money" "papra" "radicale" "rss" "tasks" "weather" ];
-  passwordNames = lib.concatMap (repository: [
-    "restic-${repository}-rest-pass"
-    "restic-${repository}-encryption-pass"
-  ]) legacyRepositories ++ map (repository: "restic-${repository}-password") appRepositories;
+  repositories = [
+    "auth" "authentik" "bm" "ha" "internal" "modi"
+    "bookmarks" "keycloak" "money" "papra" "radicale" "rss" "tasks" "weather"
+  ];
+  passwordNames = map (repository: "restic-${repository}-password") repositories;
 in {
   system.activationScripts.backup-vm-files = {
     deps = [ "agenix" ];
@@ -49,12 +48,8 @@ in {
       homelab.resticServer = {
         enable = true;
         listenAddress = "127.0.0.1:${toString host.ports.restServer}";
-        repositories = lib.genAttrs legacyRepositories (repository: {
-          clientPasswordFile = "/run/secrets/restic-${repository}-rest-pass";
-          encryptionPasswordFile = "/run/secrets/restic-${repository}-encryption-pass";
-        }) // lib.genAttrs appRepositories (repository: {
-          clientPasswordFile = "/run/secrets/restic-${repository}-password";
-          encryptionPasswordFile = "/run/secrets/restic-${repository}-password";
+        repositories = lib.genAttrs repositories (repository: {
+          passwordFile = "/run/secrets/restic-${repository}-password";
         });
       };
 

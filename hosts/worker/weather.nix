@@ -31,7 +31,7 @@ in {
     postBackupScript = ''
       systemctl start weather.service
     '';
-    restoreDirectory = state;
+    restorePath = state;
     preRestoreScript = ''
       systemctl stop weather.service
     '';

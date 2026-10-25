@@ -5,7 +5,7 @@ let
   repositoryNames = lib.attrNames cfg.repositories;
 
   htpasswd = lib.concatMapStringsSep "\n" (name: ''
-    printf '%s' "$(cat ${cfg.repositories.${name}.clientPasswordFile})" \
+    printf '%s' "$(cat ${cfg.repositories.${name}.passwordFile})" \
       | ${pkgs.apacheHttpd}/bin/htpasswd -iB "$tmp" ${lib.escapeShellArg name}
   '') repositoryNames;
 
@@ -17,7 +17,7 @@ let
       User = "restic";
       Group = "restic";
       CacheDirectory = "restic";
-      LoadCredential = [ "password:${cfg.repositories.${name}.encryptionPasswordFile}" ];
+      LoadCredential = [ "password:${cfg.repositories.${name}.passwordFile}" ];
     };
     environment = {
       RESTIC_REPOSITORY = "${cfg.dataDir}/${name}";
@@ -51,7 +51,7 @@ let
     serviceConfig = {
       Type = "oneshot";
       CacheDirectory = "restic-archive";
-      LoadCredential = [ "password:${cfg.repositories.${name}.encryptionPasswordFile}" ];
+      LoadCredential = [ "password:${cfg.repositories.${name}.passwordFile}" ];
     };
     environment.RESTIC_CACHE_DIR = "/var/cache/restic-archive";
     script = ''
@@ -107,14 +107,9 @@ in {
       description = "Repositories served by this host.";
       type = lib.types.attrsOf (lib.types.submodule {
         options = {
-          clientPasswordFile = lib.mkOption {
+          passwordFile = lib.mkOption {
             type = lib.types.str;
-            description = "File containing the REST API password.";
-          };
-
-          encryptionPasswordFile = lib.mkOption {
-            type = lib.types.str;
-            description = "File containing the repository encryption password.";
+            description = "Password file used for REST access and repository encryption.";
           };
         };
       });

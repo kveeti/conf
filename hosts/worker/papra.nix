@@ -54,7 +54,7 @@ in {
     postBackupScript = ''
       systemctl start podman-papra.service
     '';
-    restoreDirectory = state;
+    restorePath = state;
     preRestoreScript = ''
       systemctl stop podman-papra.service
     '';

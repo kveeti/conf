@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "restore-directory.sh"
+SCRIPT = Path(__file__).resolve().parents[1] / "restore-path.sh"
 
 
 @unittest.skipUnless(os.geteuid() == 0, "Restore commands require root")
@@ -42,15 +42,14 @@ class RestoreDirectoryTests(unittest.TestCase):
             check=True,
         )
 
-    def restore(self, *arguments, pre_script=None, post_script=None):
+    def restore(self, *arguments, pre_script=None, post_script=None, restore_path=None):
         settings = {
             "restoreName": "test-app",
-            "restoreDirectory": str(self.state),
+            "restorePath": str(restore_path or self.state),
             "restoreLock": str(self.root / "lock"),
             "restoreRepository": self.environment["RESTIC_REPOSITORY"],
             "restoreUsername": "test-app",
-            "restoreRestPasswordFile": str(self.password),
-            "restoreEncryptionPasswordFile": str(self.password),
+            "restorePasswordFile": str(self.password),
         }
         setup = "\n".join(f"{key}={shlex.quote(value)}" for key, value in settings.items())
         calls = shlex.quote(str(self.calls))
@@ -84,6 +83,13 @@ class RestoreDirectoryTests(unittest.TestCase):
         result = self.restore(self.snapshot)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(self.payload.read_text(), "backed-up state")
+
+    def test_file_restore_selects_snapshots_backed_up_by_file_path(self):
+        self.restic("backup", "--tag", "test-app", str(self.payload))
+        self.payload.write_text("newer state")
+        result = self.restore(restore_path=self.payload)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.payload.read_text(), "current state")
 
     def test_in_place_restore_keeps_files_absent_from_snapshot(self):
         extra = self.state / "extra"

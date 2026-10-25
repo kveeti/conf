@@ -48,7 +48,6 @@ in {
   homelab.postgresql.databases.bookmarks = {
     services = [ "podman-bookmarks-backend" ];
     backup = {
-      manualRestore = true;
       passwordFile = config.age.secrets.restic-bookmarks-password.path;
     };
   };

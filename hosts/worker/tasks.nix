@@ -51,7 +51,6 @@ in {
   homelab.postgresql.databases.tasks = {
     services = [ "podman-tasks-backend" ];
     backup = {
-      manualRestore = true;
       passwordFile = config.age.secrets.restic-tasks-password.path;
     };
   };

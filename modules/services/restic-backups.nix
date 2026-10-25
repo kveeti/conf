@@ -6,8 +6,8 @@ let
   resticEnvironment = instance: ''
     export RESTIC_REPOSITORY=${lib.escapeShellArg "rest:${cfg.serverUrl}/${instance.repository}"}
     export RESTIC_REST_USERNAME=${lib.escapeShellArg instance.username}
-    export RESTIC_REST_PASSWORD="$(cat "$CREDENTIALS_DIRECTORY/rest-password")"
-    export RESTIC_PASSWORD_FILE="$CREDENTIALS_DIRECTORY/encryption-password"
+    export RESTIC_REST_PASSWORD="$(cat "$CREDENTIALS_DIRECTORY/password")"
+    export RESTIC_PASSWORD_FILE="$CREDENTIALS_DIRECTORY/password"
     export RESTIC_CACHE_DIR="$CACHE_DIRECTORY"
   '';
 
@@ -29,25 +29,8 @@ let
     ) 9>/run/restic-init-${instance.repository}.lock
   '';
 
-  credentials = instance: [
-    "rest-password:${instance.restPasswordFile}"
-    "encryption-password:${instance.encryptionPasswordFile}"
-  ];
-
   tagArgs = instance:
     lib.optionalString (instance.tag != null) "--tag ${lib.escapeShellArg instance.tag}";
-
-  excludes = instance:
-    instance.excludes ++ lib.optional (instance.restoreMarker != null) instance.restoreMarker;
-
-  hasCompleteState = instance:
-    lib.optionalString
-      (instance.restoreMarker != null)
-      "[ ! -e ${lib.escapeShellArg instance.restoreMarker} ] && "
-    + instance.hasData;
-
-  automaticInstances = lib.filterAttrs (_: instance: instance.restoreDirectory == null) cfg.instances;
-  manualInstances = lib.filterAttrs (_: instance: instance.restoreDirectory != null) cfg.instances;
 
   restoreCommands = lib.mapAttrsToList (name: instance:
     pkgs.writeShellApplication {
@@ -55,13 +38,12 @@ let
       runtimeInputs = [ pkgs.restic pkgs.coreutils pkgs.util-linux pkgs.systemd ] ++ instance.extraPackages;
       text = ''
         restoreName=${lib.escapeShellArg name}
-        restoreDirectory=${lib.escapeShellArg instance.restoreDirectory}
+        restorePath=${lib.escapeShellArg instance.restorePath}
         restoreTagArgs=(${tagArgs instance})
         restoreLock=/run/backup-${name}.lock
         restoreRepository=${lib.escapeShellArg "rest:${cfg.serverUrl}/${instance.repository}"}
         restoreUsername=${lib.escapeShellArg instance.username}
-        restoreRestPasswordFile=${lib.escapeShellArg instance.restPasswordFile}
-        restoreEncryptionPasswordFile=${lib.escapeShellArg instance.encryptionPasswordFile}
+        restorePasswordFile=${lib.escapeShellArg instance.passwordFile}
         preRestore() {
           ${instance.preRestoreScript}
           :
@@ -70,34 +52,31 @@ let
           ${instance.postRestoreScript}
           :
         }
-        ${builtins.readFile ./restore-directory.sh}
+        ${builtins.readFile ./restore-path.sh}
       '';
     }
-  ) manualInstances;
+  ) cfg.instances;
 
   backupServices = lib.mapAttrs' (name: instance:
     lib.nameValuePair "backup-${name}" {
       description = "Back up ${name}";
-      after = lib.optional (instance.restoreDirectory == null) "restore-${name}.service";
-      requires = lib.optional (instance.restoreDirectory == null) "restore-${name}.service";
       path = [ pkgs.restic pkgs.coreutils pkgs.util-linux ] ++ instance.extraPackages;
       serviceConfig = {
         Type = "oneshot";
         CacheDirectory = "restic-${name}";
-        LoadCredential = credentials instance;
+        LoadCredential = [ "password:${instance.passwordFile}" ];
         PrivateTmp = true;
         UMask = "0077";
       };
       script = ''
         set -euo pipefail
-        ${lib.optionalString (instance.restoreDirectory != null) ''
-          exec 8>/run/backup-${name}.lock
-          flock -n 8
-        ''}${ensureRepository instance}
+        exec 8>/run/backup-${name}.lock
+        flock -n 8
+        ${ensureRepository instance}
         ${lib.optionalString (instance.cleanup != null) "trap ${lib.escapeShellArg instance.cleanup} EXIT"}
         ${lib.optionalString (instance.prepare != null) instance.prepare}
         ${instance.preBackupScript}
-        restic backup ${tagArgs instance} ${lib.escapeShellArgs instance.paths} ${lib.concatMapStringsSep " " (exclude: "--exclude ${lib.escapeShellArg exclude}") (excludes instance)}
+        restic backup ${tagArgs instance} ${lib.escapeShellArgs instance.paths} ${lib.concatMapStringsSep " " (exclude: "--exclude ${lib.escapeShellArg exclude}") instance.excludes}
         ${instance.postBackupScript}
 
         metric=/var/lib/node-exporter-textfile/restic_${name}.prom
@@ -119,47 +98,6 @@ let
       };
     }
   ) cfg.instances;
-
-  restoreServices = lib.mapAttrs' (name: instance:
-    lib.nameValuePair "restore-${name}" {
-      description = "Restore ${name} when its state is empty";
-      restartIfChanged = false;
-      inherit (instance) before requiredBy;
-      wants = [ "network-online.target" ];
-      after = [ "network-online.target" ] ++ instance.after;
-      requires = instance.after;
-      unitConfig.RequiresMountsFor = lib.optional
-        (instance.restoreMarker != null)
-        instance.restoreMarker;
-      path = [ pkgs.restic pkgs.jq pkgs.coreutils pkgs.util-linux ] ++ instance.extraPackages;
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        CacheDirectory = "restic-${name}";
-        LoadCredential = credentials instance;
-        PrivateTmp = true;
-        UMask = "0077";
-      };
-      script = ''
-        set -euo pipefail
-        if ${hasCompleteState instance}
-        then
-          echo "${name} already has state; skipping restore"
-          exit 0
-        fi
-
-        ${ensureRepository instance}
-        if [ "$(restic snapshots ${tagArgs instance} --json | jq 'length')" -eq 0 ]; then
-          echo "No ${name} snapshots found; skipping restore"
-          exit 0
-        fi
-
-        ${lib.optionalString (instance.restoreMarker != null) "touch ${lib.escapeShellArg instance.restoreMarker}"}
-        ${instance.restore}
-        ${lib.optionalString (instance.restoreMarker != null) "rm -f ${lib.escapeShellArg instance.restoreMarker}"}
-      '';
-    }
-  ) automaticInstances;
 in {
   options.homelab.backups = {
     serverUrl = lib.mkOption {
@@ -185,23 +123,8 @@ in {
           };
 
           passwordFile = lib.mkOption {
-            type = lib.types.nullOr lib.types.str;
-            default = null;
-            description = "File containing the password used for both REST access and repository encryption.";
-          };
-
-          restPasswordFile = lib.mkOption {
             type = lib.types.str;
-            default = if config.passwordFile != null then config.passwordFile
-              else throw "Backup ${name}: set passwordFile or restPasswordFile.";
-            description = "REST access password file. Defaults to passwordFile; retained for existing repositories with separate passwords.";
-          };
-
-          encryptionPasswordFile = lib.mkOption {
-            type = lib.types.str;
-            default = if config.passwordFile != null then config.passwordFile
-              else throw "Backup ${name}: set passwordFile or encryptionPasswordFile.";
-            description = "Repository encryption password file. Defaults to passwordFile; retained for existing repositories with separate passwords.";
+            description = "Password file used for both REST access and repository encryption.";
           };
 
           paths = lib.mkOption {
@@ -245,10 +168,9 @@ in {
             description = "Commands run after a successful backup.";
           };
 
-          restoreDirectory = lib.mkOption {
-            type = lib.types.nullOr lib.types.str;
-            default = null;
-            description = "Directory restored in place by restore-<name>, instead of automatic startup recovery. Files absent from the snapshot are not deleted.";
+          restorePath = lib.mkOption {
+            type = lib.types.str;
+            description = "File or directory restored in place by restore-<name>. Files absent from the snapshot are not deleted.";
           };
 
           preRestoreScript = lib.mkOption {
@@ -261,42 +183,6 @@ in {
             type = lib.types.lines;
             default = "";
             description = "Commands run after a successful restore.";
-          };
-
-          hasData = lib.mkOption {
-            type = lib.types.lines;
-            default = "";
-            description = "Shell test which succeeds when state already exists.";
-          };
-
-          restore = lib.mkOption {
-            type = lib.types.lines;
-            default = "";
-            description = "Commands which restore the latest snapshot.";
-          };
-
-          restoreMarker = lib.mkOption {
-            type = lib.types.nullOr lib.types.str;
-            default = null;
-            description = "Persistent marker left behind when a restore fails.";
-          };
-
-          before = lib.mkOption {
-            type = lib.types.listOf lib.types.str;
-            default = [ "${name}.service" ];
-            description = "Units which start after restore.";
-          };
-
-          requiredBy = lib.mkOption {
-            type = lib.types.listOf lib.types.str;
-            default = [ "${name}.service" ];
-            description = "Units which require restore.";
-          };
-
-          after = lib.mkOption {
-            type = lib.types.listOf lib.types.str;
-            default = [];
-            description = "Units which must start before restore.";
           };
 
           extraPackages = lib.mkOption {
@@ -323,17 +209,14 @@ in {
 
   config = lib.mkIf (cfg.instances != {}) {
     assertions = lib.mapAttrsToList (name: instance: {
-      assertion = if instance.restoreDirectory == null then
-        instance.hasData != "" && instance.restore != ""
-      else
-        lib.hasPrefix "/" instance.restoreDirectory
-        && instance.restoreDirectory != "/"
-        && lib.elem instance.restoreDirectory instance.paths;
-      message = "Backup ${name} needs automatic restore hooks or an absolute restore directory included in its backup paths.";
+      assertion = lib.hasPrefix "/" instance.restorePath
+        && instance.restorePath != "/"
+        && lib.elem instance.restorePath instance.paths;
+      message = "Backup ${name} needs an absolute restore path included in its backup paths.";
     }) cfg.instances;
 
     environment.systemPackages = restoreCommands;
-    systemd.services = backupServices // restoreServices;
+    systemd.services = backupServices;
     systemd.timers = backupTimers;
 
     services.prometheus.exporters.node = {
