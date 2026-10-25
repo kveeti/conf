@@ -54,10 +54,6 @@ in {
   };
 
   systemd.services.radicale = {
-    unitConfig = {
-      ConditionPathExists = authFile;
-      ConditionPathIsDirectory = "${state}/collection-root";
-    };
     serviceConfig = {
       StateDirectory = lib.mkForce "radicale";
       LoadCredential = [ "users:${authFile}" ];
@@ -78,11 +74,8 @@ in {
         systemctl stop radicale.service
       '';
       postRestoreScript = ''
-        chown -R radicale:radicale ${state}
         systemctl start radicale.service
       '';
     };
   };
-
-  systemd.services.backup-radicale.unitConfig.ConditionPathIsDirectory = "${state}/collection-root";
 }

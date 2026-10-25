@@ -130,7 +130,10 @@
 
         backup = mkHost {
           hostName = "backup";
-          specialArgs.adminKeys = (import secrets-backup).keys.admins;
+          specialArgs = {
+            adminKeys = (import secrets-backup).keys.admins;
+            inherit weather;
+          };
           modules = [
             disko.nixosModules.disko
             lanzaboote.nixosModules.lanzaboote

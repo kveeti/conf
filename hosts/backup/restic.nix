@@ -30,6 +30,10 @@ in {
         clientPasswordFile = config.age.secrets.restic-radicale-password.path;
         encryptionPasswordFile = config.age.secrets.restic-radicale-password.path;
       };
+      weather = {
+        clientPasswordFile = config.age.secrets.restic-weather-password.path;
+        encryptionPasswordFile = config.age.secrets.restic-weather-password.path;
+      };
     };
   };
 

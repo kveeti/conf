@@ -3,7 +3,10 @@ kind: ReplicationSource
 metadata:
   name: weather
   namespace: weather
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  paused: true
   sourcePVC: weather-data
   trigger:
     schedule: "0 3 * * *"

@@ -19,6 +19,7 @@ in {
     ./monitoring
     ./radicale.nix
     ./restic.nix
+    ./weather.nix
   ];
 
   homelab.admin = {

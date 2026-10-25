@@ -294,7 +294,10 @@ kind: Kustomization
 metadata:
   name: weather
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  suspend: true
   interval: 5m
   dependsOn:
     - name: democratic-csi
