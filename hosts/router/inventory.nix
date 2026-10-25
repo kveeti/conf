@@ -71,12 +71,11 @@ inventory // {
       "iot"
       "untrusted"
       "servers"
-      "kube"
       "dmz"
       "minecraft"
       "unifi"
     ];
-    internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "kube" "dmz" "minecraft" ];
+    internetNetworks = [ "wireguard" "management" "trusted" "iot" "untrusted" "servers" "dmz" "minecraft" ];
     mdnsNetworks = [ "trusted" "iot" "untrusted" "servers" ];
   };
 }

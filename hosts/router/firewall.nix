@@ -169,17 +169,6 @@ in {
           meta l4proto ipv6-icmp accept
           iifname "${sixRd}" ct state { new, untracked } counter drop
 
-          iifname "${networks.kube.interface}" \
-            oifname "${networks.minecraft.interface}" \
-            ip daddr ${hosts.minecraft.ipv4} tcp dport ${toString hosts.minecraft.ports.map} \
-            accept comment "public Envoy -> Minecraft map"
-
-          iifname "${networks.kube.interface}" \
-            oifname "${networks.servers.interface}" \
-            ip saddr { ${hosts.public.kubeIpv4}, ${hosts.worker.kubeIpv4}, ${hosts.control3.ipv4} } \
-            ip daddr ${hosts.worker.ipv4} \
-            tcp dport ${toString workerPorts.https} accept comment "control nodes -> worker telemetry"
-
           iifname "${networks.servers.interface}" oifname "${networks.servers.interface}" accept
           iifname "${networks.dmz.interface}" \
             oifname "${networks.servers.interface}" \
@@ -211,12 +200,6 @@ in {
             oifname "${networks.dmz.interface}" \
             ip daddr ${hosts.public.ipv4} tcp dport ${toString hosts.public.ports.https} \
             accept comment "internal apps -> public identity"
-
-          iifname "${networks.servers.interface}" \
-            ip saddr ${hosts.atx-internal.ipv4} \
-            oifname "${networks.kube.interface}" \
-            ip daddr 192.168.50.10 tcp dport 5432 \
-            accept comment "RSS -> CNPG"
 
           iifname "${networks.servers.interface}" \
             oifname "${networks.dmz.interface}" \
@@ -289,9 +272,6 @@ in {
 
         chain postrouting {
           type nat hook postrouting priority srcnat; policy accept;
-          iifname "${networks.servers.interface}" oifname "${networks.kube.interface}" \
-            ip saddr ${hosts.atx-internal.ipv4} ip daddr 192.168.50.10 \
-            tcp dport 5432 snat to ${networks.kube.router4}
           meta nfproto ipv4 iifname != "${wan}" ct status dnat masquerade
           oifname "${wan}" masquerade
         }

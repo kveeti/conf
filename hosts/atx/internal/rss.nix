@@ -6,7 +6,6 @@ let
 in {
   age.secrets.oidc-rss-client-secret = {};
 
-  networking.hosts."192.168.50.10" = [ "rss-db.internal.veetik.com" ];
 
   services.rss = {
     enable = false;

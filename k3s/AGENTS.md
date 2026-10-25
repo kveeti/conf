@@ -1,4 +1,6 @@
-- We use GitOps (Flux). Manifests are under `clusters/dev/`.
+This cluster is retired. The details below describe its former setup, including Nix modules now available only in Git history. Keep the manifests for reference; do not deploy them.
+
+- We used GitOps (Flux). Manifests are under `clusters/dev/`.
 - Three k3s server nodes on VLAN 50 (`192.168.50.0/24`):
 - kube-vip assigns external LoadBalancer IPs from `192.168.50.10–192.168.50.31`.
   `.8` and `.9` are reserved for the ingress controllers.

@@ -32,12 +32,6 @@
       router4 = "192.168.40.1";
     };
 
-    kube = {
-      vlan = 50;
-      cidr4 = "192.168.50.0/24";
-      router4 = "192.168.50.1";
-    };
-
     dmz = {
       vlan = 66;
       cidr4 = "192.168.66.0/29";
@@ -103,29 +97,6 @@
       };
     };
 
-    control3 = {
-      hostname = "control3";
-      network = "kube";
-      ipv4 = "192.168.50.7";
-      ports = {
-        ssh = 22;
-        vmagent = 8429;
-        nodeExporter = 9100;
-      };
-    };
-
-    storage = {
-      hostname = "storage";
-      network = "kube";
-      ipv4 = "192.168.50.3";
-      ports = {
-        ssh = 22;
-        iscsi = 3260;
-        vmagent = 8429;
-        nodeExporter = 9100;
-      };
-    };
-
     backup-vm = {
       hostname = "backup-vm";
       network = "servers";
@@ -174,7 +145,6 @@
       mac = "e8:6a:64:e5:e5:56";
       network = "servers";
       ipv4 = "192.168.40.9";
-      kubeIpv4 = "192.168.50.6";
       ports = {
         ssh = 22;
         https = 443;
@@ -209,7 +179,6 @@
       mac = "e8:6a:64:99:a8:76";
       network = "dmz";
       ipv4 = "192.168.66.2";
-      kubeIpv4 = "192.168.50.5";
       ports = {
         ssh = 22;
         http = 80;
