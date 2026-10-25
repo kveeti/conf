@@ -9,7 +9,6 @@ let
     "ha"
     "internal"
     "modi"
-    "money"
   ];
 in {
   imports = [
@@ -32,6 +31,10 @@ in {
       keycloak = {
         clientPasswordFile = config.age.secrets.restic-keycloak-password.path;
         encryptionPasswordFile = config.age.secrets.restic-keycloak-password.path;
+      };
+      money = {
+        clientPasswordFile = config.age.secrets.restic-money-password.path;
+        encryptionPasswordFile = config.age.secrets.restic-money-password.path;
       };
       radicale = {
         clientPasswordFile = config.age.secrets.restic-radicale-password.path;

@@ -19,6 +19,7 @@ in {
     ./hardware.nix
     ./keycloak.nix
     ./monitoring
+    ./money.nix
     ./radicale.nix
     ./restic.nix
     ./rss.nix

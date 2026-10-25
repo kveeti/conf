@@ -192,6 +192,7 @@
         bookmarksFrontend = 20002;
         tasksBackend = 20003;
         tasksFrontend = 20004;
+        money = 20005;
         victoriametrics = 18428;
         victorialogs = 19428;
         victoriatraces = 19429;
@@ -215,7 +216,6 @@
         initrdSsh = 2222;
         authentikLdap = 3389;
         authentikLdaps = 6636;
-        money = 8003;
         nginxStatus = 8050;
         keycloak = 8080;
         authentik = 8081;
