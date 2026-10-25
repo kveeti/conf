@@ -132,7 +132,7 @@
           hostName = "backup";
           specialArgs = {
             adminKeys = (import secrets-backup).keys.admins;
-            inherit weather;
+            inherit rss weather;
           };
           modules = [
             disko.nixosModules.disko

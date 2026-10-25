@@ -23,7 +23,10 @@ kind: Kustomization
 metadata:
   name: rss
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
+  suspend: true
   interval: 5m
   dependsOn:
     - name: rss-db

@@ -19,6 +19,7 @@ in {
     ./monitoring
     ./radicale.nix
     ./restic.nix
+    ./rss.nix
     ./weather.nix
   ];
 
