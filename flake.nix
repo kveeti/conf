@@ -18,8 +18,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    tasks = {
+      url = "github:kveeti/tasks/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     food.url = "github:kveeti/food/cc61e77586c3f016ea61515ce6133f4d17f99b92";
-    rss.url = "github:kveeti/rss/375850566401198f7736ef0a4a75998c731cd784";
+    rss.url = "github:kveeti/rss/4be481b1fea75dea3cb3901579fb0d5e48946b2d";
     weather.url = "github:kveeti/weather/6af9846820941a85aba04ea9a040308a2c23b358";
 
     microvm = {
@@ -47,7 +52,7 @@
     secrets-router.follows = "secrets";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixvim, disko, lanzaboote, money, food, rss, weather, microvm, home-manager, secrets, secrets-atx, secrets-worker, secrets-o11y, secrets-router, secrets-pc, mac }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixvim, disko, lanzaboote, money, food, rss, tasks, weather, microvm, home-manager, secrets, secrets-atx, secrets-worker, secrets-o11y, secrets-router, secrets-pc, mac }:
     let
       inventory = import ./inventory.nix;
       routerInventory = import ./hosts/router/inventory.nix { inherit inventory; lib = nixpkgs.lib; };
@@ -132,7 +137,7 @@
           hostName = "worker";
           specialArgs = {
             adminKeys = (import secrets-worker).keys.admins;
-            inherit rss weather;
+            inherit money rss tasks weather;
           };
           modules = [
             disko.nixosModules.disko

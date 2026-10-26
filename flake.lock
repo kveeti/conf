@@ -367,11 +367,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787733991,
-        "narHash": "sha256-tdaVdFuSmiFhj6swfmmDApjgbaQXrru7ksMvuVwi9DU=",
+        "lastModified": 1793042513,
+        "narHash": "sha256-03Sbtnv6eDLFoA2akqRR5LEHUC7plsoAsWunsWn4q7s=",
         "owner": "kveeti",
         "repo": "money",
-        "rev": "4508467b447e96204ef4ec8a88810abe0b2b4511",
+        "rev": "9c053ecef398dfef52fccf6fa51671f8b10298ef",
         "type": "github"
       },
       "original": {
@@ -614,6 +614,7 @@
         "secrets-worker": [
           "secrets"
         ],
+        "tasks": "tasks",
         "weather": "weather"
       }
     },
@@ -622,17 +623,17 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1774569841,
-        "narHash": "sha256-4liT1zSkIDRX5eRRpQ+8rWnDlTv5DgtOXlyrhDVJbwg=",
+        "lastModified": 1793042513,
+        "narHash": "sha256-ubdDggU3xQP1GAiwhz3xFgXaHywkye+PY7IkpKdEhj4=",
         "owner": "kveeti",
         "repo": "rss",
-        "rev": "375850566401198f7736ef0a4a75998c731cd784",
+        "rev": "4be481b1fea75dea3cb3901579fb0d5e48946b2d",
         "type": "github"
       },
       "original": {
         "owner": "kveeti",
         "repo": "rss",
-        "rev": "375850566401198f7736ef0a4a75998c731cd784",
+        "rev": "4be481b1fea75dea3cb3901579fb0d5e48946b2d",
         "type": "github"
       }
     },
@@ -663,11 +664,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1792966270,
-        "narHash": "sha256-3ouSpskFxCCk5BBKJJE+vLiGGzkhNtxn+2gz55M3OI0=",
+        "lastModified": 1793042917,
+        "narHash": "sha256-Q8dn6HKwQmieb3ADLeDtHA0eqyxmmY2QoVC/g0/Rzec=",
         "ref": "refs/heads/master",
-        "rev": "9fa0d57459c7c813defb495e2aee6f7e3f8fd56c",
-        "revCount": 71,
+        "rev": "7a852ef76a948832b3637885c112baf3fdf1ea12",
+        "revCount": 72,
         "type": "git",
         "url": "file:///home/veeti/code/secrets"
       },
@@ -749,6 +750,27 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "tasks": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793042513,
+        "narHash": "sha256-LWA5CNESwVXhJD1vAb3QzBv2ncXghqQ6EQXnBtDeoZk=",
+        "owner": "kveeti",
+        "repo": "tasks",
+        "rev": "4ed0279eba8226e6779bd00dbfbb08196b71e57b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kveeti",
+        "ref": "main",
+        "repo": "tasks",
         "type": "github"
       }
     },

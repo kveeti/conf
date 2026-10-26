@@ -20,7 +20,12 @@ let
         local level="$1"
         shift
         local message="$*"
-        echo "$level: $message" >&2
+        local priority=6
+        case "$level" in
+          WARN) priority=4 ;;
+          ERROR) priority=3 ;;
+        esac
+        printf '<%s>%s\n' "$priority" "$message" >&2
       }
 
       is_valid_ipv4() {
@@ -39,11 +44,9 @@ let
         local ip
 
         for provider in "''${IP_PROVIDERS[@]}"; do
-          log "INFO" "Trying IP provider: $provider"
 
           if ip=$(curl -fsSL --max-time 10 "$provider" 2>/dev/null | tr -d '[:space:]'); then
             if is_valid_ipv4 "$ip"; then
-              log "INFO" "Successfully retrieved IP: $ip (from $provider)"
               echo "$ip"
               return 0
             else
@@ -77,12 +80,10 @@ let
       }
 
       main() {
-        log "INFO" "Starting Cloudflare DDNS update"
 
         local current_ip
         current_ip=$(get_public_ip) || exit 1
 
-        log "INFO" "Looking up DNS record: $RECORD_NAME"
         local record_data
         record_data=$(cf_api GET "/zones/$ZONE_ID/dns_records?type=A&name=$RECORD_NAME")
 
@@ -111,7 +112,6 @@ let
         fi
 
         if [[ "$record_ip" == "$current_ip" ]]; then
-          log "INFO" "No update needed - $RECORD_NAME already points to $current_ip"
           exit 0
         fi
 

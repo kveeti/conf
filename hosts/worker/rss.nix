@@ -21,6 +21,12 @@ in {
   };
 
   services.nginx.virtualHosts."rss.internal.veetik.com" = mkNginxInternal {
-    locations."/".proxyPass = "http://127.0.0.1:${toString port}";
+    locations = {
+      "= /api/health" = {
+        proxyPass = "http://127.0.0.1:${toString port}";
+        extraConfig = "access_log off;";
+      };
+      "/".proxyPass = "http://127.0.0.1:${toString port}";
+    };
   };
 }

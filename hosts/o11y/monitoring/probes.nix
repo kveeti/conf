@@ -5,9 +5,9 @@ let
   ports = config.homelab.ports;
 
   publicProbes = [
-    { host = "tasks-api.veetik.com"; path = "/api/v1/auth/me"; }
-    { host = "bm_back.veetik.com"; path = "/api/bootstrap"; }
-    { host = "money.veetik.com"; path = "/api/v1/currencies"; }
+    { host = "tasks.veetik.com"; path = "/api/health"; status = 200; }
+    { host = "bm.veetik.com"; path = "/api/bootstrap"; status = 401; }
+    { host = "money.veetik.com"; path = "/api/health"; status = 200; }
   ];
 
   moduleName = host: "lan-" + builtins.replaceStrings [ "." ] [ "-" ] host;
@@ -35,6 +35,7 @@ let
       name = moduleName probe.host;
       value = publicHttp // {
         http = publicHttp.http // {
+          valid_status_codes = [ probe.status ];
           headers.Host = probe.host;
           tls_config.server_name = probe.host;
         };
@@ -76,7 +77,12 @@ in {
   homelab.logs.units."prometheus-blackbox-exporter.service".format = "logfmt";
 
   homelab.metrics.extraScrapeConfigs = [
-    (job "public" "public" (map (probe: "https://${probe.host}${probe.path}") publicProbes))
+    ((job "public" "public" []) // {
+      static_configs = map (probe: {
+        targets = [ "https://${probe.host}${probe.path}" ];
+        labels.__param_module = moduleName probe.host;
+      }) publicProbes;
+    })
     (job "auth" "http" [
       "https://auth.veetik.com/realms/main/.well-known/openid-configuration"
     ])
