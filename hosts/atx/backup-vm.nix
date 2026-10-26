@@ -35,6 +35,7 @@ in {
     config = { ... }: {
       imports = [
         ../../modules/profiles/microvm.nix
+        ../../modules/features/nginx-metrics.nix
         ../../modules/services/restic-server.nix
       ];
 

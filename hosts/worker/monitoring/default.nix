@@ -5,6 +5,7 @@ let
 in {
   imports = [
     ../../../modules/features/disk-health.nix
+    ../../../modules/features/nginx-metrics.nix
     ../../../modules/telemetry/logs.nix
     ../../../modules/telemetry/metrics.nix
     ./grafana.nix

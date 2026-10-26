@@ -76,6 +76,7 @@ in {
     config = { config, lib, pkgs, ... }: {
       imports = [
         ../../../modules/profiles/microvm.nix
+        ../../../modules/features/nginx-metrics.nix
         ../../../modules/services/microvm-volumes.nix
         ../../../modules/services/restic-backups.nix
         ../../../modules/services/shared-secrets.nix

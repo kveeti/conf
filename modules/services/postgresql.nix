@@ -83,6 +83,7 @@ in {
       enable = true;
       listenAddress = "127.0.0.1";
       runAsLocalSuperUser = true;
+      extraFlags = [ "--collector.postmaster" "--collector.stat_checkpointer" ];
     };
 
     homelab.metrics.scrapes.postgres.targets = [
