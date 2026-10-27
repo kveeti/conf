@@ -65,6 +65,16 @@ in {
           isDefault = true;
         }
         {
+          name = "VictoriaMetrics Sensors";
+          type = "prometheus";
+          uid = "victoriametrics-sensors";
+          url = "https://${victoriaHost}/sensors";
+          basicAuth = true;
+          basicAuthUser = "grafana";
+          secureJsonData.basicAuthPassword = "$VICTORIA_QUERY_PASSWORD";
+          jsonData.timeInterval = "30s";
+        }
+        {
           name = "VictoriaLogs";
           type = "victoriametrics-logs-datasource";
           uid = "victorialogs";

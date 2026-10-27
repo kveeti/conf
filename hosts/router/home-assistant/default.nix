@@ -142,6 +142,23 @@ in {
         };
       };
 
+      services.vmagent.extraArgs = [
+        "-remoteWrite.url=https://metrics.internal.veetik.com/sensors/api/v1/write"
+        "-remoteWrite.basicAuth.username=telemetry"
+        "-remoteWrite.basicAuth.passwordFile=\${CREDENTIALS_DIRECTORY}/remote_write_basic_auth_password"
+        "-remoteWrite.urlRelabelConfig=${pkgs.writeText "empty-vmagent-relabel.yaml" "[]"}"
+        "-remoteWrite.urlRelabelConfig=${pkgs.writeText "sensor-history-relabel.yaml" ''
+          - action: keep
+            source_labels: [__name__]
+            regex: hass_sensor_(temperature_celsius|humidity_percent|atmospheric_pressure_hpa)
+          - action: drop
+            source_labels: [entity]
+            regex: sensor[.]living_room_temp_dew_point
+          - action: labeldrop
+            regex: friendly_name
+        ''}"
+      ];
+
       systemd.services = {
         backup-hass.unitConfig.RequiresMountsFor = [ hassState ];
         backup-zigbee2mqtt.unitConfig.RequiresMountsFor = [ zigbee2mqttState ];

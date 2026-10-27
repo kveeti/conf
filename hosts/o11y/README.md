@@ -3,6 +3,7 @@
 The former `public` host now runs the monitoring stack at `192.168.40.13` on the servers network (VLAN 40). Its SSH identity is unchanged. DMZ/VLAN 66 is retired.
 
 - VictoriaMetrics: 12 months of metrics.
+- A separate, unbacked VictoriaMetrics store keeps selected Home Assistant temperature, humidity, and pressure readings for up to 100 years. Grafana exposes it as a separate data source; existing dashboards stay unchanged.
 - VictoriaLogs: 90 days of logs.
 - VictoriaTraces: 30 days of traces, with the existing OpenTelemetry collector and sampling rules.
 - Blackbox probes run here too.

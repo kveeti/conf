@@ -36,6 +36,16 @@ in {
             proxy_set_header Authorization "";
           '';
         };
+        "= /sensors/api/v1/write" = {
+          proxyPass = "http://127.0.0.1:${toString ports.victoriametricsSensors}/api/v1/write";
+          basicAuthFile = htpasswdFile;
+          extraConfig = ''
+            limit_except POST { deny all; }
+            client_max_body_size 16m;
+            proxy_request_buffering off;
+            proxy_set_header Authorization "";
+          '';
+        };
         "/".return = "404";
       };
     };

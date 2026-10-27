@@ -177,6 +177,7 @@
         blackboxExporter = 9115;
         smartctlExporter = 9633;
         victoriametrics = 18428;
+        victoriametricsSensors = 18430;
         victorialogs = 19428;
         victoriatraces = 19429;
         victoriatracesOtlp = 14317;

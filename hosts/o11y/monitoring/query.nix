@@ -34,6 +34,12 @@ in {
           rewrite ^/metrics(/.*)$ $1 break;
         '';
       };
+      "~ ^/sensors(/api/v1/(query|query_range|query_exemplars|series|labels|metadata|status/buildinfo|label/[^/%]+/values))$" = {
+        proxyPass = "http://127.0.0.1:${toString ports.victoriametricsSensors}";
+        extraConfig = queryConfig + ''
+          rewrite ^/sensors(/.*)$ $1 break;
+        '';
+      };
       "~ ^/logs(/select/logsql/[a-z_]+|/health)$" = {
         proxyPass = "http://127.0.0.1:${toString ports.victorialogs}";
         extraConfig = queryConfig + ''
