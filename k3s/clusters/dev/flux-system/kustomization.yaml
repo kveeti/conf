@@ -3,4 +3,3 @@ kind: Kustomization
 resources:
   - flux-operator.yaml
   - flux-instance.yaml
-  - rss-preview-notifications.yaml

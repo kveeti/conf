@@ -1,8 +1,0 @@
-apiVersion: fluxcd.controlplane.io/v1
-kind: ResourceSetInputProvider
-metadata:
-  name: rss-prs
-  namespace: rss-preview
-spec:
-  type: GitHubPullRequest
-  url: https://github.com/kveeti/rss

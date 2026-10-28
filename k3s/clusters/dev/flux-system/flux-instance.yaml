@@ -47,13 +47,3 @@ spec:
           - op: replace
             path: /spec/interval
             value: 5m
-      - target:
-          kind: Deployment
-          name: kustomize-controller
-        patch: |-
-          - op: add
-            path: /spec/template/spec/containers/0/args/-
-            value: --default-service-account=kustomize-controller
-          - op: add
-            path: /spec/template/spec/containers/0/args/-
-            value: --feature-gates=ObjectLevelWorkloadIdentity=false,CancelHealthCheckOnNewRevision=true

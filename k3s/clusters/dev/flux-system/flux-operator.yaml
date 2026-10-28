@@ -21,8 +21,5 @@ spec:
     kind: OCIRepository
     name: flux-operator
   values:
-    multitenancy:
-      enabled: true
-      defaultServiceAccount: default
     web:
       enabled: false
