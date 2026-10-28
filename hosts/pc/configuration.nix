@@ -62,6 +62,29 @@
 
   networking.networkmanager.enable = true;
   hardware.enableRedistributableFirmware = true;
+  hardware.amdgpu.overdrive.enable = true;
+
+  systemd.services.amdgpu-tuning = {
+    description = "Apply GPU power limit and undervolt";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "systemd-udev-settle.service" ];
+    after = [ "systemd-udev-settle.service" ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      gpu=/sys/bus/pci/devices/0000:03:00.0
+      if [[ $(< "$gpu/vendor") != 0x1002 ||
+            $(< "$gpu/device") != 0x7550 ||
+            $(< "$gpu/subsystem_vendor") != 0x1da2 ||
+            $(< "$gpu/subsystem_device") != 0x3490 ]]; then
+        printf 'GPU identity mismatch at %s; refusing to apply tuning\n' "$gpu" >&2
+        exit 1
+      fi
+
+      printf '270000000\n' > "$gpu"/hwmon/hwmon*/power1_cap
+      printf 'vo -60\n' > "$gpu/pp_od_clk_voltage"
+      printf 'c\n' > "$gpu/pp_od_clk_voltage"
+    '';
+  };
 
   services.udev.extraRules = ''
     KERNEL=="hidraw*", ATTRS{idVendor}=="19f5", MODE="0666"

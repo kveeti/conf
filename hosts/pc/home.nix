@@ -131,6 +131,10 @@ in
   ];
 
   programs.keepassxc.enable = true;
+  services.mako = {
+    enable = true;
+    settings.default-timeout = 5000;
+  };
   services.playerctld.enable = true;
 
   systemd.user.services.screenshot-annotation = {
@@ -530,6 +534,7 @@ in
       Mod+C { spawn-sh "niri msg action set-column-width '66.66667%' && niri msg action center-column"; }
       Mod+Shift+F { fullscreen-window; }
       Mod+V { toggle-window-floating; }
+      Mod+Ctrl+V { spawn-sh "if niri msg --json outputs | ${pkgs.jq}/bin/jq -e '.[\"DP-1\"].vrr_enabled' >/dev/null; then niri msg output DP-1 vrr off && ${pkgs.libnotify}/bin/notify-send 'VRR off'; else niri msg output DP-1 vrr on && ${pkgs.libnotify}/bin/notify-send 'VRR on'; fi"; }
       Mod+W hotkey-overlay-title="Find an open window" { spawn "window-menu"; }
 
       F1 { spawn "ddc-brightness" "down"; }
@@ -547,6 +552,7 @@ in
       XF86AudioStop allow-when-locked=true { spawn-sh "playerctl --player=playerctld stop"; }
     }
 
+    spawn-at-startup "systemctl" "--user" "start" "mako.service"
     spawn-at-startup "waybar"
     spawn-at-startup "ddc-brightness" "init"
   '';
