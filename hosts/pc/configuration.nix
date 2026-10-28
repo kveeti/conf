@@ -6,13 +6,9 @@
       ./hardware-config.nix
       ./hardening.nix
       ./secureboot.nix
-      # enable only after cryptenroll writes a TPM token — switches to systemd-initrd, breaking the SSH unlock below
-#      ./tpm-luks.nix
       ./single-signon.nix
       ./agent-vm.nix
       ./helium.nix
-      ./hyprland.nix
-      ./niri.nix
       ../../modules/telemetry/metrics.nix
       inputs.lanzaboote.nixosModules.lanzaboote
     ];
@@ -25,8 +21,6 @@
     "steam-unwrapped"
     "steam-run"
     "spotify"
-    "nvidia-x11"
-    "nvidia-settings"
   ];
 
   boot.loader.systemd-boot.enable = true;
@@ -114,6 +108,8 @@
   };
 
   services.xserver.enable = true;
+  services.xserver.videoDrivers = [ "amdgpu" ];
+  services.desktopManager.plasma6.enable = true;
 
   services.displayManager.sddm.enable = true;
 
@@ -176,7 +172,7 @@
     shell = pkgs.zsh;
     isNormalUser = true;
     description = "veeti";
-    extraGroups = [ "networkmanager" "wheel" "video" "render" "i2c" ];
+    extraGroups = [ "networkmanager" "wheel" "video" "render" ];
     openssh.authorizedKeys.keys = keys.admins;
     hashedPasswordFile = config.age.secrets.password.path;
   };
@@ -197,8 +193,6 @@
     ghostty
     jellyfin-mpv-shim
     (mpv-unwrapped.override { waylandSupport = true; })
-    bluetuith
-    ddcutil
     btop
   ];
 
@@ -223,17 +217,6 @@
       emoji = [ "Noto Color Emoji" ];
     };
   };
-
-  services.xserver.videoDrivers = [ "nvidia" ];
-
-  hardware.nvidia = {
-    modesetting.enable = true;
-    open = true;
-    package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
-  };
-
-  # DDC/CI brightness control for the external monitor (ddcutil over i2c)
-  hardware.i2c.enable = true;
 
   hardware.bluetooth = {
     enable = true;
