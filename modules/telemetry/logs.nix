@@ -1,9 +1,8 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 
 let
   cfg = config.homelab.logs;
   authEnabled = cfg.username != null && cfg.passwordFile != null;
-  credentialsFile = "/run/vector-credentials/environment";
   json = builtins.toJSON;
 
   units = lib.mapAttrsToList (unit: value: {
@@ -93,40 +92,21 @@ in {
       message = "homelab.logs username and passwordFile must be set together";
     }];
 
-    systemd.services.vector-credentials = lib.mkIf authEnabled {
-      description = "Prepare Vector credentials";
-      before = [ "vector.service" ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        RuntimeDirectory = "vector-credentials";
-        RuntimeDirectoryMode = "0700";
-        LoadCredential = [ "password:${cfg.passwordFile}" ];
-      };
-      script = ''
-        password="$(${pkgs.coreutils}/bin/cat "$CREDENTIALS_DIRECTORY/password")"
-        if [[ ! "$password" =~ ^[A-Za-z0-9_-]+$ ]]; then
-          echo "log write password must be base64url" >&2
-          exit 1
-        fi
-        printf 'TELEMETRY_PASSWORD=%s\n' "$password" > ${credentialsFile}
-        chmod 0600 ${credentialsFile}
-      '';
-    };
-
-    systemd.services.vector = {
-      requires = lib.optional authEnabled "vector-credentials.service";
-      after = lib.optional authEnabled "vector-credentials.service";
-      serviceConfig = {
-        SupplementaryGroups = [ "systemd-journal" ];
-        EnvironmentFile = lib.mkIf authEnabled credentialsFile;
-      };
+    systemd.services.vector.serviceConfig = {
+      SupplementaryGroups = [ "systemd-journal" ];
+      LoadCredential = lib.mkIf authEnabled [ "password:${cfg.passwordFile}" ];
     };
 
     services.vector = {
       enable = true;
       validateConfig = !authEnabled;
       settings = {
+        secret.credentials = lib.mkIf authEnabled {
+          type = "directory";
+          path = "/run/credentials/vector.service";
+          remove_trailing_whitespace = true;
+        };
+
         sources = {
           journald = {
             type = "journald";
@@ -287,7 +267,7 @@ in {
           auth = {
             strategy = "basic";
             user = cfg.username;
-            password = "\${TELEMETRY_PASSWORD}";
+            password = "SECRET[credentials.password]";
           };
         };
       };
