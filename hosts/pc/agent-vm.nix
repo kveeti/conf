@@ -1,4 +1,4 @@
-{ config, lib, pkgs, keys, ... }:
+{ config, lib, pkgs, pkgs-unstable, keys, ... }:
 
 let
   homeDir = "/home/veeti/pi-agent-home";
@@ -220,7 +220,7 @@ in {
           };
 
           environment.systemPackages = with pkgs; [
-            (callPackage ./pi-coding-agent.nix {})
+            pkgs-unstable.pi-coding-agent
             nodejs
             pnpm
             ghostty.terminfo

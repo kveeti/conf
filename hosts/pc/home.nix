@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, pkgs-unstable, ... }:
 
 {
   imports = [
@@ -17,7 +17,7 @@
     discord
     spotify
     (llama-cpp.override { vulkanSupport = true; })
-    (callPackage ./pi-coding-agent.nix {})
+    pkgs-unstable.pi-coding-agent
   ];
 
   programs.keepassxc.enable = true;
