@@ -41,6 +41,8 @@ in {
       } // password;
     };
 
+    nix.settings.trusted-users = [ "@wheel" ];
+
     security.sudo.wheelNeedsPassword = false;
 
     services.openssh = {
