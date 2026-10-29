@@ -134,6 +134,17 @@
       };
     };
 
+    pc = {
+      hostname = "pc";
+      mac = "30:56:0f:73:86:bb";
+      network = "trusted";
+      ipv4 = "192.168.10.236";
+      ports = {
+        ssh = 22;
+        initrdSsh = 2222;
+      };
+    };
+
     worker = {
       hostname = "worker";
       mac = "e8:6a:64:e5:e5:56";

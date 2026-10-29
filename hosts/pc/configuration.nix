@@ -44,7 +44,7 @@
   };
 
   boot.initrd.systemd.network.networks."10-ethernet" = {
-    matchConfig.Name = "enp10s0";
+    matchConfig.Type = "ether";
     networkConfig.DHCP = "ipv4";
   };
 

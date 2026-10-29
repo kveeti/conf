@@ -31,7 +31,7 @@ let
   dhcpHosts = map (name:
     let host = hosts.${name};
     in "${host.mac},${host.hostname},${host.ipv4}"
-  ) [ "atx" "worker" "o11y" "slzb-06" "apple-tv" ];
+  ) [ "atx" "worker" "o11y" "pc" "slzb-06" "apple-tv" ];
 
   mdnsInterfaces = map (name: networks.${name}.interface) policy.mdnsNetworks;
 in {
