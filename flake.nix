@@ -43,7 +43,16 @@
     };
 
     secrets-pc.follows = "secrets";
-    mac.url = "path:./mac";
+
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
+      inputs.nixpkgs.follows = "nixpkgs-darwin";
+    };
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs-darwin";
+    };
 
     secrets.url = "git+file:///home/veeti/code/secrets";
     secrets-worker.follows = "secrets";
@@ -52,7 +61,7 @@
     secrets-router.follows = "secrets";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixvim, disko, lanzaboote, money, food, rss, tasks, weather, microvm, home-manager, secrets, secrets-atx, secrets-worker, secrets-o11y, secrets-router, secrets-pc, mac }:
+  outputs = { self, nixpkgs, nixpkgs-darwin, nixpkgs-unstable, nix-darwin, agenix, nixvim, disko, lanzaboote, money, food, rss, tasks, weather, microvm, home-manager, secrets, secrets-atx, secrets-worker, secrets-o11y, secrets-router, secrets-pc }:
     let
       inventory = import ./inventory.nix;
       routerInventory = import ./hosts/router/inventory.nix { inherit inventory; lib = nixpkgs.lib; };
@@ -172,6 +181,7 @@
           specialArgs = {
             inherit inventory;
             inputs = { inherit lanzaboote; };
+            pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };
             keys = (import secrets-pc).keys;
           };
         };
@@ -207,9 +217,15 @@
         modules = [ nixvim.homeModules.nixvim ./hosts/pc/home.nix ];
       };
 
-      darwinConfigurations = {
-        inherit (mac.darwinConfigurations) e;
+      darwinConfigurations.e = nix-darwin.lib.darwinSystem {
+        specialArgs = {
+          inherit self nixpkgs-unstable agenix nixvim;
+          nixpkgs = nixpkgs-darwin;
+        };
+        modules = [
+          home-manager.darwinModules.home-manager
+          ./mac
+        ];
       };
     };
 }
-            pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };

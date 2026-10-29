@@ -1,38 +1,13 @@
+{ self, pkgs, nixpkgs, nixpkgs-unstable, agenix, nixvim, ... }:
+
+let
+  hostname = "e";
+  username = "veeti";
+  homeDir = "/Users/${username}";
+  system = "aarch64-darwin";
+  pi-coding-agent = (import nixpkgs-unstable { inherit system; }).pi-coding-agent;
+in
 {
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-
-    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.darwin.follows = "nix-darwin";
-    };
-
-    home-manager = {
-      url = "github:nix-community/home-manager/release-26.05";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nixvim = {
-      url = "github:nix-community/nixvim/nixos-26.05";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-
-  outputs = inputs@{ self, nix-darwin, nixpkgs, nixpkgs-unstable, agenix, home-manager, nixvim }:
-    let
-      hostname = "e";
-      username = "veeti";
-      homeDir = "/Users/${username}";
-      system = "aarch64-darwin";
-      pkgs = import nixpkgs { inherit system; };
-      pi-coding-agent = pkgs.callPackage ./pi-coding-agent.nix { };
-
-      configuration = { pkgs, home, ... }: {
         nix.settings.experimental-features = "nix-command flakes";
 
         networking.hostName = hostname;
@@ -200,14 +175,4 @@
         system.configurationRevision = self.rev or self.dirtyRev or null;
         system.stateVersion = 6;
         nixpkgs.hostPlatform = system;
-      };
-    in
-    {
-      darwinConfigurations."${hostname}" = nix-darwin.lib.darwinSystem {
-        modules = [
-          home-manager.darwinModules.home-manager
-          configuration
-        ];
-      };
-    };
 }
