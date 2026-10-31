@@ -221,6 +221,7 @@ in {
 
           environment.systemPackages = with pkgs; [
             pkgs-unstable.pi-coding-agent
+            pkgs-unstable.opencode
             nodejs
             pnpm
             ghostty.terminfo

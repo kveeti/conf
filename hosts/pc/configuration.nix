@@ -22,11 +22,13 @@
     "steam-unwrapped"
     "steam-run"
     "spotify"
+    "obsidian"
   ];
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.supportedFilesystems = [ "btrfs" ];
 
   boot.initrd = {
@@ -60,6 +62,7 @@
   hardware.amdgpu.overdrive.enable = true;
 
   systemd.services.amdgpu-tuning = {
+    enable = false;
     description = "Apply GPU power limit and undervolt";
     wantedBy = [ "multi-user.target" ];
     wants = [ "systemd-udev-settle.service" ];
@@ -110,7 +113,8 @@
 
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "amdgpu" ];
-  services.desktopManager.plasma6.enable = true;
+  services.desktopManager.cosmic.enable = true;
+  hardware.i2c.enable = true;
 
   services.displayManager.sddm.enable = true;
 
@@ -132,6 +136,7 @@
   console.keyMap = "fi";
 
   services.printing.enable = true;
+  services.ipp-usb.enable = true;
 
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -191,7 +196,9 @@
     neovim
     git
     sbctl
+    ddcutil
     ghostty
+    wl-clipboard
     jellyfin-mpv-shim
     (mpv-unwrapped.override { waylandSupport = true; })
     btop

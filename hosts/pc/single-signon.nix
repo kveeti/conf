@@ -1,13 +1,11 @@
 { lib, pkgs, ... }:
 
 {
-  programs.ssh.startAgent = true;
-
   services.displayManager.autoLogin = {
     enable = true;
     user = "veeti";
   };
-  services.displayManager.defaultSession = "plasma";
+  services.displayManager.defaultSession = "cosmic";
 
   systemd.services.display-manager.serviceConfig.KeyringMode = "inherit";
 
@@ -15,12 +13,11 @@
     auth     requisite pam_nologin.so
     auth     required  pam_succeed_if.so uid >= 1000 quiet
     auth     optional  ${pkgs.systemd}/lib/security/pam_systemd_loadkey.so
-    auth     optional  ${pkgs.kdePackages.kwallet-pam}/lib/security/pam_kwallet5.so
+    auth     optional  ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so
     auth     required  pam_permit.so
     account  include   sddm
     password include   sddm
     session  include   sddm
   '';
 
-  security.pam.services.sddm.kwallet.enable = true;
 }

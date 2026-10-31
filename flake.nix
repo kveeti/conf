@@ -208,6 +208,7 @@
             "steam"
             "steam-unwrapped"
             "steam-run"
+            "obsidian"
           ];
         };
         extraSpecialArgs = {
