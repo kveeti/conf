@@ -276,11 +276,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793042513,
-        "narHash": "sha256-03Sbtnv6eDLFoA2akqRR5LEHUC7plsoAsWunsWn4q7s=",
+        "lastModified": 1793308190,
+        "narHash": "sha256-zt8pyp+CMDfpv0xi8tV3aR9H1lRLppQZ2My4Fq6K+jA=",
         "owner": "kveeti",
         "repo": "money",
-        "rev": "9c053ecef398dfef52fccf6fa51671f8b10298ef",
+        "rev": "717281050bb31f0e26005bf99b77de9a85e6bffc",
         "type": "github"
       },
       "original": {
@@ -616,11 +616,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793042513,
-        "narHash": "sha256-LWA5CNESwVXhJD1vAb3QzBv2ncXghqQ6EQXnBtDeoZk=",
+        "lastModified": 1793308202,
+        "narHash": "sha256-+xvCU9rAfiwDDTS2+LcMD39jSaax1IVGzaAQ/gG8T7A=",
         "owner": "kveeti",
         "repo": "tasks",
-        "rev": "4ed0279eba8226e6779bd00dbfbb08196b71e57b",
+        "rev": "a9ad5fe835962a61198cb281efff65fc23257e4f",
         "type": "github"
       },
       "original": {
