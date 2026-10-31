@@ -550,11 +550,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1793042917,
-        "narHash": "sha256-Q8dn6HKwQmieb3ADLeDtHA0eqyxmmY2QoVC/g0/Rzec=",
+        "lastModified": 1793404589,
+        "narHash": "sha256-EIHluGCb6TE933h+BK+/Dai8lf0zCOACC0Je//2dR90=",
         "ref": "refs/heads/master",
-        "rev": "7a852ef76a948832b3637885c112baf3fdf1ea12",
-        "revCount": 72,
+        "rev": "9b991141073fe363ba656cdd1a1709037f3945e4",
+        "revCount": 74,
         "type": "git",
         "url": "file:///home/veeti/code/secrets"
       },

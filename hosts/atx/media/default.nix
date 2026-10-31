@@ -276,7 +276,7 @@ in {
         oci-containers.backend = "podman";
         podman.enable = true;
         oci-containers.containers.jellyfin = {
-          image = "docker.io/jellyfin/jellyfin@sha256:0b901391a662862eddb5dc55d244d7883cbb6236ef5b9a6ea82abc78a89819f0";
+          image = "docker.io/jellyfin/jellyfin@sha256:7da5184caa38c553f219f6772476540081f392a68049e2b68c923f6daf877f8e";
           extraOptions = [
             "--hostuser=${mediaUser.user}"
             "--device=/dev/dri/renderD128"
