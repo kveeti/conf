@@ -16,6 +16,26 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "@wheel" ];
 
+  nixpkgs.overlays = [
+    (_: prev: {
+      kdePackages = prev.kdePackages.overrideScope (_: kdePrev: {
+        ksvg = kdePrev.ksvg.overrideAttrs (old: {
+          patches = (old.patches or [ ]) ++ [
+            (prev.fetchpatch {
+              url = "https://github.com/KDE/ksvg/commit/57527f7b998801264299d58a1cc68b6aa936f39b.patch";
+              excludes = [ "autotests/itemtest.cpp" ];
+              hash = "sha256-b76YQnquHgBfqfN6IJwU/VTOK5Af1XzeIzYp+aYMxGQ=";
+            })
+            (prev.fetchurl {
+              url = "https://github.com/KDE/ksvg/commit/8cab6b343091c837dc542b3659d5cc37838ef9bf.patch";
+              hash = "sha256-0ab4A+majEB7pRfcQHc/z7nZPKVD5Y8dm3kvEiAX3/k=";
+            })
+          ];
+        });
+      });
+    })
+  ];
+
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "discord"
     "steam"
@@ -62,7 +82,7 @@
   hardware.amdgpu.overdrive.enable = true;
 
   systemd.services.amdgpu-tuning = {
-    enable = false;
+    enable = true;
     description = "Apply GPU power limit and undervolt";
     wantedBy = [ "multi-user.target" ];
     wants = [ "systemd-udev-settle.service" ];
@@ -78,8 +98,8 @@
         exit 1
       fi
 
-      printf '270000000\n' > "$gpu"/hwmon/hwmon*/power1_cap
-      printf 'vo -60\n' > "$gpu/pp_od_clk_voltage"
+      printf '280000000\n' > "$gpu"/hwmon/hwmon*/power1_cap
+      printf 'vo -50\n' > "$gpu/pp_od_clk_voltage"
       printf 'c\n' > "$gpu/pp_od_clk_voltage"
     '';
   };
@@ -113,7 +133,10 @@
 
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "amdgpu" ];
-  services.desktopManager.cosmic.enable = true;
+  services.xserver.deviceSection = ''
+    Option "VariableRefresh" "true"
+  '';
+  services.desktopManager.plasma6.enable = true;
   hardware.i2c.enable = true;
 
   services.displayManager.sddm.enable = true;
@@ -198,6 +221,8 @@
     sbctl
     ddcutil
     ghostty
+    kdePackages.ksshaskpass
+    kdePackages.sddm-kcm
     wl-clipboard
     jellyfin-mpv-shim
     (mpv-unwrapped.override { waylandSupport = true; })

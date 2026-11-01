@@ -1,6 +1,7 @@
 { lib, pkgs, pkgs-unstable, ... }:
 
 let
+  inventory = import ../../inventory.nix;
   opencode = pkgs-unstable.opencode.overrideAttrs (old: {
     version = "2.2.5";
     src = pkgs-unstable.fetchFromGitHub {
@@ -45,8 +46,7 @@ in
     opencode
   ];
 
-  xdg.dataFile."icons/Cosmic".source = "${pkgs.cosmic-icons}/share/icons/Cosmic";
-  xdg.dataFile."icons/Pop".source = "${pkgs.pop-icon-theme}/share/icons/Pop";
+  xdg.dataFile."icons/breeze_cursors".source = "${pkgs.kdePackages.breeze}/share/icons/breeze_cursors";
 
   xdg.dataFile."applications/discord.desktop".text = builtins.replaceStrings
     [ "Exec=Discord" ]
@@ -54,6 +54,23 @@ in
     (builtins.readFile "${pkgs.discord}/share/applications/discord.desktop");
 
   programs.keepassxc.enable = true;
+
+  home.sessionVariables.SSH_ASKPASS_REQUIRE = "prefer";
+  home.file.".ssh/config".text = ''
+    AddKeysToAgent yes
+
+    Host router
+      HostName ${inventory.hosts.router.ipv4}
+
+    Host atx
+      HostName ${inventory.hosts.atx.ipv4}
+
+    Host worker
+      HostName ${inventory.hosts.worker.ipv4}
+
+    Host o11y
+      HostName ${inventory.hosts.o11y.ipv4}
+  '';
 
   home.file.".config/jellyfin-mpv-shim/mpv.conf".text = ''
     hwdec=auto-safe
