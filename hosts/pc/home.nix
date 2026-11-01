@@ -38,6 +38,7 @@ in
 
   home.packages = with pkgs; [
     obsidian
+    syncthing
     prismlauncher
     discord
     spotify
@@ -54,6 +55,23 @@ in
     (builtins.readFile "${pkgs.discord}/share/applications/discord.desktop");
 
   programs.keepassxc.enable = true;
+
+  services.syncthing = {
+    enable = true;
+    settings = {
+      options.relaysEnabled = false;
+      devices.atx = {
+        id = "44QIVXK-6X2VUOI-4X5QMAL-LKMHIS7-S5CQAAS-HONCLII-RFJVM3E-HR3S7QT";
+        addresses = [ "tcp://${inventory.hosts.atx.ipv4}:${toString inventory.hosts.atx.ports.syncthingTransfer}" ];
+      };
+      folders.Synced = {
+        path = "/home/veeti/Synced";
+        id = "synced-nynum-wiueh-aosdi-asfgo-hjytr-pwpre";
+        ignorePerms = true;
+        devices = [ "atx" ];
+      };
+    };
+  };
 
   home.sessionVariables.SSH_ASKPASS_REQUIRE = "prefer";
   home.file.".ssh/config".text = ''

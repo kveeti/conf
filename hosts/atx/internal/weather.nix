@@ -1,5 +1,0 @@
-{ ... }:
-
-{
-  services.weather.enable = false;
-}

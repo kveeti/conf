@@ -84,10 +84,20 @@
       ipv4 = "192.168.40.10";
       ports = {
         ssh = 22;
+        http = 80;
+        netbiosName = 137;
+        netbiosDatagram = 138;
+        netbios = 139;
+        https = 443;
+        smb = 445;
         initrdSsh = 2222;
+        syncthingGui = 8384;
         vmagent = 8429;
         nodeExporter = 9100;
         smartctlExporter = 9633;
+        webdav = 20009;
+        syncthingDiscovery = 21027;
+        syncthingTransfer = 22000;
       };
     };
 
@@ -101,36 +111,6 @@
         restServer = 8001;
         vmagent = 8429;
         nodeExporter = 9100;
-      };
-    };
-
-    atx-internal = {
-      hostname = "internal";
-      network = "servers";
-      ipv4 = "192.168.40.11";
-      ports = {
-        ssh = 22;
-        http = 80;
-        netbiosName = 137;
-        netbiosDatagram = 138;
-        netbios = 139;
-        https = 443;
-        smb = 445;
-        oauth2Rss = 4180;
-        oauth2Paperless = 4181;
-        nginxStatus = 8050;
-        vmagent = 8429;
-        syncthingGui = 8384;
-        nodeExporter = 9100;
-        nginxExporter = 9113;
-        postgresqlExporter = 9187;
-        rss = 20000;
-        radicale = 20005;
-        weather = 20006;
-        paperless = 20007;
-        food = 20008;
-        syncthingDiscovery = 21027;
-        syncthingTransfer = 22000;
       };
     };
 
