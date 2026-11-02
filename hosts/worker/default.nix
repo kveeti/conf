@@ -22,6 +22,7 @@ in {
     ./radicale.nix
     ./tls.nix
     ./rss.nix
+    ./shared-folder.nix
     ./tasks.nix
     ./weather.nix
   ];

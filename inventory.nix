@@ -84,20 +84,10 @@
       ipv4 = "192.168.40.10";
       ports = {
         ssh = 22;
-        http = 80;
-        netbiosName = 137;
-        netbiosDatagram = 138;
-        netbios = 139;
-        https = 443;
-        smb = 445;
         initrdSsh = 2222;
-        syncthingGui = 8384;
         vmagent = 8429;
         nodeExporter = 9100;
         smartctlExporter = 9633;
-        webdav = 20009;
-        syncthingDiscovery = 21027;
-        syncthingTransfer = 22000;
       };
     };
 
@@ -133,10 +123,12 @@
       ports = {
         ssh = 22;
         https = 443;
+        smb = 445;
         initrdSsh = 2222;
         grafana = 3000;
         publicHttp = 8080;
         publicHttps = 8443;
+        syncthingGui = 8384;
         keycloak = 20007;
         keycloakManagement = 9000;
         vmagent = 8429;
@@ -148,6 +140,9 @@
         tasksFrontend = 20004;
         money = 20005;
         papra = 20008;
+        webdav = 20009;
+        syncthingDiscovery = 21027;
+        syncthingTransfer = 22000;
         mongo = 27017;
       };
     };

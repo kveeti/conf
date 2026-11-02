@@ -19,7 +19,6 @@ in {
     ./media/default.nix
     ./minecraft/default.nix
     ./network.nix
-    ./shared-folder.nix
     ./storage.nix
   ];
 
