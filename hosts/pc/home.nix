@@ -51,7 +51,7 @@ in
 
   xdg.dataFile."applications/discord.desktop".text = builtins.replaceStrings
     [ "Exec=Discord" ]
-    [ "Exec=Discord --ozone-platform=wayland" ]
+    [ "Exec=Discord --ozone-platform=wayland --force-device-scale-factor=1" ]
     (builtins.readFile "${pkgs.discord}/share/applications/discord.desktop");
 
   programs.keepassxc.enable = true;
