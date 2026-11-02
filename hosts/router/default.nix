@@ -20,6 +20,7 @@ in {
     ./network.nix
     ./secure-boot.nix
     ./sqm.nix
+    ./suricata.nix
     ./telemetry.nix
     ./unifi.nix
     ./wireguard.nix

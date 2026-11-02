@@ -132,6 +132,7 @@ in {
           ethtool -G "$interface" rx 4096 tx 4096
           ethtool -C "$interface" rx-usecs 1 tx-usecs 0
         done
+        ethtool -K ${lan} tso off gso off gro off
       '';
     };
 
