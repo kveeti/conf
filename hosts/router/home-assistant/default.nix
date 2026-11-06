@@ -169,7 +169,10 @@ in {
         nameservers = [ network.router4 ];
         firewall = {
           allowedTCPPorts = [ config.homelab.ports.https ];
-          allowedUDPPorts = [ config.homelab.ports.wireguard ];
+          allowedUDPPorts = [ config.homelab.ports.wireguard config.homelab.ports.mdns config.homelab.ports.ssdp ];
+          extraCommands = ''
+            iptables -A nixos-fw -s ${network.cidr4} -p udp --dport 32768:60999 -j nixos-fw-accept
+          '';
         };
       };
 

@@ -13,9 +13,10 @@
       "person" "sun" "zone"
       "input_boolean" "input_datetime" "input_number" "input_select" "input_text"
       "timer" "counter" "schedule" "tag" "webhook"
-      "met" "mqtt" "prometheus"
+      "met" "mqtt" "prometheus" "apple_tv" "shelly" "sonos"
     ];
     configWritable = false;
+    openFirewallForComponents = true;
 
     lovelaceConfig.views = [{
       title = "Home";
@@ -26,6 +27,7 @@
             { type = "heading"; heading_style = "title"; heading = "Main"; }
             { type = "tile"; entity = "light.living_room_lights"; name = "Living room"; vertical = false; features_position = "bottom"; }
             { type = "tile"; entity = "light.kitchen_ceiling_light"; name = "Kitchen"; vertical = false; features_position = "bottom"; }
+            { type = "tile"; entity = "switch.shellyplugsg3_8cbfea9ad794"; name = "Star"; vertical = false; tap_action.action = "toggle"; icon_tap_action.action = "toggle"; features_position = "bottom"; }
             { type = "tile"; entity = "light.bedroom_light_left"; name = "Bedtable"; vertical = false; icon_tap_action.action = "toggle"; features_position = "bottom"; }
             {
               type = "tile";
@@ -79,6 +81,16 @@
             { type = "tile"; entity = "sensor.living_room_temp_temperature"; name = "Living room temp"; vertical = false; icon_tap_action.action = "none"; features_position = "bottom"; }
             { type = "tile"; entity = "sensor.living_room_temp_humidity"; name = "Living room humidity"; vertical = false; features_position = "bottom"; }
             { type = "tile"; entity = "sensor.balcony_temp_temperature"; name = "Balcony temp"; vertical = false; features_position = "bottom"; }
+          ];
+        }
+        {
+          type = "grid";
+          cards = [
+            { type = "heading"; heading_style = "title"; heading = "Media"; }
+            { type = "tile"; entity = "media_player.living_room_4_living_room"; name = "Apple TV"; tap_action.action = "toggle"; icon_tap_action.action = "toggle"; }
+            { type = "tile"; entity = "media_player.dining_room_dining_room"; name = "Dining room"; features = [{ type = "media-player-volume-slider"; }]; }
+            { type = "tile"; entity = "media_player.tv_tv"; name = "TV"; features = [{ type = "media-player-volume-slider"; }]; }
+            { type = "tile"; entity = "media_player.kitchen_kitchen"; name = "Kitchen"; features = [{ type = "media-player-volume-slider"; }]; }
           ];
         }
         {
@@ -171,6 +183,7 @@
             "light.living_room_light_desk" = { state = "on"; brightness = 255; color_temp_kelvin = 3000; };
             "light.living_room_light_behind_tv" = { state = "on"; brightness = 255; color_temp_kelvin = 3000; };
             "light.living_room_light_hole" = { state = "on"; brightness = 255; color_temp_kelvin = 3000; };
+            "switch.shellyplugsg3_8cbfea9ad794".state = "on";
           };
         }
         {
@@ -180,6 +193,7 @@
             "light.living_room_light_desk" = { state = "on"; brightness = 128; color_temp_kelvin = 2700; };
             "light.living_room_light_behind_tv" = { state = "on"; brightness = 128; color_temp_kelvin = 2700; };
             "light.living_room_light_hole" = { state = "on"; brightness = 128; color_temp_kelvin = 2700; };
+            "switch.shellyplugsg3_8cbfea9ad794".state = "on";
           };
         }
         {
@@ -189,6 +203,7 @@
             "light.living_room_light_desk" = { state = "on"; brightness = 38; color_temp_kelvin = 2200; };
             "light.living_room_light_behind_tv" = { state = "on"; brightness = 38; color_temp_kelvin = 2200; };
             "light.living_room_light_hole" = { state = "on"; brightness = 38; color_temp_kelvin = 2200; };
+            "switch.shellyplugsg3_8cbfea9ad794".state = "on";
           };
         }
         {
@@ -221,11 +236,50 @@
         {
           id = "lights_off";
           name = "lights off";
-          entities."light.all_lights".state = "off";
+          entities = {
+            "light.all_lights".state = "off";
+            "switch.shellyplugsg3_8cbfea9ad794".state = "off";
+          };
         }
       ];
 
       automation = [
+        {
+          alias = "Hallway switch - stop media";
+          trigger = [{
+            platform = "mqtt";
+            topic = "zigbee2mqtt/hallway_switch";
+            value_template = "{{ value_json.action }}";
+            payload = "on_press_release";
+          }];
+          action = [
+            { service = "media_player.turn_off"; target.entity_id = "media_player.living_room_4_living_room"; continue_on_error = true; }
+            { service = "media_player.media_stop"; target.entity_id = [ "media_player.dining_room_dining_room" "media_player.tv_tv" "media_player.kitchen_kitchen" ]; }
+          ];
+        }
+        {
+          alias = "Bathroom motion - join Sonos";
+          trigger = [{ platform = "state"; entity_id = "binary_sensor.bathroom_motion_occupancy"; to = "on"; }];
+          variables.speaker = ''
+            {% set speakers = expand('media_player.tv_tv', 'media_player.kitchen_kitchen') | rejectattr('state', 'in', ['unavailable', 'unknown']) | list %}
+            {% set playing = speakers | selectattr('state', 'eq', 'playing') | list %}
+            {% set speaker = (playing or speakers) | first | default(none) %}
+            {{ speaker.entity_id if speaker else "" }}
+          '';
+          condition = [
+            { condition = "template"; value_template = "{{ speaker != '' and (state_attr('media_player.dining_room_dining_room', 'group_members') or []) | length <= 1 }}"; }
+          ];
+          action = [
+            { service = "media_player.volume_set"; target.entity_id = "media_player.dining_room_dining_room"; data.volume_level = 0.1; }
+            { service = "media_player.join"; target.entity_id = "{{ speaker }}"; data.group_members = [ "media_player.dining_room_dining_room" ]; }
+          ];
+        }
+        {
+          alias = "Bathroom lights off - leave Sonos group";
+          trigger = [{ platform = "state"; entity_id = "light.bathroom_lights"; to = "off"; }];
+          condition = [{ condition = "template"; value_template = "{{ (state_attr('media_player.dining_room_dining_room', 'group_members') or []) | length > 1 }}"; }];
+          action = [{ service = "media_player.unjoin"; target.entity_id = "media_player.dining_room_dining_room"; }];
+        }
         {
           alias = "Switches - scenes";
           mode = "queued";
@@ -246,7 +300,13 @@
               { conditions = "{{ trigger.id == 'up_press_release' }}"; sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_1"; }]; }
               { conditions = "{{ trigger.id == 'down_press_release' }}"; sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_2"; }]; }
               { conditions = "{{ trigger.id == 'off_press_release' }}"; sequence = [{ service = "scene.turn_on"; target.entity_id = "scene.living_room_3"; }]; }
-              { conditions = "{{ trigger.id == 'on_press_release' }}"; sequence = [{ service = "light.turn_off"; target.entity_id = "light.all_lights"; }]; }
+              {
+                conditions = "{{ trigger.id == 'on_press_release' }}";
+                sequence = [
+                  { service = "light.turn_off"; target.entity_id = "light.all_lights"; }
+                  { service = "switch.turn_off"; target.entity_id = "switch.shellyplugsg3_8cbfea9ad794"; }
+                ];
+              }
             ];
           }];
         }
