@@ -8,7 +8,7 @@ let
   secretDir = "${stateRoot}/secrets";
   repositories = [
     "auth" "authentik" "bm" "ha" "internal" "modi"
-    "bookmarks" "keycloak" "money" "papra" "radicale" "rss" "tasks" "weather"
+    "bookmarks" "keycloak" "mail" "money" "papra" "radicale" "rss" "tasks" "weather"
   ];
   passwordNames = map (repository: "restic-${repository}-password") repositories;
 in {

@@ -15,6 +15,7 @@ in {
     ./disk.nix
     ./hardware.nix
     ./keycloak.nix
+    ./mail.nix
     ./monitoring
     ./money.nix
     ./modi.nix

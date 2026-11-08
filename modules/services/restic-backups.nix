@@ -67,7 +67,7 @@ let
         LoadCredential = [ "password:${instance.passwordFile}" ];
         PrivateTmp = true;
         UMask = "0077";
-      };
+      } // instance.serviceConfig;
       script = ''
         set -euo pipefail
         exec 8>/run/backup-${name}.lock
@@ -189,6 +189,12 @@ in {
             type = lib.types.listOf lib.types.package;
             default = [];
             description = "Extra commands available during backup and restore.";
+          };
+
+          serviceConfig = lib.mkOption {
+            type = lib.types.attrsOf lib.types.anything;
+            default = {};
+            description = "Systemd service settings for the backup job.";
           };
 
           schedule = lib.mkOption {

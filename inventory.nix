@@ -124,6 +124,8 @@
         ssh = 22;
         https = 443;
         smb = 445;
+        submissions = 465;
+        imaps = 993;
         initrdSsh = 2222;
         grafana = 3000;
         publicHttp = 8080;

@@ -107,6 +107,7 @@ in {
           ''"ha.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"z2m.internal.veetik.com. IN A ${hosts.home-assistant.ipv4}"''
           ''"worker.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
+          ''"mail.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
           ''"restic.internal.veetik.com. IN A ${hosts.backup-vm.ipv4}"''
           ''"grafana.internal.veetik.com. IN A ${hosts.worker.ipv4}"''
           ''"o11y.internal.veetik.com. IN A ${hosts.o11y.ipv4}"''
