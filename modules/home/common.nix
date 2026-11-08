@@ -13,6 +13,16 @@
   };
 
   programs.zsh.enable = true;
+  home.shellAliases = {
+    ls = "eza -la";
+    f = "cd \"$(find ~/code ~/things -type d -maxdepth 7 -print0 | fzf --read0)\"";
+    gs = "git status --short";
+    gl = "git log --pretty=format:\"%C(yellow)%h%C(reset) %C(dim)%ad%C(reset) %C(green)%an%C(reset) %s\" --date=human";
+    gc = "git commit -S";
+    gca = "git commit -S --amend";
+    k = "kubectl";
+    e = "nvim";
+  };
   programs.zsh.initContent = ''
     mosh() {
       local theme=light
@@ -102,5 +112,5 @@
     extraConfig = builtins.readFile ./tmux.conf;
   };
 
-  home.packages = with pkgs; [ fzf gnupg pv zstd ] ++ [ pkgs-unstable.yazi ];
+  home.packages = with pkgs; [ eza fzf gnupg jq pv zstd ] ++ [ pkgs-unstable.yazi ];
 }

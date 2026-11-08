@@ -1,5 +1,7 @@
 { pkgs, nixpkgs, ... }:
 {
+            home.packages = [ pkgs.ripgrep ];
+
             programs.nixvim = {
               nixpkgs.source = nixpkgs;
               enable = true;

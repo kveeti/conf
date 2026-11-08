@@ -206,7 +206,6 @@
     hashedPasswordFile = config.age.secrets.password.path;
   };
 
-  programs.firefox.enable = true;
   programs.steam.enable = true;
 
   virtualisation.podman = {
@@ -220,7 +219,6 @@
     git
     sbctl
     ddcutil
-    ghostty
     kdePackages.ksshaskpass
     kdePackages.sddm-kcm
     wl-clipboard

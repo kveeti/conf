@@ -5,7 +5,6 @@ let
   username = "veeti";
   homeDir = "/Users/${username}";
   system = "aarch64-darwin";
-  pi-coding-agent = (import nixpkgs-unstable { inherit system; }).pi-coding-agent;
 in
 {
         nix.settings.experimental-features = "nix-command flakes";
@@ -18,28 +17,12 @@ in
           git
           zstd
           pv
-          eza
           gnupg
           fzf
           home-manager
-          ripgrep
           mpv
-          opencode
-          pi-coding-agent
           mosh
         ];
-
-        environment.shellAliases = {
-          nixswitch = "sudo darwin-rebuild switch --flake .#${hostname}";
-          ls = "eza -la";
-          f = "cd \"$(find ~/code ~/things -type d -maxdepth 7 -print0 | fzf --read0)\"";
-          gs = "git status --short";
-          gl = "git log --pretty=format:\"%C(yellow)%h%C(reset) %C(dim)%ad%C(reset) %C(green)%an%C(reset) %s\" --date=human";
-          gc = "git commit -S";
-          gca = "git commit -S --amend";
-          k = "kubectl";
-          e = "nvim";
-        };
 
         system.primaryUser = username;
         users.users."${username}" = {
@@ -69,16 +52,14 @@ in
               push.autoSetupRemote = true;
             };
 
-            xdg.configFile."ghostty/config".source = config.lib.file.mkOutOfStoreSymlink ./ghostty.conf;
-            xdg.configFile."ghostty/themes/vague".source = config.lib.file.mkOutOfStoreSymlink ./ghostty-vague.conf;
-            imports = [ ../modules/home/nvim.nix ../modules/home/common.nix ];
+            imports = [ ../modules/home/nvim.nix ../modules/home/common.nix ../modules/home/desktop.nix ];
           })
         ];
 
         homebrew.enable = true;
         homebrew.taps = [ "cormacrelf/tap" ];
-        homebrew.casks = [ "keepassxc" "alacritty" "ghostty" "firefox" "syncthing-app" "codex" ];
-        homebrew.brews = [ "lazygit" "colima" "dark-notify" ];
+        homebrew.casks = [ "alacritty" "ghostty" "codex" ];
+        homebrew.brews = [ "colima" "dark-notify" ];
         environment.systemPath = [ "/opt/homebrew/bin" ];
 
         security.pam.services.sudo_local = {
@@ -175,4 +156,5 @@ in
         system.configurationRevision = self.rev or self.dirtyRev or null;
         system.stateVersion = 6;
         nixpkgs.hostPlatform = system;
+        nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (pkgs.lib.getName pkg) [ "discord" "spotify" ];
 }
