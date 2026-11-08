@@ -31,7 +31,6 @@ in
     [ "Exec=Discord --ozone-platform=wayland --force-device-scale-factor=1" ]
     (builtins.readFile "${pkgs.discord}/share/applications/discord.desktop");
 
-  home.sessionVariables.SSH_ASKPASS_REQUIRE = "prefer";
   home.file.".ssh/config".text = ''
     AddKeysToAgent yes
 
