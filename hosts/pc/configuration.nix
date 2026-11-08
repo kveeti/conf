@@ -8,6 +8,7 @@
       ./secureboot.nix
       ./single-signon.nix
       ./agent-vm.nix
+      ./audio.nix
       ./helium.nix
       ../../modules/telemetry/metrics.nix
       inputs.lanzaboote.nixosModules.lanzaboote
@@ -160,38 +161,6 @@
 
   services.printing.enable = true;
   services.ipp-usb.enable = true;
-
-  services.pulseaudio.enable = false;
-  security.rtkit.enable = true;
-  services.avahi.enable = true;
-
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    raopOpenFirewall = true;
-    extraConfig.pipewire.raop = {
-      "context.modules" = [
-        {
-          name = "libpipewire-module-raop-discover";
-          args."stream.rules" = [
-            {
-              matches = [ { "raop.ip" = "~.*"; } ];
-              actions."create-stream"."stream.props"."priority.session" = 1;
-            }
-          ];
-        }
-      ];
-    };
-    wireplumber.extraConfig."disable-bluetooth-mics" = {
-      "monitor.bluez.properties" = {
-        "bluez5.roles" = [ "a2dp_sink" "a2dp_source" "bap_sink" ];
-      };
-    };
-    #jack.enable = true;
-    #media-session.enable = true;
-  };
 
   # services.xserver.libinput.enable = true;
 

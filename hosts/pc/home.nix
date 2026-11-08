@@ -31,6 +31,8 @@ in
     [ "Exec=Discord --ozone-platform=wayland --force-device-scale-factor=1" ]
     (builtins.readFile "${pkgs.discord}/share/applications/discord.desktop");
 
+  services.easyeffects.enable = true;
+
   home.file.".ssh/config".text = ''
     AddKeysToAgent yes
 
