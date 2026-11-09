@@ -210,6 +210,7 @@
         modules = [
           home-manager.darwinModules.home-manager
           nix-homebrew.darwinModules.nix-homebrew
+          secrets.darwinModules.mac
           ./hosts/mac
         ];
       };

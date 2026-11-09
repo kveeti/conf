@@ -10,6 +10,10 @@ let
   containerAddress = "10.204.0.2";
 in {
   age.secrets.samba-syncer-pass = {};
+  age.secrets.syncthing-gui-password = {
+    owner = "syncer";
+    group = "syncer";
+  };
 
   users.groups.syncer.gid = syncerUid;
   users.users.syncer = {
@@ -31,13 +35,15 @@ in {
     group = "syncer";
     openDefaultPorts = false;
     guiAddress = "127.0.0.1:${toString ports.syncthingGui}";
+    guiPasswordFile = config.age.secrets.syncthing-gui-password.path;
     settings = {
+      gui.user = "veetik";
       options = {
         relaysEnabled = false;
         localAnnounceEnabled = true;
       };
       devices = {
-        mba.id = "SHX6HEH-RQGVIQC-FMV3WZL-2R6FSSE-CI76LVA-ISAPT2K-FTN7FMA-M5WJMQY";
+        mba.id = "7LBSUHY-4L47ERW-JUGZNRB-LQUF73W-72YL3F6-GDOEGPR-BMXTXC4-NYGTZQ6";
         pc.id = "A5P2SJ2-SRWEGLF-UNRVNNL-7QYU55Y-NGVAUPY-ZXJ3KVI-CVDFJSP-VV4IEAA";
       };
       folders.Synced = {

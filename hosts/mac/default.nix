@@ -1,8 +1,8 @@
-{ self, pkgs, nixpkgs, nixpkgs-unstable, agenix, nixvim, ... }:
+{ config, self, pkgs, nixpkgs, nixpkgs-unstable, agenix, nixvim, ... }:
 
 let
   hostname = "e";
-  username = "veeti";
+  username = "veetik";
   homeDir = "/Users/${username}";
   system = "aarch64-darwin";
 in
@@ -31,16 +31,28 @@ in
           home = homeDir;
         };
 
+        age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+        age.secrets.syncthing-gui-password = {
+          owner = username;
+          group = "staff";
+        };
+
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;
         home-manager.extraSpecialArgs = {
           inherit nixpkgs;
           pkgs-unstable = import nixpkgs-unstable { inherit system; };
         };
-        home-manager.users."${username}".home = {
-          username = username;
-          homeDirectory = homeDir;
-          stateVersion = "25.05";
+        home-manager.users."${username}" = {
+          home = {
+            username = username;
+            homeDirectory = homeDir;
+            stateVersion = "25.05";
+          };
+          services.syncthing.guiCredentials = {
+            inherit username;
+            passwordFile = config.age.secrets.syncthing-gui-password.path;
+          };
         };
 
         home-manager.sharedModules = [
