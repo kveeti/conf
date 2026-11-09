@@ -44,6 +44,8 @@
 
     secrets-pc.follows = "secrets";
 
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
@@ -61,7 +63,7 @@
     secrets-router.follows = "secrets";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-darwin, nixpkgs-unstable, nix-darwin, agenix, nixvim, disko, lanzaboote, money, food, rss, tasks, weather, microvm, home-manager, secrets, secrets-atx, secrets-worker, secrets-o11y, secrets-router, secrets-pc }:
+  outputs = { self, nixpkgs, nixpkgs-darwin, nixpkgs-unstable, nix-darwin, nix-homebrew, agenix, nixvim, disko, lanzaboote, money, food, rss, tasks, weather, microvm, home-manager, secrets, secrets-atx, secrets-worker, secrets-o11y, secrets-router, secrets-pc }:
     let
       inventory = import ./inventory.nix;
       routerInventory = import ./hosts/router/inventory.nix { inherit inventory; lib = nixpkgs.lib; };
@@ -200,25 +202,6 @@
         };
       };
 
-      homeConfigurations."veeti@pc" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "x86_64-linux";
-          config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
-            "discord"
-            "spotify"
-            "steam"
-            "steam-unwrapped"
-            "steam-run"
-            "obsidian"
-          ];
-        };
-        extraSpecialArgs = {
-          inherit nixpkgs;
-          pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; };
-        };
-        modules = [ nixvim.homeModules.nixvim ./hosts/pc/home.nix ];
-      };
-
       darwinConfigurations.e = nix-darwin.lib.darwinSystem {
         specialArgs = {
           inherit self nixpkgs-unstable agenix nixvim;
@@ -226,7 +209,8 @@
         };
         modules = [
           home-manager.darwinModules.home-manager
-          ./mac
+          nix-homebrew.darwinModules.nix-homebrew
+          ./hosts/mac
         ];
       };
     };

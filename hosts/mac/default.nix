@@ -7,6 +7,7 @@ let
   system = "aarch64-darwin";
 in
 {
+        nix.package = pkgs.lix;
         nix.settings.experimental-features = "nix-command flakes";
 
         networking.hostName = hostname;
@@ -52,14 +53,17 @@ in
               push.autoSetupRemote = true;
             };
 
-            imports = [ ../modules/home/nvim.nix ../modules/home/common.nix ../modules/home/desktop.nix ];
+            imports = [ ../../modules/home/nvim.nix ../../modules/home/common.nix ../../modules/home/desktop.nix ];
           })
         ];
 
+        nix-homebrew = {
+          enable = true;
+          user = username;
+        };
+
         homebrew.enable = true;
-        homebrew.taps = [ "cormacrelf/tap" ];
-        homebrew.casks = [ "alacritty" "ghostty" "codex" ];
-        homebrew.brews = [ "colima" "dark-notify" ];
+        homebrew.casks = [ "ghostty" ];
         environment.systemPath = [ "/opt/homebrew/bin" ];
 
         security.pam.services.sudo_local = {
