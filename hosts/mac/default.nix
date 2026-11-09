@@ -49,6 +49,7 @@ in
             homeDirectory = homeDir;
             stateVersion = "25.05";
           };
+          programs.firefox.configPath = "Library/Application Support/org.nixos.firefox";
           services.syncthing.guiCredentials = {
             inherit username;
             passwordFile = config.age.secrets.syncthing-gui-password.path;

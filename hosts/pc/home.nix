@@ -1,4 +1,4 @@
-{ lib, pkgs, pkgs-unstable, ... }:
+{ config, lib, pkgs, pkgs-unstable, ... }:
 
 let
   inventory = import ../../inventory.nix;
@@ -17,6 +17,11 @@ in
   qt.kde.settings.powerdevilrc.AC.SuspendSession.idleTime = 0;
 
   programs.bash.enable = true;
+
+  programs.firefox = {
+    configPath = "${config.xdg.configHome}/mozilla/firefox";
+    profiles.default.path = "klkbM7VY.Profile 1";
+  };
 
   home.packages = with pkgs; [
     nvtopPackages.amd
