@@ -40,7 +40,9 @@ in
   };
 
   home.packages = with pkgs; [
+    chromium
     nvtopPackages.amd
+    obs-studio
     prismlauncher
     (llama-cpp.override { vulkanSupport = true; })
   ];
