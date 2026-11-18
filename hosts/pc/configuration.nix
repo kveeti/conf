@@ -158,7 +158,6 @@
   console.keyMap = "fi";
 
   services.printing.enable = true;
-  services.ipp-usb.enable = true;
 
   # services.xserver.libinput.enable = true;
 

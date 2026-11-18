@@ -1,14 +1,12 @@
 {
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
-  services.avahi.enable = true;
 
   services.pipewire = {
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    raopOpenFirewall = true;
     extraConfig.client.easyeffects-threads = {
       "context.properties.rules" = [
         {
@@ -58,19 +56,6 @@
         {
           matches = [ { "application.name" = "spotify"; } ];
           actions.update-props."target.object" = "music_sink";
-        }
-      ];
-    };
-    extraConfig.pipewire.raop = {
-      "context.modules" = [
-        {
-          name = "libpipewire-module-raop-discover";
-          args."stream.rules" = [
-            {
-              matches = [ { "raop.ip" = "~.*"; } ];
-              actions."create-stream"."stream.props"."priority.session" = 1;
-            }
-          ];
         }
       ];
     };
