@@ -18,7 +18,7 @@ let
       Group = "vmail";
       StateDirectory = "fetchmail/${folder}";
       StateDirectoryMode = "0700";
-      ExecStart = "${pkgs.fetchmail}/bin/fetchmail --daemon 60 --nodetach --nosyslog ${lib.optionalString (folder == "inbox") "--idle "}--fetchmailrc ${config.age.secrets.mail-fetchmail.path} --pidfile /var/lib/fetchmail/${folder}/fetchmail.pid --idfile /var/lib/fetchmail/${folder}/ids ${folder}";
+      ExecStart = "${pkgs.fetchmail}/bin/fetchmail --daemon 60 --nodetach --nosyslog ${lib.optionalString (folder == "inbox") "--idle --idletimeout 300 "}--fetchmailrc ${config.age.secrets.mail-fetchmail.path} --pidfile /var/lib/fetchmail/${folder}/fetchmail.pid --idfile /var/lib/fetchmail/${folder}/ids ${folder}";
       Restart = "on-failure";
       RestartSec = "30s";
       SuccessExitStatus = [ 1 ];
