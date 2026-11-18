@@ -18,6 +18,22 @@ in
 
   programs.bash.enable = true;
 
+  programs.tmux = {
+    plugins = [
+      {
+        plugin = pkgs.tmuxPlugins.resurrect;
+        extraConfig = ''
+          set -g @resurrect-capture-pane-contents 'on'
+        '';
+      }
+    ];
+    extraConfig = lib.mkAfter ''
+      set -g @continuum-save-interval '15'
+      set -g @continuum-restore 'on'
+      run-shell ${pkgs.tmuxPlugins.continuum.rtp}
+    '';
+  };
+
   programs.firefox = {
     configPath = "${config.xdg.configHome}/mozilla/firefox";
     profiles.default.path = "klkbM7VY.Profile 1";
