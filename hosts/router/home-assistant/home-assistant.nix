@@ -311,6 +311,32 @@
           }];
         }
         {
+          alias = "Kitchen switch - lights";
+          mode = "queued";
+          trigger = map (action: {
+            platform = "mqtt";
+            topic = "zigbee2mqtt/kitchen_remote";
+            value_template = "{{ value_json.action }}";
+            payload = action;
+            id = action;
+          }) [ "up_press_release" "down_press_release" "off_press_release" "on_press_release" "on_hold" ];
+          action = [{
+            choose = [
+              { conditions = "{{ trigger.id == 'up_press_release' }}"; sequence = [{ service = "light.turn_on"; target.entity_id = "light.kitchen_ceiling_light"; data = { brightness = 255; color_temp_kelvin = 3000; }; }]; }
+              { conditions = "{{ trigger.id == 'down_press_release' }}"; sequence = [{ service = "light.turn_on"; target.entity_id = "light.kitchen_ceiling_light"; data = { brightness = 128; color_temp_kelvin = 2700; }; }]; }
+              { conditions = "{{ trigger.id == 'off_press_release' }}"; sequence = [{ service = "light.turn_on"; target.entity_id = "light.kitchen_ceiling_light"; data = { brightness = 38; color_temp_kelvin = 2200; }; }]; }
+              { conditions = "{{ trigger.id == 'on_press_release' }}"; sequence = [{ service = "light.turn_off"; target.entity_id = "light.kitchen_ceiling_light"; }]; }
+              {
+                conditions = "{{ trigger.id == 'on_hold' }}";
+                sequence = [
+                  { service = "light.turn_off"; target.entity_id = "light.all_lights"; }
+                  { service = "switch.turn_off"; target.entity_id = "switch.shellyplugsg3_8cbfea9ad794"; }
+                ];
+              }
+            ];
+          }];
+        }
+        {
           alias = "Bathroom motion lights";
           mode = "restart";
           trigger = [
