@@ -9,7 +9,6 @@
       ./single-signon.nix
       ./agent-vm.nix
       ./audio.nix
-      ./helium.nix
       ../../modules/telemetry/metrics.nix
       inputs.lanzaboote.nixosModules.lanzaboote
     ];
@@ -43,7 +42,6 @@
     "steam-unwrapped"
     "steam-run"
     "spotify"
-    "obsidian"
   ];
 
   boot.loader.systemd-boot.enable = true;

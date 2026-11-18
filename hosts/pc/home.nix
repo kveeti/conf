@@ -41,7 +41,6 @@ in
 
   home.packages = with pkgs; [
     nvtopPackages.amd
-    obsidian
     prismlauncher
     (llama-cpp.override { vulkanSupport = true; })
   ];
