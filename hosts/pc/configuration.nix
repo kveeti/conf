@@ -84,7 +84,7 @@
 
   systemd.services.amdgpu-tuning = {
     enable = true;
-    description = "Apply GPU power limit and undervolt";
+    description = "Apply GPU power limit, undervolt and fan settings";
     wantedBy = [ "multi-user.target" ];
     wants = [ "systemd-udev-settle.service" ];
     after = [ "systemd-udev-settle.service" ];
@@ -93,15 +93,49 @@
       gpu=/sys/bus/pci/devices/0000:03:00.0
       if [[ $(< "$gpu/vendor") != 0x1002 ||
             $(< "$gpu/device") != 0x7550 ||
-            $(< "$gpu/subsystem_vendor") != 0x1da2 ||
-            $(< "$gpu/subsystem_device") != 0x3490 ]]; then
+            $(< "$gpu/subsystem_vendor") != 0x1eae ||
+            $(< "$gpu/subsystem_device") != 0x8811 ]]; then
         printf 'GPU identity mismatch at %s; refusing to apply tuning\n' "$gpu" >&2
         exit 1
       fi
 
-      printf '280000000\n' > "$gpu"/hwmon/hwmon*/power1_cap
-      printf 'vo -50\n' > "$gpu/pp_od_clk_voltage"
+      isPowerReady=false
+      for attempt in {1..50}; do
+        for power_cap in "$gpu"/hwmon/hwmon*/power1_cap; do
+          if [[ -e "$power_cap" ]]; then
+            isPowerReady=true
+            break 2
+          fi
+        done
+        sleep 0.1
+      done
+      if [[ "$isPowerReady" != true ]]; then
+        printf 'GPU power controls not ready at %s\n' "$gpu" >&2
+        exit 1
+      fi
+
+      printf '285000000\n' > "$gpu"/hwmon/hwmon*/power1_cap
+      printf 'vo -60\n' > "$gpu/pp_od_clk_voltage"
       printf 'c\n' > "$gpu/pp_od_clk_voltage"
+      printf '1200\n' > "$gpu/gpu_od/fan_ctrl/acoustic_limit_rpm_threshold"
+      printf 'c\n' > "$gpu/gpu_od/fan_ctrl/acoustic_limit_rpm_threshold"
+      printf '65\n' > "$gpu/gpu_od/fan_ctrl/fan_zero_rpm_stop_temperature"
+      printf 'c\n' > "$gpu/gpu_od/fan_ctrl/fan_zero_rpm_stop_temperature"
+      printf '900\n' > "$gpu/gpu_od/fan_ctrl/acoustic_target_rpm_threshold"
+      printf 'c\n' > "$gpu/gpu_od/fan_ctrl/acoustic_target_rpm_threshold"
+    '';
+  };
+
+  systemd.services.gpu-leds-off = {
+    description = "Turn off GPU LEDs through the motherboard ARGB header";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "systemd-udev-settle.service" ];
+    after = [ "systemd-udev-settle.service" ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      ${pkgs.openrgb}/bin/openrgb --noautoconnect \
+        --device 'X870M AORUS ELITE WIFI7 ICE' \
+        --zone 1 --size 32 --mode Static --color 000000
     '';
   };
 
