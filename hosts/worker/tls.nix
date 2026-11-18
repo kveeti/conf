@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 let
   ports = config.homelab.ports;
@@ -17,6 +17,14 @@ in {
 
   services.nginx = {
     enable = true;
+    package = pkgs.nginxMainline.overrideAttrs (old: {
+      version = "1.31.9";
+      nginxVersion = "1.31.9";
+      src = pkgs.fetchurl {
+        url = "https://nginx.org/download/nginx-1.31.9.tar.gz";
+        hash = "sha256-oRxe7uLiV/RHjw5kn4SwBAeH0nfS0+UjOVKqa23LgK0=";
+      };
+    });
     recommendedProxySettings = true;
     virtualHosts = {
       "public-http-default" = {
