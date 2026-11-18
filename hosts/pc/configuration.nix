@@ -141,6 +141,8 @@
 
   services.udev.extraRules = ''
     KERNEL=="hidraw*", ATTRS{idVendor}=="19f5", MODE="0666"
+    KERNEL=="hidraw*", ATTRS{idVendor}=="3434", ATTRS{idProduct}=="d09d", MODE="0666"
+    KERNEL=="hidraw*", ATTRS{idVendor}=="3434", ATTRS{idProduct}=="d05a", MODE="0666"
   '';
 
   homelab.metrics = {
