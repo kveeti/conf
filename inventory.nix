@@ -130,6 +130,8 @@
         grafana = 3000;
         publicHttp = 8080;
         publicHttps = 8443;
+        streamHttp = 8889;
+        streamWebrtc = 8189;
         syncthingGui = 8384;
         keycloak = 20007;
         keycloakManagement = 9000;

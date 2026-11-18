@@ -41,6 +41,12 @@ let
       destinationPort = workerPorts.publicHttps;
     }
     {
+      name = "stream-webrtc";
+      destination = hosts.worker.ipv4;
+      protocol = "udp";
+      ports = [ workerPorts.streamWebrtc ];
+    }
+    {
       name = "minecraft";
       destination = hosts.minecraft.ipv4;
       protocol = "tcp";
