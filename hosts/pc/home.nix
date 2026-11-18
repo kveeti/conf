@@ -56,6 +56,14 @@ in
 
   services.easyeffects.enable = true;
 
+  xdg.configFile."autostart/ssh-add.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=SSH keys
+    Exec=${pkgs.coreutils}/bin/env SSH_ASKPASS=${pkgs.kdePackages.ksshaskpass}/bin/ksshaskpass SSH_ASKPASS_REQUIRE=force ${pkgs.openssh}/bin/ssh-add
+    Terminal=false
+  '';
+
   home.file.".ssh/config".text = ''
     AddKeysToAgent yes
 
