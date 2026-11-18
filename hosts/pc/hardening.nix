@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, inventory, lib, pkgs, ... }:
 
 {
   networking.firewall = {
@@ -6,6 +6,10 @@
     allowPing = false;
     allowedTCPPorts = [ ];
     allowedUDPPorts = [ ];
+    extraInputRules = ''
+      ip saddr ${inventory.networks.trusted.cidr4} tcp dport 8000-8999 accept
+      ip6 saddr ${inventory.networks.trusted.cidr6} tcp dport 8000-8999 accept
+    '';
   };
   networking.nftables.enable = true;
 
